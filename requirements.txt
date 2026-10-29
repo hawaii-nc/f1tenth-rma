@@ -1,0 +1,10 @@
+# Training / evaluation (Python 3.8 to match f110_gym 0.2.1 and the Jetson's JetPack 5)
+torch>=1.13
+numpy>=1.18
+gymnasium>=0.28
+pyyaml>=5.3
+scipy>=1.7
+tensorboard>=2.10
+matplotlib>=3.3
+# f110_gym 0.2.1 is NOT on PyPI — install from source (pins gym==0.19, numpy<=1.22):
+#   see docker/Dockerfile or docs/REPRODUCE.md

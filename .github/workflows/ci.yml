@@ -1,0 +1,36 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install (CPU torch; f110_gym replaced by tests/fake_sim.py)
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install numpy gymnasium pyyaml scipy tensorboard matplotlib pytest
+      - name: Unit + integration tests
+        run: pytest -q tests
+      - name: Experiment scripts smoke run (fake simulator)
+        env:
+          F1TENTH_FAKE_SIM: '1'
+          F1TENTH_FAKE_HALF_WIDTH: '50'
+        run: |
+          cd experiments
+          python e0_grip_gate.py -n 1 --max-steps 120 --out /tmp/e0
+          python e1_e2_calibration.py -n 1 --max-steps 120 --tracks aut_tight --out /tmp/e1
+          python e3_transient.py -n 1 --calib-episodes 1 --max-steps 150 --change-step 60 --tracks aut_tight --out /tmp/e3
+          python e4_causal.py -n 1 --max-steps 120 --tracks aut_tight --out /tmp/e4
+          python e5_signal.py -n 4 --max-steps 120 --tracks aut_tight --out /tmp/e5
+      - name: Plots from the smoke results
+        run: |
+          mkdir -p /tmp/res/e0 /tmp/res/e1_e2 /tmp/res/e3 /tmp/res/e4
+          mv /tmp/e0 /tmp/res/e0/smoke; mv /tmp/e1 /tmp/res/e1_e2/smoke; mv /tmp/e3 /tmp/res/e3/smoke; mv /tmp/e4 /tmp/res/e4/smoke
+          python analysis/plot_results.py /tmp/res --out /tmp/figures
