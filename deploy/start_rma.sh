@@ -6,8 +6,10 @@ export LD_LIBRARY_PATH=~/local_libs:$LD_LIBRARY_PATH
 export LD_PRELOAD=/usr/lib/aarch64-linux-gnu/liblapack.so.3
 export PYTHONPATH=$PYTHONPATH:~
 export ROS_DOMAIN_ID=20
+# Checkpoints: copy checkpoints/final/*.pt from the repo here (or override)
+CKPT_DIR=${RMA_CKPT_DIR:-~/rma_deploy_ws/src/rma_deploy_pkg/checkpoints}
 exec ~/rma_deploy_ws/install/rma_deploy_pkg/bin/rma_deployment_node \
-    --actor_critic ~/rma_deploy_ws/src/rma_deploy_pkg/checkpoints/phase1_v42.pt \
-    --adaptation ~/rma_deploy_ws/src/rma_deploy_pkg/checkpoints/phase2_crashtol_clean.pt \
-    --history_window 50 \
-    --odom_topic /odom
+    --actor_critic $CKPT_DIR/phase1_v42.pt \
+    --adaptation $CKPT_DIR/phase2_crashtol_clean.pt \
+    --odom_topic /odom \
+    --log_path ${RMA_LOG:-~/rma_data.csv}

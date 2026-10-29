@@ -5,7 +5,7 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description() -> LaunchDescription:
-    checkpoint_arg = DeclareLaunchArgument('checkpoint', default_value='phase1_v28.pt')
+    checkpoint_arg = DeclareLaunchArgument('checkpoint', default_value='phase1_v42.pt')
     adaptation_arg = DeclareLaunchArgument('adaptation', default_value='')
 
     rma_node = Node(

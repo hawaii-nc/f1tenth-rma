@@ -47,7 +47,7 @@ class JoyManager(Node):
             self.get_logger().info("Starting RMA Node...")
             # Spawns the node just like typing it in the terminal
             self.rma_process = subprocess.Popen(
-                ['/home/ncchong/start_rma.sh']
+                [os.path.expanduser(os.environ.get('RMA_START_SCRIPT', '~/start_rma.sh'))]
             )
             self.log_event('RMA_NODE_START')
         else:
