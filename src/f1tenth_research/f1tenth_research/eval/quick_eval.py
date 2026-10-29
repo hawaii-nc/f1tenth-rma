@@ -9,7 +9,7 @@ mean action (with TRUE intrinsics zt from get_intrinsics), and reports:
   - Laps completed (from f110_gym's lap_counts)
   - Avg / max centerline deviation (meters, if centerline CSV available)
 
-Centerline CSVs are loaded from /research_ws/maps/{track}_centerline.csv
+Centerline CSVs are loaded from $F1TENTH_MAPS_DIR/{track}_centerline.csv (default: repo maps/)
 (format: x, y, w_left, w_right). example_map has no centerline CSV so
 deviation is skipped for that track.
 
@@ -32,7 +32,8 @@ from ..models import RMAActorCritic
 
 def load_centerline(track):
     """Load centerline CSV for a track, returns Nx2 array or None."""
-    path = f'/research_ws/maps/{track}_centerline.csv'
+    from ..paths import centerline_path
+    path = str(centerline_path(track))
     if not os.path.exists(path):
         return None
     try:
@@ -134,7 +135,7 @@ def main():
     env = F1TenthRMAEnv(config=config, track=args.track)
 
     actor_critic = RMAActorCritic(obs_dim=env.observation_space.shape[0]).to(device)
-    ckpt = torch.load(args.checkpoint, map_location=device, weights_only=False)
+    ckpt = torch.load(args.checkpoint, map_location=device, weights_only=True)
     actor_critic.load_state_dict(ckpt['actor_critic'])
     actor_critic.eval()
 

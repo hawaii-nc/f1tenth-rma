@@ -77,7 +77,7 @@ class RMADeploymentNode(Node):
             env_params_dim=7,
         ).to(self.device)
         ckpt = torch.load(actor_critic_checkpoint, map_location=self.device,
-                          weights_only=False)
+                          weights_only=True)
         self.actor_critic.load_state_dict(ckpt['actor_critic'])
         self.actor_critic.eval()
         self.get_logger().info(
@@ -95,7 +95,7 @@ class RMADeploymentNode(Node):
                 intrinsics_dim=INTRINSICS_DIM,
             ).to(self.device)
             ckpt2 = torch.load(adaptation_checkpoint, map_location=self.device,
-                               weights_only=False)
+                               weights_only=True)
             self.adaptation.load_state_dict(ckpt2['adaptation'])
             self.adaptation.eval()
             self.use_adaptation = True

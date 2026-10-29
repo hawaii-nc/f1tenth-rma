@@ -16,6 +16,7 @@ Run report format:
   Event log (oscillations, wall contacts, out-of-bounds)
 """
 
+import os
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Odometry
@@ -43,7 +44,7 @@ SLIGHT_TURN_RAD         = 0.08   # rad steering threshold
 MEDIUM_TURN_RAD         = 0.20
 HARD_TURN_RAD           = 0.35
 SEGMENT_MIN_STEPS       = 10     # minimum steps to record a segment
-CENTERLINE_PATH         = '/research_ws/maps/aut_centerline.csv'
+CENTERLINE_PATH         = os.environ.get('RMA_CENTERLINE', '/research_ws/maps/aut_centerline.csv')
 SPAWN_X, SPAWN_Y        = 0.7, 0.0
 SPAWN_QZ, SPAWN_QW      = 0.000177, 0.999999
 # ────────────────────────────────────────────────────────────────────────────

@@ -85,7 +85,7 @@ class GeneralizationEvaluator:
         """
         # Load actor-critic
         self.actor_critic = RMAActorCritic().to(self.device)
-        ckpt = torch.load(actor_critic_checkpoint, map_location=self.device)
+        ckpt = torch.load(actor_critic_checkpoint, map_location=self.device, weights_only=True)
         self.actor_critic.load_state_dict(ckpt['actor_critic'])
         self.actor_critic.eval()
         
@@ -97,7 +97,7 @@ class GeneralizationEvaluator:
             intrinsics_dim=adaptation_config.get('intrinsics_dim', 8),
         ).to(self.device)
         
-        ckpt = torch.load(adaptation_checkpoint, map_location=self.device)
+        ckpt = torch.load(adaptation_checkpoint, map_location=self.device, weights_only=True)
         self.adaptation_module.load_state_dict(ckpt['adaptation'])
         self.adaptation_module.eval()
         
