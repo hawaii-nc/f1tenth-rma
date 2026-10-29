@@ -33,6 +33,7 @@ import yaml
 from ..envs import F1TenthRMAEnv, PhysicsRandomizer, SampleMode
 from ..models import RMAActorCritic, PolicyNetwork, IntrinsicsEncoder, ValueNetwork
 from ..experts import PurePursuitExpert
+from ..paths import centerline_path, raceline_path
 from ..envs.reward import RewardComputer
 
 
@@ -128,7 +129,8 @@ class Phase1Trainer:
         num_envs = self.num_envs
         config = self.config
         max_steps = self.env_config.get('max_episode_steps', 1000)
-        track = self.env_config.get('track', 'example_map')
+        # None -> the env samples from environment.tracks every episode
+        track = None
 
         if num_envs <= 1:
             env = F1TenthRMAEnv(
@@ -165,33 +167,37 @@ class Phase1Trainer:
                 track=track,
             )
     
-    def _create_expert(self) -> Optional[PurePursuitExpert]:
-        """Initialize expert controller for IL."""
+    def _create_expert(self) -> Optional[Dict[str, PurePursuitExpert]]:
+        """One Pure Pursuit expert per training track, keyed by track name."""
         if not self.training_config.get('il', {}).get('use_expert_actions', False):
             return None
-        
-        track = self.env_config.get('track', 'example_map')
-        if track == 'example_map':
-            # Real raceline waypoints (x_m, y_m columns), per f1tenth_gym example
-            wpt_data = np.loadtxt('/f1tenth_gym/examples/example_waypoints.csv',
-                                   delimiter=';', skiprows=3)
-            waypoints = wpt_data[:, 1:3]  # x_m, y_m columns
-        else:
-            # BDEvan5 benchmark centerline format: x, y, w_left, w_right (no header)
-            wpt_data = np.loadtxt(f'/research_ws/maps/{track}_centerline.csv',
-                                   delimiter=',')
-            waypoints = wpt_data[:, 0:2]  # x, y columns
-        
         expert_type = self.expert_config.get('type', 'pure_pursuit')
-        if expert_type == 'pure_pursuit':
-            return PurePursuitExpert(
+        if expert_type != 'pure_pursuit':
+            warnings.warn(f"Unknown expert type: {expert_type}, disabling expert")
+            return None
+
+        tracks = self.env_config.get('tracks') or [self.env_config.get('track', 'example_map')]
+        experts = {}
+        for track in tracks:
+            if track == 'example_map':
+                # Real raceline waypoints (x_m, y_m columns), per f1tenth_gym example
+                wpt_data = np.loadtxt('/f1tenth_gym/examples/example_waypoints.csv',
+                                      delimiter=';', skiprows=3)
+                waypoints = wpt_data[:, 1:3]
+            else:
+                # Prefer the TUMFTM minimum-curvature raceline; fall back to the
+                # centerline (x, y, w_right, w_left; no header).
+                rl = raceline_path(track)
+                if rl.exists():
+                    waypoints = np.loadtxt(rl, delimiter=',', comments='#')[:, 1:3]
+                else:
+                    waypoints = np.loadtxt(centerline_path(track), delimiter=',')[:, 0:2]
+            experts[track] = PurePursuitExpert(
                 config=self.expert_config.get('pure_pursuit', {}),
                 waypoints=waypoints,
             )
-        else:
-            warnings.warn(f"Unknown expert type: {expert_type}, disabling expert")
-            return None
-    
+        return experts
+
     def compute_gae(
         self,
         rewards: np.ndarray,
@@ -234,26 +240,26 @@ class Phase1Trainer:
         returns = advantages + values
         return advantages, returns
     
-    def get_expert_action(
-        self,
-        state: Dict,
-        physics_params: Dict,
-    ) -> Optional[np.ndarray]:
+    def get_expert_action(self, info: Dict) -> Optional[np.ndarray]:
         """
-        Get action from expert controller.
-        
-        Args:
-            state: Current state
-            physics_params: Randomized physics parameters
-            
-        Returns:
-            Expert action or None if expert not available
+        Expert action for the current step, from the privileged pose in info.
+
+        The observation has no pose (map-agnostic by design), so the pose
+        comes from info. See bug C5 in docs/BUGS_AND_LESSONS.md.
         """
-        if self.expert is None:
+        if self.expert is None or 'poses_x' not in info:
             return None
-        
-        return self.expert.compute_action(state, physics_params)
-    
+        expert = self.expert.get(info.get('track'))
+        if expert is None:
+            return None
+        state = {
+            'position': (info['poses_x'], info['poses_y']),
+            'yaw': info['pose_theta'],
+            'velocity': info.get('velocity', 0.0),
+            'yaw_rate': info.get('yaw_rate', 0.0),
+        }
+        return expert.compute_action(state, info.get('physics_params', {}))
+
     def rollout(self, num_steps: int) -> Dict:
         """
         Perform environment rollout for PPO.
@@ -342,22 +348,8 @@ class Phase1Trainer:
                     env_action = env_action[0]
 
                 # Expert action from first env
-                expert_action = None
-                if self.expert is not None:
-                    try:
-                        d0 = (info[0] if isinstance(info,(list,tuple))
-                              else info).get('physics_params', {}) if isinstance(
-                              info[0] if isinstance(info,(list,tuple)) else info, dict) else {}
-                        o0 = obs2d[0]
-                        state_dict = {
-                            'position': (float(o0[0]), float(o0[1])),
-                            'yaw': float(o0[2]),
-                            'velocity': float(o0[3]),
-                            'yaw_rate': float(o0[4])
-                        }
-                        expert_action = self.get_expert_action(state_dict, d0)
-                    except Exception:
-                        expert_action = None
+                info0 = info[0] if isinstance(info, (list, tuple)) else info
+                expert_action = self.get_expert_action(info0) if isinstance(info0, dict) else None
 
                 obs, reward, terminated, truncated, info = self.envs.step(env_action)
 
@@ -611,7 +603,7 @@ class Phase1Trainer:
     def load_checkpoint(self, filename: str):
         """Load model checkpoint."""
         path = os.path.join(self.checkpoint_dir, filename)
-        checkpoint = torch.load(path, map_location=self.device)
+        checkpoint = torch.load(path, map_location=self.device, weights_only=True)
         self.actor_critic.load_state_dict(checkpoint['actor_critic'])
         self.optimizer.load_state_dict(checkpoint['optimizer'])
         self.global_step = checkpoint['global_step']

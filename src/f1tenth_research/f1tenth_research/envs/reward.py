@@ -41,7 +41,8 @@ class RewardComputer:
     """
 
     def __init__(self, config: Dict = None, centerline: np.ndarray = None):
-        self.config = config or self._default_config()
+        # Merge so a partial YAML block still gets every default key.
+        self.config = {**self._default_config(), **(config or {})}
         self.centerline = centerline
         self._prev_centerline_idx = None
 
@@ -107,7 +108,9 @@ class RewardComputer:
         """Set centerline (Nx2 array) and precompute curvatures."""
         self.centerline = centerline
         self._prev_centerline_idx = None
-        self._precompute_curvatures()
+        self._curvatures = None
+        if centerline is not None:
+            self._precompute_curvatures()
 
     def _precompute_curvatures(self):
         """
@@ -309,7 +312,7 @@ class RewardComputer:
         _weight_st = self.config.get('weight_speed_turn', 0.5)
         if action is not None and current_velocity is not None:
             _steer_mag = abs(float(action[0])) if hasattr(action, '__len__') else 0.0
-            _v_norm = min(abs(float(current_velocity)) / 8.0, 1.0)
+            _v_norm = min(abs(float(current_velocity)) / self.config.get('speed_turn_v_norm', 8.0), 1.0)
             _steer_excess = max(0.0, _steer_mag - _steer_threshold)
             speed_turn_penalty = -_weight_st * _steer_excess * _v_norm
 
@@ -358,6 +361,24 @@ class RewardComputer:
                 -self.config.get('weight_speed_limit', 0.3) * speed_excess
             )
 
+        # ── Centerline tracking error (final config: weight 0.1) ────────────
+        # weight comes from the v42 config; see docs/RECONSTRUCTION.md
+        centerline_penalty = 0.0
+        _w_cl = self.config.get('weight_centerline_error', 0.0)
+        if (
+            _w_cl > 0.0
+            and self.centerline is not None
+            and poses_x is not None
+            and poses_y is not None
+        ):
+            _idx = self._nearest_centerline_idx(poses_x, poses_y)
+            _err = float(np.hypot(self.centerline[_idx, 0] - poses_x,
+                                  self.centerline[_idx, 1] - poses_y))
+            _thr = self.config.get('centerline_error_threshold', 0.0)
+            _max_err = self.config.get('max_track_error', 0.5)
+            if _err > _thr:
+                centerline_penalty = -_w_cl * min(_err, _max_err) / _max_err
+
         # ── Reverse penalty ──────────────────────────────────────────────────
         reverse_penalty = (
             -0.5
@@ -375,6 +396,7 @@ class RewardComputer:
             + speed_turn_penalty
             + close_wall_penalty
             + speed_limit_penalty
+            + centerline_penalty
             + reverse_penalty
         )
 
@@ -404,6 +426,7 @@ class RewardComputer:
             'speed_turn': speed_turn_penalty,
             'close_wall': close_wall_penalty,
             'speed_limit': speed_limit_penalty,
+            'centerline_error': centerline_penalty,
             'reverse': reverse_penalty,
             'total': total,
             # Diagnostic values

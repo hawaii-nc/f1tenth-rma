@@ -8,11 +8,60 @@ commanded actions are buffered in a FIFO queue and applied N steps later,
 where N = round(delay_seconds / timestep). delay_steering and delay_drive
 come from PhysicsRandomizer.sample() (typical F1Tenth servo/ESC latencies
 ~10-50ms, per literature).
+
+Every one of the 7 randomized parameters now reaches the physics:
+  grip_factor          -> params['mu']   (live-updatable via set_grip)
+  mass_scale           -> params['m']
+  inertia_scale        -> params['I']
+  motor_steering_scale -> scales the steering command
+  motor_drive_scale    -> scales the velocity command
+  delay_steering/drive -> FIFO queues
+NOTE on fidelity: f110_gym's single-track model uses a *linear* tire model.
+μ scales cornering stiffness; there is no friction-circle saturation, so the
+car cannot physically "exceed grip" in this simulator. See docs/SIM_FIDELITY.md.
 """
 import numpy as np
-import os
 from collections import deque
 from f110_gym.envs.f110_env import F110Env
+
+from ..paths import centerline_path
+
+NOMINAL_VEHICLE_PARAMS = {
+    'mu': 1.0489, 'C_Sf': 4.718, 'C_Sr': 5.4562,
+    'lf': 0.15875, 'lr': 0.17145, 'h': 0.074, 'm': 3.74,
+    'I': 0.04712, 's_min': -0.4189, 's_max': 0.4189,
+    'sv_min': -3.2, 'sv_max': 3.2, 'v_switch': 7.319,
+    'a_max': 9.51, 'v_min': -5.0, 'v_max': 20.0,
+    'width': 0.31, 'length': 0.58,
+}
+
+
+def vehicle_params_from_physics(physics_params):
+    params = dict(NOMINAL_VEHICLE_PARAMS)
+    p = physics_params or {}
+    if 'grip_factor' in p:
+        params['mu'] = NOMINAL_VEHICLE_PARAMS['mu'] * float(p['grip_factor'])
+    if 'mass_scale' in p:
+        params['m'] = NOMINAL_VEHICLE_PARAMS['m'] * float(p['mass_scale'])
+    if 'inertia_scale' in p:
+        params['I'] = NOMINAL_VEHICLE_PARAMS['I'] * float(p['inertia_scale'])
+    return params
+
+
+def spawn_pose_from_centerline(centerline_xy, spawn_xy=(0.7, 0.0)):
+    """
+    Pose at the centerline point nearest spawn_xy, heading along the track.
+
+    Heading comes from arctan2 of neighbouring centerline points: the psi
+    column in the TUMFTM raceline CSVs is 90° off and must not be used.
+    """
+    xy = np.asarray(centerline_xy)[:, 0:2]
+    d = np.hypot(xy[:, 0] - spawn_xy[0], xy[:, 1] - spawn_xy[1])
+    idx = int(np.argmin(d))
+    ip = max(0, idx - 2)
+    inn = min(len(xy) - 1, idx + 2)
+    heading = float(np.arctan2(xy[inn, 1] - xy[ip, 1], xy[inn, 0] - xy[ip, 0]))
+    return float(spawn_xy[0]), float(spawn_xy[1]), heading
 
 
 class RealF110Wrapper:
@@ -21,41 +70,44 @@ class RealF110Wrapper:
     reset(physics_params) -> obs_vec
     step(action) -> obs_vec, raw_obs_dict, done, info
     """
-    def __init__(self, map_name="/f1tenth_gym/examples/example_map", timestep=0.01, track="example_map"):
+    def __init__(self, map_name="/f1tenth_gym/examples/example_map", timestep=0.01,
+                 track="example_map", ttc_thresh=0.05):
         self.map_name = map_name
         self.timestep = timestep
         self.track = track
+        self.ttc_thresh = ttc_thresh
         self.env = None
+        self.vehicle_params = dict(NOMINAL_VEHICLE_PARAMS)
         self.last_steer = 0.0
         self.last_vel = 0.0
+        self.steer_scale = 1.0
+        self.drive_scale = 1.0
         self.steer_queue = deque([0.0])
         self.drive_queue = deque([0.0])
+        self._centerline = None
+        cl_path = centerline_path(track)
+        if cl_path.exists():
+            self._centerline = np.loadtxt(cl_path, delimiter=',')
 
     def _build_env(self, physics_params):
-        # f110_gym physics param overrides from Zhang-style et (grip_factor, mass/inertia scale)
-        params = {
-            'mu': 1.0489, 'C_Sf': 4.718, 'C_Sr': 5.4562,
-            'lf': 0.15875, 'lr': 0.17145, 'h': 0.074, 'm': 3.74,
-            'I': 0.04712, 's_min': -0.4189, 's_max': 0.4189,
-            'sv_min': -3.2, 'sv_max': 3.2, 'v_switch': 7.319,
-            'a_max': 9.51, 'v_min': -5.0, 'v_max': 20.0,
-            'width': 0.31, 'length': 0.58
-        }
-        p = physics_params or {}
-        if 'grip_factor' in p:
-            params['mu'] = 1.0489 * float(p['grip_factor'])
-        if 'mass_scale' in p:
-            params['m'] = 3.74 * float(p['mass_scale'])
-        if 'inertia_scale' in p:
-            params['I'] = 0.04712 * float(p['inertia_scale'])
-
-        self.env = F110Env(map=self.map_name, map_ext=".png",
-                            params=params, num_agents=1, timestep=self.timestep)
+        self.vehicle_params = vehicle_params_from_physics(physics_params)
+        if self.env is None:
+            self.env = F110Env(map=self.map_name, map_ext=".png",
+                               params=self.vehicle_params, num_agents=1,
+                               timestep=self.timestep)
+        else:
+            # Reusing the env avoids re-loading the map PNG every episode.
+            self.env.update_params(self.vehicle_params)
         # Increase iTTC threshold for more realistic collision detection.
         # Default 0.005s triggers at 4cm at 8m/s -- too lenient, allows wall grazing.
         # 0.05s triggers at 40cm -- within car half-width, stops wall phasing.
         for agent in self.env.sim.agents:
-            agent.ttc_thresh = 0.05
+            agent.ttc_thresh = self.ttc_thresh
+
+    def set_grip(self, grip_factor: float):
+        """Change tire friction mid-episode (wet patch / E3 step change)."""
+        self.vehicle_params['mu'] = NOMINAL_VEHICLE_PARAMS['mu'] * float(grip_factor)
+        self.env.update_params(self.vehicle_params)
 
     def _setup_delay_queues(self, physics_params):
         """Initialize FIFO delay buffers. Queue length N means an action
@@ -66,38 +118,23 @@ class RealF110Wrapper:
         n_steer = max(0, round(delay_steer_s / self.timestep))
         n_drive = max(0, round(delay_drive_s / self.timestep))
         # queue holds N pending zero-actions; popleft() on step gives delayed value
-        self.steer_queue = deque([0.0] * n_steer, maxlen=max(n_steer, 1) if n_steer > 0 else None)
-        self.drive_queue = deque([0.0] * n_drive, maxlen=max(n_drive, 1) if n_drive > 0 else None)
+        self.steer_queue = deque([0.0] * n_steer)
+        self.drive_queue = deque([0.0] * n_drive)
         self.n_steer = n_steer
         self.n_drive = n_drive
 
-    def reset(self, physics_params=None):
+    def reset(self, physics_params=None, heading_offset=0.0):
         self._build_env(physics_params)
         self._setup_delay_queues(physics_params)
-        # Spawn heading matches track's centerline direction at spawn point.
-        # AUT centerline runs at ~0 deg at spawn; example_map runs at ~78 deg.
-        # Read heading from config track setting so this works for any map.
-        import math
-        # Generic spawn heading: find nearest centerline point to [0.7,0.0]
-        # and compute heading from neighbors. Works for any map.
-        import os as _os
-        _cl_path = f'/research_ws/maps/{self.track}_centerline.csv'
-        if _os.path.exists(_cl_path):
-            _cl = np.loadtxt(_cl_path, delimiter=',')
-            _xy = _cl[:, 0:2]
-            _dists = np.sqrt((_xy[:,0]-0.7)**2 + (_xy[:,1]-0.0)**2)
-            _idx = int(np.argmin(_dists))
-            _ip = max(0, _idx-2)
-            _in = min(len(_cl)-1, _idx+2)
-            _dx = _xy[_in,0] - _xy[_ip,0]
-            _dy = _xy[_in,1] - _xy[_ip,1]
-            _cl_heading = float(np.arctan2(_dy, _dx))
-            # f110_gym: stheta=0 = +x direction, matches centerline heading.
-            # No correction needed.
-            _stheta = _cl_heading
+        p = physics_params or {}
+        self.steer_scale = float(p.get('motor_steering_scale', 1.0))
+        self.drive_scale = float(p.get('motor_drive_scale', 1.0))
+
+        if self._centerline is not None:
+            x, y, heading = spawn_pose_from_centerline(self._centerline)
         else:
-            _stheta = 1.37079632679  # example_map default (pi/2 - 0.20)
-        poses = np.array([[0.7, 0.0, _stheta]])
+            x, y, heading = 0.7, 0.0, 1.37079632679  # example_map default (pi/2 - 0.20)
+        poses = np.array([[x, y, heading + heading_offset]])
         obs, _, _, _ = self.env.reset(poses)
         self.last_steer = 0.0
         self.last_vel = float(obs['linear_vels_x'][0])
@@ -120,14 +157,15 @@ class RealF110Wrapper:
         return queue.popleft()
 
     def step(self, action):
-        # action: [steer_cmd, throttle_cmd] -> f110_gym wants [steer_angle, velocity]
-        steer_cmd, throttle_cmd = float(action[0]), float(action[1])
+        # action: [steer_angle_cmd, velocity_cmd] (already mapped to m/s by the env)
+        steer_cmd = float(action[0]) * self.steer_scale
+        velocity_cmd = float(action[1]) * self.drive_scale
 
         # Apply actuator delay (Zhang Section II-E analog: motor effectiveness/latency)
         delayed_steer = self._apply_delay(self.steer_queue, self.n_steer, steer_cmd)
-        delayed_throttle = self._apply_delay(self.drive_queue, self.n_drive, throttle_cmd)
+        delayed_velocity = self._apply_delay(self.drive_queue, self.n_drive, velocity_cmd)
 
-        ctrl = np.array([[delayed_steer, delayed_throttle]])
+        ctrl = np.array([[delayed_steer, delayed_velocity]])
         obs, _, done, info = self.env.step(ctrl)
         self.last_steer = delayed_steer
         self.last_vel = float(obs['linear_vels_x'][0])

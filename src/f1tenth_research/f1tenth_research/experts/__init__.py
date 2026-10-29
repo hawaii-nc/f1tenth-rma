@@ -33,7 +33,8 @@ class F1TenthExpertController:
         Args:
             config: Dictionary with controller hyperparameters
         """
-        self.config = config or self._default_config()
+        # merge over defaults so a partial YAML block keeps every key (bug C6)
+        self.config = {**self._default_config(), **(config or {})}
     
     def _default_config(self) -> Dict:
         """Default configuration - override in subclasses."""
@@ -97,6 +98,7 @@ class PurePursuitExpert(F1TenthExpertController):
             'wheelbase': 0.33,              # F1Tenth wheelbase (meters)
             'lookahead_distance_base': 1.5, # Base lookahead distance (meters)
             'nominal_speed': 2.0,           # Nominal cruising speed (m/s)
+            'max_speed': 3.0,               # = env max_velocity; throttle +1 maps here
             'max_steering': 0.4189,         # Max steering angle (rad)
             'min_speed': 0.5,               # Minimum speed (m/s)
             
@@ -172,11 +174,10 @@ class PurePursuitExpert(F1TenthExpertController):
         # Clamp steering to physical limits
         steering = np.clip(steering, -self.config['max_steering'], self.config['max_steering'])
         
-        # Compute throttle command to reach desired speed
-        # Simple: throttle = (desired_speed - current_velocity) * gain
-        # Negative throttle = brake/coast
-        speed_error = desired_speed - current_velocity
-        throttle = np.clip(0.5 * speed_error, -1.0, 1.0)
+        desired_speed = float(np.clip(desired_speed, self.config['min_speed'], self.config['max_speed']))
+
+        # env maps throttle to an absolute setpoint: v = (thr + 1)/2 * v_max (bug C7)
+        throttle = float(np.clip(2.0 * desired_speed / self.config['max_speed'] - 1.0, -1.0, 1.0))
         
         return np.array([steering, throttle], dtype=np.float32)
     

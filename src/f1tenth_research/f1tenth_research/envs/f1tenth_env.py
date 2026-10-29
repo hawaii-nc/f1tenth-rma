@@ -5,30 +5,42 @@ F1Tenth Gymnasium Environment Wrapper for RMA
 Wraps f1tenth_gym simulator with domain randomization, reward function, and
 state/action space specifications for Zhang et al. (2025) RMA training.
 
-Observation space (xt):
+Observation space (xt), final (v42) configuration = 113-D:
   - current_velocity: longitudinal velocity (m/s)
-  - current_steering_angle: steering angle command (rad)
-  - desired_velocity: velocity setpoint (m/s)
-  - desired_steering_angle: steering setpoint (rad)
+  - current_steering_angle: last applied steering (rad)
+  - desired_velocity: previous velocity command (m/s)
+  - desired_steering_angle: previous steering command (rad)
   - yaw_rate: angular velocity around z-axis (rad/s)
-  - [additional sensors as needed: lidar, IMU, etc.]
+  - 108 LiDAR beams, evenly subsampled from 1080, clipped to 10 m, /10
+
+No map, waypoint, raceline or pose information is in the observation -
+this is what makes the policy and φ map-agnostic.
 
 Action space (at):
-  - steering_angle_cmd: steering command (rad)
-  - throttle_cmd: throttle/velocity command
+  - steering_angle_cmd: steering command (rad), |δ| ≤ 0.4189
+  - throttle_cmd ∈ [-1, 1], mapped linearly to [0, max_velocity] m/s
 
-Returns:
-  - observation: state vector xt
-  - reward: composite reward signal (Zhang Section II-C)
-  - terminated: episode end flag
-  - truncated: time limit flag
-  - info: diagnostics (randomized params, reward breakdown)
+Config keys honoured under config['environment'] (see configs/final_phase1_v42.yaml):
+  max_velocity, tracks, track, max_episode_steps, drift_spawn_prob,
+  observation.{include_lidar, lidar_beams, lidar_max_range,
+               lidar_noise_std, lidar_dropout_prob},
+  randomization.*, reward.*
+
+Reset options (all optional):
+  training (bool)          sample physics from the training range (default True)
+  delta (float)            generalization difficulty when training=False
+  physics_params (dict)    override sampled physics (merged over nominal);
+                           used by the E-series experiments to force μ
+  disturbance_step (int)   force the grip drop at this step (E3); -1 disables
+  disturbance_grip (float) grip_factor after the forced drop
+  track (str)              force a specific track
+  obs_noise (bool)         LiDAR noise/dropout on/off (default: on iff training)
 """
 
 import numpy as np
 import gymnasium as gym
 from gymnasium import spaces
-from typing import Dict, Tuple, Optional, Any
+from typing import Dict, Tuple, Optional
 import warnings
 
 try:
@@ -40,103 +52,146 @@ except ImportError:
         "f110_gym not available - using mock environment."
     )
 
-from .randomization import PhysicsRandomizer, SampleMode
+from .randomization import (
+    PhysicsRandomizer, SampleMode, NOMINAL_PARAMS, PARAM_KEYS, params_to_vector,
+)
 from .reward import RewardComputer
+from ..paths import centerline_path, map_base
+
+MAX_STEER = 0.4189
+DRIFT_SPAWN_MAX_HEADING = 0.35  # rad; reconstruction, see docs/RECONSTRUCTION.md
 
 
 class F1TenthRMAEnv(gym.Env):
     """
     F1Tenth Gymnasium environment for RMA training.
-    
+
     Integrates:
     - Domain randomization (physics parameter sampling)
     - Composite reward function
     - State/action spaces
     - Episode termination logic
-    
+
     Reference: Zhang et al. (2025) Section II - System Setup and Randomization
     """
-    
+
     metadata = {'render_modes': [None, 'human']}
-    
+
+    # Optional callable track -> simulator wrapper (same interface as
+    # RealF110Wrapper). Tests inject a lightweight fake simulator here.
+    wrapper_factory = None
+
     def __init__(
         self,
         config: Dict = None,
         render_mode: str = None,
-        track: str = 'aut',
-        max_episode_steps: int = 1000,
+        track: str = None,
+        max_episode_steps: int = None,
     ):
         """
         Initialize F1Tenth RMA environment.
-        
+
         Args:
-            config: Dictionary with environment hyperparameters
+            config: Full YAML config dict (environment settings under 'environment')
             render_mode: Rendering mode ('human' or None)
-            track: Track name ('aut' for aut_centerline.csv)
-            max_episode_steps: Maximum steps per episode
+            track: Track name; overrides config. If None, uses config 'tracks'
+                   (sampled per episode) or config 'track'.
+            max_episode_steps: Maximum steps per episode; overrides config.
         """
         super().__init__()
-        
+
         # config is the full YAML; environment-specific settings (reward,
         # randomization, observation) live under config['environment'].
-        # Use that sub-dict as self.config so existing self.config.get(...)
-        # calls throughout this class resolve correctly.
         full_config = config or {}
         self.config = full_config.get('environment', None) or self._default_config()
         self.render_mode = render_mode
-        self.track = track
-        self.max_episode_steps = max_episode_steps
-        
+
+        if track is not None:
+            self.tracks = [track]
+        else:
+            self.tracks = list(self.config.get('tracks') or [self.config.get('track', 'aut')])
+        self.track_weights = np.ones(len(self.tracks)) / len(self.tracks)
+        self.track = self.tracks[0]
+        self.max_episode_steps = max_episode_steps or self.config.get('max_episode_steps', 1000)
+        # 8.0 for the old June checkpoints, 3.0 for v27 onward
+        self.max_velocity = float(self.config.get('max_velocity', 8.0))
+        self.drift_spawn_prob = float(self.config.get('drift_spawn_prob', 0.0))
+
         # Initialize components
         self.randomizer = PhysicsRandomizer(self.config.get('randomization', {}))
         self.reward_computer = RewardComputer(self.config.get('reward', {}))
 
-        # Load centerline for progress reward (if available for this track)
-        import os
-        centerline_path = f'/research_ws/maps/{self.track}_centerline.csv'
-        if os.path.exists(centerline_path):
-            try:
-                cl = np.loadtxt(centerline_path, delimiter=',')
-                self.reward_computer.set_centerline(cl[:, 0:2])
-                self._centerline_loaded = True
-            except Exception:
-                self._centerline_loaded = False
-        else:
-            self._centerline_loaded = False
-        
-        # Underlying f1tenth_gym environment
+        self._centerlines: Dict[str, Optional[np.ndarray]] = {}
+        self._wrappers: Dict[str, object] = {}
         self.base_env = None
-        if F1TENTH_GYM_AVAILABLE:
-            try:
-                map_name = self._resolve_map_name(self.track)
-                self.base_env = RealF110Wrapper(map_name=map_name, timestep=0.01, track=self.track)
-            except Exception as e:
-                warnings.warn(f"Failed to initialize f110_gym wrapper: {e}")
-                self.base_env = None
-        
+        self._select_track(self.track)
+
         # State-action space definition
         self._setup_spaces()
-        
+
         # Episode state
         self.current_physics_params = None
         self.prev_action = None
         self.current_state = None
         self.episode_step = 0
         self.total_episode_reward = 0.0
-    
+        self._disturbance_step = None
+        self._disturbance_grip = None
+        self._obs_noise = True
+        self._prev_velocity = 0.0
+
+    # ------------------------------------------------------------------ tracks
+    def _load_centerline(self, track: str) -> Optional[np.ndarray]:
+        if track not in self._centerlines:
+            path = centerline_path(track)
+            cl = None
+            if path.exists():
+                try:
+                    cl = np.loadtxt(path, delimiter=',')[:, 0:2]
+                except Exception:
+                    cl = None
+            self._centerlines[track] = cl
+        return self._centerlines[track]
+
     def _resolve_map_name(self, track: str) -> str:
         """
         Map a track identifier to its f110_gym map path (no extension --
         F110Env appends .png/.yaml itself).
 
         'example_map' is special-cased to f1tenth_gym's bundled example,
-        used for the original Phase 1 validation run. All other track
-        names (aut, esp, gbr, mco, CornerHall) resolve to the
-        BDEvan5-based benchmark maps copied into /research_ws/maps/.
+        used for the original Phase 1 validation run.
         """
         if track == 'example_map':
             return '/f1tenth_gym/examples/example_map'
-        return f'/research_ws/maps/{track}'
+        return map_base(track)
+
+    def _select_track(self, track: str):
+        self.track = track
+        cl = self._load_centerline(track)
+        # None clears the previous track's centerline (progress reward -> 0)
+        self.reward_computer.set_centerline(cl)
+        if track not in self._wrappers:
+            self._wrappers[track] = self._make_wrapper(track)
+        self.base_env = self._wrappers[track]
+
+    def _make_wrapper(self, track: str):
+        """Simulator backend for one track; None -> mock (zeros) mode."""
+        if self.wrapper_factory is not None:
+            return self.wrapper_factory(track)
+        if not F1TENTH_GYM_AVAILABLE:
+            return None
+        try:
+            return RealF110Wrapper(map_name=self._resolve_map_name(track), timestep=0.01, track=track)
+        except Exception as e:
+            warnings.warn(f"Failed to initialize f110_gym wrapper for {track}: {e}")
+            return None
+
+    def set_track_weights(self, weights):
+        """Curriculum hook: per-track sampling weights (track_reweight_interval)."""
+        w = np.asarray(weights, dtype=np.float64)
+        floor = float(self.config.get('track_weight_floor', 0.0))
+        w = np.maximum(w, floor)
+        self.track_weights = w / w.sum()
 
     def _default_config(self) -> Dict:
         """Default environment configuration."""
@@ -150,23 +205,23 @@ class F1TenthRMAEnv(gym.Env):
                 'normalize_obs': True,
             },
         }
-    
+
     def _setup_spaces(self):
         """
         Define observation and action spaces.
-        
+
         Observation (xt): [v_current, steering_current, v_desired, steering_desired, yaw_rate, ...]
         Action (at): [steering_cmd, throttle_cmd]
         """
         obs_config = self.config.get('observation', {})
-        
+
         # Base observation dimension: 5 core signals
         obs_dim = 5  # v, steering, v_des, steering_des, yaw_rate
-        
+
         # Add lidar if enabled
         if obs_config.get('include_lidar', False):
             obs_dim += obs_config.get('lidar_beams', 36)
-        
+
         # Observation space: all continuous, unbounded (relative to nominal ranges)
         self.observation_space = spaces.Box(
             low=-np.inf,
@@ -174,16 +229,17 @@ class F1TenthRMAEnv(gym.Env):
             shape=(obs_dim,),
             dtype=np.float32
         )
-        
+
         # Action space: steering angle + throttle/velocity command
-        # Steering: [-0.4189, 0.4189] rad (typical F1Tenth limits)
-        # Throttle: [-1, 1] normalized (maps to actual accel/brake)
         self.action_space = spaces.Box(
-            low=np.array([-0.4189, -1.0], dtype=np.float32),
-            high=np.array([0.4189, 1.0], dtype=np.float32),
+            low=np.array([-MAX_STEER, -1.0], dtype=np.float32),
+            high=np.array([MAX_STEER, 1.0], dtype=np.float32),
             dtype=np.float32
         )
-    
+
+    def throttle_to_velocity(self, throttle: float) -> float:
+        return (float(throttle) + 1.0) / 2.0 * self.max_velocity
+
     def reset(
         self,
         *,
@@ -192,67 +248,77 @@ class F1TenthRMAEnv(gym.Env):
     ) -> Tuple[np.ndarray, Dict]:
         """
         Reset environment to start of episode.
-        
+
         Samples new randomized physics parameters (et) and resets base environment.
-        
-        Args:
-            seed: Random seed for reproducibility
-            options: Additional reset options
-            
-        Returns:
-            Tuple of:
-            - observation: initial state vector xt
-            - info: dict with episode metadata (includes et and zt)
+        See module docstring for supported options.
         """
         if seed is not None:
             np.random.seed(seed)
-        
+        options = options or {}
+
+        # Track: forced, or sampled per episode from the (weighted) list
+        track = options.get('track')
+        if track is None:
+            track = self.tracks[np.random.choice(len(self.tracks), p=self.track_weights)]
+        self._select_track(track)
+
         # Sample new physics parameters (Zhang Section II-A)
-        mode = SampleMode.TRAIN if options is None or options.get('training', True) else SampleMode.GENERALIZATION
-        delta = options.get('delta', 0.5) if options else 0.5
-        
-        self.current_physics_params = self.randomizer.sample(mode=mode, delta=delta)
-        
-        # Reset base environment with randomized physics (Zhang Section II-A: et)
-        physics_overrides = self._map_physics_params(self.current_physics_params)
+        training = options.get('training', True)
+        mode = SampleMode.TRAIN if training else SampleMode.GENERALIZATION
+        delta = options.get('delta', 0.5)
+        params = self.randomizer.sample(mode=mode, delta=delta)
+        if 'physics_params' in options:
+            params = dict(zip(PARAM_KEYS, NOMINAL_PARAMS))
+            params.update(options['physics_params'])
+        self.current_physics_params = params
+
+        # Mid-episode grip drop: forced (E3) or sampled once per episode
+        self._disturbance_step = None
+        self._disturbance_grip = None
+        if 'disturbance_step' in options:
+            if options['disturbance_step'] >= 0:
+                self._disturbance_step = int(options['disturbance_step'])
+                self._disturbance_grip = options.get('disturbance_grip')
+        elif 'physics_params' not in options:
+            frac = self.randomizer.sample_disturbance_time()
+            if frac is not None:
+                self._disturbance_step = int(frac * self.max_episode_steps)
+
+        self._obs_noise = bool(options.get('obs_noise', training))
+
+        heading_offset = 0.0
+        if training and np.random.rand() < self.drift_spawn_prob:
+            heading_offset = float(np.random.uniform(-DRIFT_SPAWN_MAX_HEADING, DRIFT_SPAWN_MAX_HEADING))
+
         if self.base_env is None:
             raw_obs_vec = np.zeros(3, dtype=np.float32)
             raw_obs_dict = None
         else:
-            raw_obs_vec, raw_obs_dict = self.base_env.reset(physics_overrides)
-        
+            raw_obs_vec, raw_obs_dict = self.base_env.reset(
+                self.current_physics_params, heading_offset=heading_offset)
+
         # Reset episode state
         self.prev_action = np.zeros(2, dtype=np.float32)
         self.current_state = self._process_observation(raw_obs_vec, self.prev_action, raw_obs_dict)
         self.episode_step = 0
         self.total_episode_reward = 0.0
+        self._prev_velocity = float(raw_obs_vec[0])
         self.reward_computer.reset_episode()
-        
-        # Prepare info dict with physics parameters
-        # Note: zt (intrinsics) would be computed by encoder μ during training
+
         info = {
-            'physics_params': self.current_physics_params,
+            'physics_params': dict(self.current_physics_params),
+            'physics_vector': params_to_vector(self.current_physics_params),
             'physics_params_description': self.randomizer.params_to_description(self.current_physics_params),
+            'track': self.track,
+            'disturbance_step': self._disturbance_step,
             'episode_num': 0,  # Updated by caller
         }
-        
+        if raw_obs_dict is not None:
+            info['poses_x'] = float(raw_obs_dict['poses_x'][0])
+            info['poses_y'] = float(raw_obs_dict['poses_y'][0])
+            info['pose_theta'] = float(raw_obs_dict['poses_theta'][0])
+
         return self.current_state, info
-    
-    def _map_physics_params(self, p: Dict) -> Dict:
-        """Map randomizer output (Zhang et's et) to f110_gym params dict overrides."""
-        overrides = {}
-        if p is None:
-            return overrides
-        grip = p.get('grip_factor', None)
-        if grip is not None:
-            overrides['mu'] = 1.0489 * float(grip)
-        mass_scale = p.get('mass_scale', None)
-        if mass_scale is not None:
-            overrides['m'] = 3.74 * float(mass_scale)
-        inertia_scale = p.get('inertia_scale', None)
-        if inertia_scale is not None:
-            overrides['I'] = 0.04712 * float(inertia_scale)
-        return overrides
 
     def _process_observation(self, raw_obs_vec: np.ndarray, last_action: np.ndarray,
                               raw_obs_dict: Dict = None) -> np.ndarray:
@@ -262,14 +328,15 @@ class F1TenthRMAEnv(gym.Env):
 
         If observation.include_lidar is set, appends a downsampled, normalized
         LiDAR scan. f110_gym returns 1080 beams in raw_obs_dict['scans']; we
-        subsample to observation.lidar_beams (default 36) evenly-spaced
-        indices, clip to observation.lidar_max_range meters (default 10.0),
-        and normalize to [0, 1] so it's on a comparable scale to the other
-        (roughly O(1)) observation components.
+        subsample to observation.lidar_beams evenly-spaced indices, clip to
+        observation.lidar_max_range meters (default 10.0), and normalize to
+        [0, 1]. During training, Gaussian noise (lidar_noise_std, in
+        normalized units) and beam dropout (lidar_dropout_prob, dropped beams
+        read max range) are added.
         """
         v, steering, yaw_rate = float(raw_obs_vec[0]), float(raw_obs_vec[1]), float(raw_obs_vec[2])
         steering_des = float(last_action[0])
-        v_des = (float(last_action[1]) + 1.0) / 2.0 * 8.0  # match step()'s velocity_cmd mapping
+        v_des = self.throttle_to_velocity(last_action[1])
         base_obs = np.array([v, steering, v_des, steering_des, yaw_rate], dtype=np.float32)
 
         obs_config = self.config.get('observation', {})
@@ -287,34 +354,48 @@ class F1TenthRMAEnv(gym.Env):
         else:
             lidar = np.zeros(num_beams, dtype=np.float32)
 
+        if self._obs_noise:
+            noise_std = obs_config.get('lidar_noise_std', 0.0)
+            if noise_std > 0:
+                lidar = lidar + np.random.normal(0.0, noise_std, size=lidar.shape)
+            dropout = obs_config.get('lidar_dropout_prob', 0.0)
+            if dropout > 0:
+                lidar = np.where(np.random.rand(num_beams) < dropout, 1.0, lidar)
+            lidar = np.clip(lidar, 0.0, 1.0)
+
         return np.concatenate([base_obs, lidar]).astype(np.float32)
-    
+
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, bool, Dict]:
         """
         Execute one step of environment.
-        
-        Args:
-            action: Action vector [steering_cmd, throttle_cmd]
-            
-        Returns:
-            Tuple of:
-            - observation: Next state vector xt+1
-            - reward: Composite reward (Zhang Section II-C)
-            - terminated: Episode termination flag (off-track, etc.)
-            - truncated: Time limit flag
-            - info: Diagnostics (reward breakdown, etc.)
+
+        Returns (obs, reward, terminated, truncated, info). info carries the
+        quantities needed for the friction-circle metric ρ: velocity,
+        yaw_rate, accel_long, and the current physics params.
         """
         self.episode_step += 1
-        
+
+        # One-shot mid-episode grip drop, pushed into the simulator
+        disturbance_fired = False
+        if self._disturbance_step is not None and self.episode_step == self._disturbance_step:
+            if self._disturbance_grip is not None:
+                self.current_physics_params = dict(self.current_physics_params,
+                                                   grip_factor=float(self._disturbance_grip))
+            else:
+                self.current_physics_params = self.randomizer.apply_disturbance(self.current_physics_params)
+            if self.base_env is not None:
+                self.base_env.set_grip(self.current_physics_params['grip_factor'])
+            disturbance_fired = True
+
         # Clip action to bounds
         action = np.clip(action, self.action_space.low, self.action_space.high)
-        
+
         # Map action -> f110_gym control input [steer_angle, velocity_cmd]
         steer_cmd = float(action[0])
         throttle_cmd = float(action[1])
-        velocity_cmd = (throttle_cmd + 1.0) / 2.0 * 8.0  # [-1,1] -> [0, 8] m/s (realistic F1Tenth range)
+        velocity_cmd = self.throttle_to_velocity(throttle_cmd)
         sim_action = np.array([steer_cmd, velocity_cmd], dtype=np.float32)
-        
+
         # Step base environment
         if self.base_env is None:
             raw_obs_vec = np.zeros(3, dtype=np.float32)
@@ -326,11 +407,10 @@ class F1TenthRMAEnv(gym.Env):
             collision_flag = bool(raw_obs_dict['collisions'][0]) if raw_obs_dict is not None else False
             terminated = bool(done) or collision_flag
         truncated = False
-        
+
         # Process observation -> xt
         obs = self._process_observation(raw_obs_vec, action, raw_obs_dict)
-        
-        # Extract state variables for reward computation (Zhang Section II-C)
+
         current_velocity = float(raw_obs_vec[0])
         desired_velocity = velocity_cmd
         current_yaw_rate = float(raw_obs_vec[2])
@@ -338,9 +418,7 @@ class F1TenthRMAEnv(gym.Env):
         # wheelbase = lf + lr = 0.15875 + 0.17145 = 0.3302 m (f110_gym default)
         wheelbase = 0.3302
         desired_yaw_rate = velocity_cmd * np.tan(steer_cmd) / wheelbase
-        
-        # Compute composite reward (Zhang Section II-C)
-        # Extract position and collision for new reward terms
+
         _poses_x = float(raw_obs_dict['poses_x'][0]) if raw_obs_dict is not None else None
         _poses_y = float(raw_obs_dict['poses_y'][0]) if raw_obs_dict is not None else None
         _collision = bool(raw_obs_dict['collisions'][0]) if raw_obs_dict is not None else False
@@ -358,13 +436,7 @@ class F1TenthRMAEnv(gym.Env):
             lidar_obs=_lidar_obs,
             collision=_collision,
         )
-        
-        # Add mid-episode disturbance if configured
-        episode_progress = self.episode_step / self.max_episode_steps
-        self.current_physics_params = self.randomizer.add_mid_episode_disturbance(
-            self.current_physics_params, episode_progress
-        )
-        
+
         # Check termination conditions
         terminated_rma, termination_reason = self.reward_computer.compute_episode_termination(
             state={'velocity': current_velocity},
@@ -372,44 +444,57 @@ class F1TenthRMAEnv(gym.Env):
             lateral_accel=None,
         )
         terminated = terminated or terminated_rma
-        
+
         # Check time limit
         truncated = truncated or (self.episode_step >= self.max_episode_steps)
-        
+
+        dt = self.base_env.timestep if self.base_env is not None else 0.01
+        accel_long = (current_velocity - self._prev_velocity) / dt
+        self._prev_velocity = current_velocity
+
         # Update state
         self.prev_action = action
         self.current_state = obs
         self.total_episode_reward += step_reward
-        
-        # Prepare info dict
+
         info = {
             'reward_breakdown': reward_breakdown,
             'episode_step': self.episode_step,
             'total_episode_reward': self.total_episode_reward,
-            'physics_params': self.current_physics_params,
+            'physics_params': dict(self.current_physics_params),
+            'physics_vector': params_to_vector(self.current_physics_params),
+            'track': self.track,
+            'collision': _collision,
+            'velocity': current_velocity,
+            'yaw_rate': current_yaw_rate,
+            'accel_long': accel_long,
+            'velocity_cmd': velocity_cmd,
+            'disturbance_fired': disturbance_fired,
         }
-        # Pass through position and lap data from f110_gym for lap completion
-        # and centerline deviation metrics in evaluation
         if raw_obs_dict is not None:
-            info['poses_x'] = float(raw_obs_dict['poses_x'][0])
-            info['poses_y'] = float(raw_obs_dict['poses_y'][0])
+            # Privileged pose: for the Pure Pursuit expert and evaluation
+            # only. It is never part of the policy/φ observation.
+            info['poses_x'] = _poses_x
+            info['poses_y'] = _poses_y
+            info['pose_theta'] = float(raw_obs_dict['poses_theta'][0])
             info['lap_counts'] = int(raw_obs_dict['lap_counts'][0])
         if termination_reason is not None:
             info['termination_reason'] = termination_reason
-        
+
         return obs, step_reward, terminated, truncated, info
-    
+
     def render(self):
         """Render environment (delegate to base_env if available)."""
         if self.base_env is not None and self.render_mode == 'human':
-            return self.base_env.render()
+            return self.base_env.env.render()
         return None
-    
+
     def close(self):
         """Clean up environment."""
-        if self.base_env is not None:
-            self.base_env.close()
-    
+        for w in self._wrappers.values():
+            if w is not None:
+                w.close()
+
     def get_physics_params_description(self) -> str:
         """Get human-readable description of current physics parameters."""
         if self.current_physics_params is None:

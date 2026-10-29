@@ -26,75 +26,60 @@ from collections import deque, defaultdict
 from typing import Dict, Tuple, List, Optional
 import yaml
 
-from ..models import AdaptationModule, RMAActorCritic
+from ..models import AdaptationModule, load_actor_critic
 from ..envs import F1TenthRMAEnv, PhysicsRandomizer, SampleMode
 
 
 class AdaptationDataBuffer:
     """
-    Circular buffer for storing state-action-intrinsics experiences.
+    Episode-structured buffer of (state-action, intrinsics) sequences.
+
+    Windows are only cut from inside a single episode, and each window is
+    labelled with the intrinsics at its last step (bugs C8, C9).
     """
-    
+
     def __init__(self, max_size: int = 1_000_000, window_size: int = 10):
-        """
-        Initialize buffer.
-        
-        Args:
-            max_size: Maximum number of transitions to store
-            window_size: Window size for adaptation history (k steps)
-        """
         self.max_size = max_size
         self.window_size = window_size
-        
-        self.state_action_history = deque(maxlen=max_size)
-        self.intrinsics = []
+        self.episodes = deque()      # list of (sa: (T, D) array, z: (T, 8) array, e: (T, 7) array)
         self.size = 0
-    
-    def add(self, state_action_pair: np.ndarray, intrinsic: np.ndarray):
+
+    def add_episode(self, state_actions, intrinsics, physics=None):
+        sa = np.asarray(state_actions, dtype=np.float32)
+        z = np.asarray(intrinsics, dtype=np.float32)
+        e = np.asarray(physics, dtype=np.float32) if physics is not None else np.zeros((len(sa), 7), np.float32)
+        if len(sa) < self.window_size:
+            return
+        self.episodes.append((sa, z, e))
+        self.size += len(sa)
+        while self.size > self.max_size and len(self.episodes) > 1:
+            old = self.episodes.popleft()
+            self.size -= len(old[0])
+
+    def get_batch(self, batch_size: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
-        Add a state-action pair and corresponding intrinsic.
-        
-        Args:
-            state_action_pair: State-action vector (state + action)
-            intrinsic: Intrinsics vector (8D)
-        """
-        self.state_action_history.append(state_action_pair)
-        self.intrinsics.append(intrinsic)
-        self.size = min(self.size + 1, self.max_size)
-    
-    def get_batch(self, batch_size: int) -> Tuple[torch.Tensor, torch.Tensor]:
-        """
-        Sample a minibatch of state-action histories and intrinsics.
-        
         Returns:
-            Tuple of:
-            - histories: (batch_size, window_size, state_action_dim)
-            - intrinsics: (batch_size, 8)
+            histories: (batch_size, window_size, state_action_dim)
+            intrinsics: (batch_size, 8): label at the window's last step
+            physics: (batch_size, 7): raw e at the window's last step
         """
-        if len(self.state_action_history) < self.window_size:
+        if not self.episodes:
             raise RuntimeError("Not enough data in buffer for window_size")
-        
-        # Sample starting indices
-        valid_starts = max(0, len(self.state_action_history) - self.window_size)
-        start_indices = np.random.randint(0, valid_starts + 1, size=batch_size)
-        
-        histories = []
-        intrinsics_batch = []
-        
-        for start_idx in start_indices:
-            # Get window of state-action pairs
-            window = [
-                self.state_action_history[start_idx + i]
-                for i in range(self.window_size)
-            ]
-            histories.append(np.stack(window))
-            intrinsics_batch.append(self.intrinsics[start_idx + self.window_size - 1])
-        
-        histories = torch.from_numpy(np.stack(histories)).float()
-        intrinsics_batch = torch.from_numpy(np.stack(intrinsics_batch)).float()
-        
-        return histories, intrinsics_batch
-    
+        # Sample episodes proportionally to their number of valid windows
+        n_windows = np.array([len(ep[0]) - self.window_size + 1 for ep in self.episodes])
+        ep_idx = np.random.choice(len(self.episodes), size=batch_size, p=n_windows / n_windows.sum())
+        histories, labels, phys = [], [], []
+        for i in ep_idx:
+            sa, z, e = self.episodes[i]
+            start = np.random.randint(0, len(sa) - self.window_size + 1)
+            end = start + self.window_size
+            histories.append(sa[start:end])
+            labels.append(z[end - 1])
+            phys.append(e[end - 1])
+        return (torch.from_numpy(np.stack(histories)),
+                torch.from_numpy(np.stack(labels)),
+                torch.from_numpy(np.stack(phys)))
+
     def __len__(self) -> int:
         return self.size
 
@@ -133,10 +118,8 @@ class Phase2Trainer:
         os.makedirs(checkpoint_dir, exist_ok=True)
         
         # Load Phase 1 trained policy
-        self.actor_critic = RMAActorCritic().to(self.device)
-        checkpoint = torch.load(actor_critic_checkpoint, map_location=self.device)
-        self.actor_critic.load_state_dict(checkpoint['actor_critic'])
-        self.actor_critic.eval()  # Set to eval mode (no grad updates)
+        # sized from the checkpoint itself (bug C10)
+        self.actor_critic, _ = load_actor_critic(actor_critic_checkpoint, self.device)
         
         # Initialize adaptation module
         phase2_config = config.get('phase2_training', {})
@@ -148,9 +131,22 @@ class Phase2Trainer:
             intrinsics_dim=adaptation_config.get('intrinsics_dim', 8),
         ).to(self.device)
         
+        # Optional auxiliary head: predict the raw physics vector e from ẑ,
+        # weighted per parameter (final config weights grip 3×). This keeps
+        # grip information from being washed out by the 7 other latent dims.
+        # Reconstructed from the phase2_crashtol config keys; the head is
+        # saved under 'aux_head' and is not needed at deployment.
+        self.aux_weight = float(phase2_config.get('aux_loss_weight', 0.0))
+        self.aux_param_weights = torch.tensor(
+            phase2_config.get('aux_param_weights', [1.0] * 7), dtype=torch.float32, device=self.device)
+        self.aux_head = nn.Linear(adaptation_config.get('intrinsics_dim', 8), 7).to(self.device)
+        params = list(self.adaptation.parameters())
+        if self.aux_weight > 0:
+            params += list(self.aux_head.parameters())
+
         # Optimizer
         self.optimizer = optim.Adam(
-            self.adaptation.parameters(),
+            params,
             lr=phase2_config.get('learning_rate', 1.0e-3),
         )
         
@@ -168,12 +164,15 @@ class Phase2Trainer:
         self.global_step = 0
         self.metrics = defaultdict(list)
     
+    def _true_intrinsics(self, info) -> torch.Tensor:
+        e = torch.as_tensor(info['physics_vector'], dtype=torch.float32, device=self.device)
+        return self.actor_critic.get_intrinsics(e)
+
     def collect_data(self, num_episodes: int):
         """
-        Collect state-action-intrinsics data by rolling out Phase 1 policy.
-        
-        Args:
-            num_episodes: Number of episodes to collect
+        Collect state-action-intrinsics data by rolling out the Phase 1 policy
+        with ground-truth intrinsics. Labels track mid-episode grip drops,
+        because info['physics_vector'] reflects the physics actually applied.
         """
         print(f"[Data Collection] Collecting {num_episodes} episodes...")
         
@@ -181,47 +180,22 @@ class Phase2Trainer:
             for episode in range(num_episodes):
                 obs, info = self.env.reset(options={'training': True})
                 done = False
-                step = 0
-                
-                # Build state-action history for this episode
-                history = deque(maxlen=self.buffer.window_size)
+                sa_seq, z_seq, e_seq = [], [], []
                 
                 while not done:
-                    # Convert obs to tensor
-                    obs_tensor = torch.from_numpy(obs if isinstance(obs, np.ndarray) else np.array(obs)).float().to(self.device)
-                    
-                    # Get ground-truth intrinsics from encoder μ
-                    env_params = info.get('physics_params', {})
-                    env_params_list = [
-                        env_params.get(k, 0) for k in [
-                            'grip_factor', 'mass_scale', 'inertia_scale',
-                            'motor_steering_scale', 'motor_drive_scale',
-                            'delay_steering', 'delay_drive'
-                        ]
-                    ]
-                    env_params_tensor = torch.from_numpy(np.array(env_params_list)).float().to(self.device)
-                    
-                    # Get ground-truth intrinsics
-                    with torch.no_grad():
-                        intrinsics = self.actor_critic.get_intrinsics(env_params_tensor)
-                    
-                    # Get action from policy
-                    with torch.no_grad():
-                        mean, _ = self.actor_critic.policy(obs_tensor, intrinsics)
-                        action = mean
-                    
-                    # Build state-action pair
-                    state_action = np.concatenate([obs, action.cpu().numpy()])
-                    history.append(state_action)
-                    
-                    # Add to buffer (only if history is full)
-                    if len(history) == self.buffer.window_size:
-                        self.buffer.add(state_action, intrinsics.cpu().numpy())
-                    
-                    # Step environment
-                    obs, reward, terminated, truncated, info = self.env.step(action.cpu().numpy())
+                    obs_tensor = torch.as_tensor(obs, dtype=torch.float32, device=self.device)
+                    intrinsics = self._true_intrinsics(info)
+                    mean, _ = self.actor_critic.policy(obs_tensor, intrinsics)
+                    action = mean.cpu().numpy()
+
+                    sa_seq.append(np.concatenate([obs, action]))
+                    z_seq.append(intrinsics.cpu().numpy())
+                    e_seq.append(info['physics_vector'])
+
+                    obs, reward, terminated, truncated, info = self.env.step(action)
                     done = terminated or truncated
-                    step += 1
+
+                self.buffer.add_episode(sa_seq, z_seq, e_seq)
                 
                 if (episode + 1) % max(1, num_episodes // 10) == 0:
                     print(f"  Episode {episode + 1}/{num_episodes}, Buffer size: {len(self.buffer)}")
@@ -245,17 +219,22 @@ class Phase2Trainer:
             # Mini-batch training
             while num_batches < len(self.buffer) // batch_size:
                 try:
-                    histories, intrinsics = self.buffer.get_batch(batch_size)
+                    histories, intrinsics, physics = self.buffer.get_batch(batch_size)
                 except RuntimeError:
                     # Not enough data yet
                     break
                 
                 histories = histories.to(self.device)
                 intrinsics = intrinsics.to(self.device)
+                physics = physics.to(self.device)
                 
                 # Forward pass
                 estimated_intrinsics = self.adaptation(histories)
                 loss = loss_fn(estimated_intrinsics, intrinsics)
+                if self.aux_weight > 0:
+                    pred_e = self.aux_head(estimated_intrinsics)
+                    aux = (self.aux_param_weights * (pred_e - physics) ** 2).mean()
+                    loss = loss + self.aux_weight * aux
                 
                 # Backward pass
                 self.optimizer.zero_grad()
@@ -298,18 +277,7 @@ class Phase2Trainer:
                 while not done:
                     obs_tensor = torch.from_numpy(obs if isinstance(obs, np.ndarray) else np.array(obs)).float().to(self.device)
                     
-                    # Get ground-truth intrinsics
-                    env_params = info.get('physics_params', {})
-                    env_params_list = [
-                        env_params.get(k, 0) for k in [
-                            'grip_factor', 'mass_scale', 'inertia_scale',
-                            'motor_steering_scale', 'motor_drive_scale',
-                            'delay_steering', 'delay_drive'
-                        ]
-                    ]
-                    env_params_tensor = torch.from_numpy(np.array(env_params_list)).float().to(self.device)
-                    
-                    ground_truth_z = self.actor_critic.get_intrinsics(env_params_tensor)
+                    ground_truth_z = self._true_intrinsics(info)
                     
                     # Get action
                     mean, _ = self.actor_critic.policy(obs_tensor, ground_truth_z)
@@ -382,6 +350,7 @@ class Phase2Trainer:
             'adaptation': self.adaptation.state_dict(),
             'optimizer': self.optimizer.state_dict(),
             'global_step': self.global_step,
+            'aux_head': self.aux_head.state_dict(),
             'config': self.config,
         }, path)
         print(f"Checkpoint saved to {path}")
@@ -389,7 +358,7 @@ class Phase2Trainer:
     def load_checkpoint(self, filename: str):
         """Load adaptation module checkpoint."""
         path = os.path.join(self.checkpoint_dir, filename)
-        checkpoint = torch.load(path, map_location=self.device)
+        checkpoint = torch.load(path, map_location=self.device, weights_only=True)
         self.adaptation.load_state_dict(checkpoint['adaptation'])
         self.optimizer.load_state_dict(checkpoint['optimizer'])
         self.global_step = checkpoint['global_step']
@@ -407,6 +376,8 @@ def main():
                        help='Path to config YAML')
     parser.add_argument('--device', type=str, default='auto',
                        help='Device: cuda, cpu, or auto')
+    parser.add_argument('--log_dir', type=str, default='logs/phase2')
+    parser.add_argument('--checkpoint_dir', type=str, default='checkpoints/phase2')
     args = parser.parse_args()
     
     # Load config
@@ -422,7 +393,8 @@ def main():
     print(f"Training on device: {device}")
     
     # Create trainer and train
-    trainer = Phase2Trainer(args.phase1_checkpoint, config, device=device)
+    trainer = Phase2Trainer(args.phase1_checkpoint, config, device=device,
+                            log_dir=args.log_dir, checkpoint_dir=args.checkpoint_dir)
     trainer.train()
 
 

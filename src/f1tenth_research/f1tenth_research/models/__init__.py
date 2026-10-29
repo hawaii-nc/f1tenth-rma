@@ -443,10 +443,60 @@ class RMAActorCritic(nn.Module):
         return action, log_prob, entropy, value, mean
 
 
+def _load_state(path: str, device) -> Dict:
+    # weights_only=True refuses to unpickle arbitrary objects, so a
+    # checkpoint passed around by email/scp cannot execute code on load.
+    return torch.load(path, map_location=device, weights_only=True)
+
+
+def load_actor_critic(path: str, device='cpu') -> Tuple['RMAActorCritic', Dict]:
+    """
+    Build an RMAActorCritic sized from the checkpoint's own weights and load it.
+
+    Returns (model in eval mode, checkpoint config dict). Works for every
+    checkpoint in checkpoints/, old 41-D ones and the 113-D final ones.
+    """
+    ckpt = _load_state(path, device)
+    sd = ckpt['actor_critic']
+    intrinsics_dim = sd['encoder.network.4.weight'].shape[0]
+    model = RMAActorCritic(
+        obs_dim=sd['policy.network.0.weight'].shape[1] - intrinsics_dim,
+        action_dim=sd['policy.network.4.weight'].shape[0],
+        intrinsics_dim=intrinsics_dim,
+        env_params_dim=sd['encoder.network.0.weight'].shape[1],
+    ).to(device)
+    model.load_state_dict(sd)
+    model.eval()
+    return model, ckpt.get('config', {})
+
+
+def load_adaptation(path: str, device='cpu') -> Tuple['AdaptationModule', Dict]:
+    """
+    Build an AdaptationModule sized from the checkpoint and load it.
+
+    The history window is recovered from the first FC layer
+    (in_features = 8 channels × window), so a 10-, 50- or 100-step φ loads
+    without the caller having to know which one it is.
+    """
+    ckpt = _load_state(path, device)
+    sd = ckpt['adaptation']
+    conv_out = sd['cnn_layers.4.weight'].shape[0]
+    model = AdaptationModule(
+        state_action_dim=sd['cnn_layers.0.weight'].shape[1],
+        history_window=sd['fc_layers.0.weight'].shape[1] // conv_out,
+        intrinsics_dim=sd['fc_layers.2.weight'].shape[0],
+    ).to(device)
+    model.load_state_dict(sd)
+    model.eval()
+    return model, ckpt.get('config', {})
+
+
 __all__ = [
     'PolicyNetwork',
     'IntrinsicsEncoder',
     'AdaptationModule',
     'ValueNetwork',
     'RMAActorCritic',
+    'load_actor_critic',
+    'load_adaptation',
 ]

@@ -14,9 +14,28 @@ Key components:
 Training range (δ=0.5 reference) stored as config. Supports sampling at arbitrary δ.
 """
 
+import warnings
+
 import numpy as np
 from typing import Dict, Tuple, Optional
 from enum import Enum
+
+
+# Order of the 7-D physics vector e fed to the intrinsics encoder μ.
+# Must match training (checkpoints' encoder.network.0.weight is (128, 7)).
+PARAM_KEYS = (
+    'grip_factor', 'mass_scale', 'inertia_scale',
+    'motor_steering_scale', 'motor_drive_scale',
+    'delay_steering', 'delay_drive',
+)
+
+# Physics vector the deployment node feeds μ when no φ estimate is available
+# ("Blind" controller in the E-series experiments).
+NOMINAL_PARAMS = (1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0)
+
+
+def params_to_vector(params: Dict[str, float]) -> np.ndarray:
+    return np.array([float(params.get(k, 0.0)) for k in PARAM_KEYS], dtype=np.float32)
 
 
 class SampleMode(Enum):
@@ -40,7 +59,8 @@ class PhysicsRandomizer:
         Args:
             config: Dictionary with hyperparameters. If None, use defaults.
         """
-        self.config = config or self._default_config()
+        # Merge so a partial YAML block still gets every default key.
+        self.config = {**self._default_config(), **(config or {})}
         
         # Training range (δ=0.5 reference) - normalized nominal values
         # These define what "1.0" scaling factor means
@@ -107,7 +127,13 @@ class PhysicsRandomizer:
             for key in params:
                 noise = np.random.uniform(-noise_mag, noise_mag)
                 params[key] *= (1.0 + noise)
-        
+
+        # Noise can push grip above nominal (μ > 1.0489 is unphysical for the
+        # car's rubber on concrete) or delays negative; keep samples sane.
+        params['grip_factor'] = float(np.clip(params['grip_factor'], 0.05, 1.0))
+        params['delay_steering'] = max(0.0, params['delay_steering'])
+        params['delay_drive'] = max(0.0, params['delay_drive'])
+
         return params
     
     def sample_at_generalization_level(self, delta: float) -> Dict[str, float]:
@@ -161,6 +187,12 @@ class PhysicsRandomizer:
             for key in params:
                 noise = np.random.uniform(-noise_mag, noise_mag)
                 params[key] *= (1.0 + noise)
+
+        # Generalization levels may push grip past nominal on purpose (δ>0.5),
+        # but never to zero/negative friction or negative delay.
+        params['grip_factor'] = max(0.05, params['grip_factor'])
+        params['delay_steering'] = max(0.0, params['delay_steering'])
+        params['delay_drive'] = max(0.0, params['delay_drive'])
         
         return params
     
@@ -182,43 +214,48 @@ class PhysicsRandomizer:
         else:
             raise ValueError(f"Unknown sample mode: {mode}")
     
+    def sample_disturbance_time(self) -> Optional[float]:
+        """
+        Decide at reset whether this episode gets a mid-episode grip drop, and when.
+
+        Returns the episode-progress fraction at which the drop fires, or None.
+        30% of episodes get exactly one drop, uniformly timed inside
+        disturbance_timing (default 30–90% of the episode).
+        """
+        if not self.config.get('mid_episode_disturbance', False):
+            return None
+        if np.random.rand() >= self.config.get('disturbance_prob', 0.3):
+            return None
+        timing_lo, timing_hi = self.config.get('disturbance_timing', (0.3, 0.9))
+        return float(np.random.uniform(timing_lo, timing_hi))
+
+    def apply_disturbance(self, params: Dict[str, float]) -> Dict[str, float]:
+        """
+        Return a copy of params with the one-shot grip drop applied
+        (simulated wet patch). The caller must push the new grip into the
+        simulator; editing this dict alone does not change the physics.
+        """
+        out = dict(params)
+        scale = self.config.get(
+            'disturbance_friction_scale',
+            1.0 - self.config.get('disturbance_magnitude', 0.3),
+        )
+        out['grip_factor'] = float(params['grip_factor']) * float(scale)
+        return out
+
     def add_mid_episode_disturbance(
         self,
         params: Dict[str, float],
         episode_progress: float
     ) -> Dict[str, float]:
         """
-        Randomly apply a mid-episode disturbance (friction change).
-        
-        Zhang et al. (2025) Section II-A: mid-episode randomized perturbations
-        to simulate unexpected environmental changes.
-        
-        Args:
-            params: Current physics parameters
-            episode_progress: Fraction of episode elapsed [0, 1]
-            
-        Returns:
-            Modified parameters dict (may include temporary disturbance flag)
+        Deprecated, do not use (bugs C1, C2). F1TenthRMAEnv uses
+        sample_disturbance_time() + apply_disturbance() instead.
         """
-        if not self.config['mid_episode_disturbance']:
-            params['mid_episode_disturbance'] = False
-            params['disturbance_magnitude'] = 0.0
-            return params
-        
-        timing_lo, timing_hi = self.config['disturbance_timing']
-        disturbance_active = (
-            timing_lo <= episode_progress <= timing_hi
-            and np.random.rand() < 0.3  # 30% chance if in timing window
+        warnings.warn(
+            "add_mid_episode_disturbance is deprecated; see docstring",
+            DeprecationWarning,
         )
-        
-        params['mid_episode_disturbance'] = disturbance_active
-        if disturbance_active:
-            # Reduce grip factor mid-episode (simulated wet track or payload shift)
-            mag = self.config['disturbance_magnitude']
-            params['grip_factor'] *= (1.0 - mag)
-        else:
-            params['disturbance_magnitude'] = 0.0
-        
         return params
     
     def params_to_description(self, params: Dict[str, float]) -> str:
