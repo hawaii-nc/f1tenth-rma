@@ -49,7 +49,7 @@ Everything below is fixed now. Results that contradict it will be reported as su
 
 ---
 
-## Addendum, 2026-11-01 ~23:00 UTC: post-hoc runs (registered before they ran)
+## Addendum, 2026-11-01 22:31 UTC (commit time): post-hoc runs (registered before they ran)
 
 **What happened.** The seed-0 results failed G1, H2 and H3, and they are reported as such: φ crashed *more* than Blind at μ = 0.4 (0.39 vs 0.31) and drove at ~2.13 m/s regardless of grip. G0 passed, H4's hallucination arm passed (believing μ = 0.4 at true μ = 1.0 slowed the car to the Oracle's 1.19 m/s), and E5 gave grip R² of 0.9999 for the encoder, 0.04 for history statistics, and ≈ 0 for φ. The replicate-seed suite was paused: replicating a configuration whose mechanism is known to fail is low value.
 
