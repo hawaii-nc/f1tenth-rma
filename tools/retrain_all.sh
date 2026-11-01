@@ -48,7 +48,7 @@ python3 tools/check_physics_injection.py --track aut_tight --tire-model linear
 python3 tools/check_physics_injection.py --track aut_tight --tire-model friction_circle
 
 echo "== 1. Phase 1"
-if [[ -z ${PHASE1_CKPT:-} && ! -f $P1DIR/final.pt ]]; then
+if [[ ! -f $P1DIR/final.pt ]]; then
   (cd src/f1tenth_research && python3 -u -m f1tenth_research.training.phase1_ppo_il \
      --config "$REPO/$C1" --device cpu --num_envs "$NPROC" \
      --log_dir "$REPO/$P1DIR" --checkpoint_dir "$REPO/$P1DIR" --resume)
@@ -57,7 +57,7 @@ fi
 # (tools/validate_checkpoints.py; ties go to the earliest). In Nov 2026 that was
 # the DAgger checkpoint: PPO fine-tuning raised validation crashes 0.00 -> 0.26 by
 # epoch 50, so the run was stopped there. Override with PHASE1_CKPT=<path>.
-[[ -n ${PHASE1_CKPT:-} ]] || python3 tools/validate_checkpoints.py "$P1DIR" --every 50
+python3 tools/validate_checkpoints.py "$P1DIR" --every 50
 P1=${PHASE1_CKPT:-$(python3 -c "
 import json, sys
 rows = [json.loads(l) for l in open('$P1DIR/validation.jsonl')]
