@@ -26,11 +26,46 @@ What this means:
 | Gazebo (Tier 2 in the methodology) with surface friction set per surface (`<mu>/<mu2>`) | Independent rigid-body physics, so the result can't be an artifact of the bicycle model | 10–100× slower. Needs a skidpad calibration of μ_eff per surface |
 | Real car with measured μ_eff (skidpad or inclined plane) | Ground truth that matters | Hardware time |
 
+## Implemented: `tire_model: friction_circle` (November 2026)
+
+`envs/tire_models.py` adds a saturating tire that f110_gym integrates in place of its stock `vehicle_dynamics_st` (same signature, swapped in by `RealF110Wrapper`).
+
+- Below the limit it matches the stock linear model term for term (`tests/test_tire_models.py` checks this against a transcription of f110_gym's equations).
+- Each axle's lateral force is capped at its share of the friction circle, √((μF_z)² − F_x²). F_x is split front/rear in proportion to load (the car is 4×4).
+- Longitudinal acceleration is capped at μg, so low grip also lengthens braking.
+- Not modelled: a force peak followed by fall-off (Pacejka), left/right load transfer, or tire relaxation.
+
+Same inputs at 3 m/s with 0.35 rad of steer:
+
+| grip | stock linear: a_lat, body slip | friction circle: body slip |
+|---:|---|---|
+| 1.0 | 8.9 m/s² (μg = 10.3), 0.6° | 0.6° (identical) |
+| 0.6 | 8.5 m/s² (μg = 6.2, *impossible*), −5° | −75°: the car spins |
+| 0.4 | 8.0 m/s² (μg = 4.1, *impossible*), −12° | −91°: the car spins |
+
+How to use it:
+
+```bash
+python tools/check_physics_injection.py --track aut_tight --tire-model friction_circle   # pre-flight
+python experiments/e1_e2_calibration.py --tire-model friction_circle ...                # evaluate existing checkpoints
+python -m f1tenth_research.training.phase2_adaptation --tire_model friction_circle ...   # retrain φ
+TIRE_MODEL=friction_circle bash tools/retrain_fixed.sh                                  # all of the above
+```
+
+Or set `environment.tire_model: friction_circle` in a config. Every experiment's `summary.json` records the tire model it used.
+
+Two ways to use it in the paper:
+
+1. **Robustness check (cheap).** Evaluate the existing policy and φ, trained on the linear tire, under the friction-circle tire. Does φ-RMA still sit between Oracle and Blind, and does Blind now crash (spin) more at low grip?
+2. **Train on it (stronger).** Retrain Phase 1 and φ with `friction_circle`, ideally with the speed cap raised (HANDOFF item 5), so that exceeding the limit actually costs something during training.
+
+The advisor's suggestion (Oct 31, 2026): if no sim tire model is representative enough, *learning on the fly on the real car* to avoid losing grip could be a novel full-paper contribution. Train on this model first; how far its predictions diverge from VADER's behaviour is evidence for that argument.
+
 **Recommendation for the Feb 2027 workshop paper:**
 
 - State the linear-tire limitation explicitly. Reviewers who know vehicle dynamics will ask about it.
 - Present E1/E2 as "the policy asks for less grip when it believes grip is low" (behavioural calibration), which the linear model *can* show.
-- If time allows, add the saturating-tire fork as a robustness check. The change is local to one numba function.
+- Run the friction-circle robustness check above (no retraining needed for option 1).
 
 ## Other modelling notes
 

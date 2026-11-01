@@ -35,12 +35,17 @@ def base_parser(description: str, n_default: int = 100) -> argparse.ArgumentPars
     ap.add_argument('--seed', type=int, default=0, help='base seed; episode i uses seed+i for every controller')
     ap.add_argument('--out', default=None, help='output directory (default results/<exp>/<timestamp>)')
     ap.add_argument('--device', default='cpu')
+    ap.add_argument('--tire-model', default=None, choices=['linear', 'friction_circle'],
+                    help='override environment.tire_model (default: the config\'s, else linear)')
     return ap
 
 
-def load_config(path: str) -> dict:
+def load_config(path: str, tire_model: str = None) -> dict:
     with open(path) as f:
-        return yaml.safe_load(f)
+        cfg = yaml.safe_load(f)
+    if tire_model:
+        cfg.setdefault('environment', {})['tire_model'] = tire_model
+    return cfg
 
 
 def out_dir(args, exp: str) -> Path:

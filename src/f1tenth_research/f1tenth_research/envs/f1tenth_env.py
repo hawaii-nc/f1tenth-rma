@@ -22,6 +22,7 @@ Action space (at):
 
 Config keys honoured under config['environment'] (see configs/final_phase1_v42.yaml):
   max_velocity, tracks, track, max_episode_steps, drift_spawn_prob,
+  tire_model ('linear' = stock f110_gym, default; 'friction_circle'),
   observation.{include_lidar, lidar_beams, lidar_max_range,
                lidar_noise_std, lidar_dropout_prob},
   randomization.*, reward.*
@@ -56,6 +57,7 @@ from .randomization import (
     PhysicsRandomizer, SampleMode, NOMINAL_PARAMS, PARAM_KEYS, params_to_vector,
 )
 from .reward import RewardComputer
+from .tire_models import TIRE_MODELS
 from ..paths import centerline_path, map_base
 
 MAX_STEER = 0.4189
@@ -116,6 +118,10 @@ class F1TenthRMAEnv(gym.Env):
         # 8.0 for the old June checkpoints, 3.0 for v27 onward
         self.max_velocity = float(self.config.get('max_velocity', 8.0))
         self.drift_spawn_prob = float(self.config.get('drift_spawn_prob', 0.0))
+        self.tire_model = str(self.config.get('tire_model', 'linear'))
+        if self.tire_model not in TIRE_MODELS:
+            # Checked here so a typo can never silently fall back to the mock env.
+            raise ValueError(f"environment.tire_model={self.tire_model!r}; choose from {TIRE_MODELS}")
 
         # Initialize components
         self.randomizer = PhysicsRandomizer(self.config.get('randomization', {}))
@@ -181,7 +187,8 @@ class F1TenthRMAEnv(gym.Env):
         if not F1TENTH_GYM_AVAILABLE:
             return None
         try:
-            return RealF110Wrapper(map_name=self._resolve_map_name(track), timestep=0.01, track=track)
+            return RealF110Wrapper(map_name=self._resolve_map_name(track), timestep=0.01, track=track,
+                                   tire_model=self.tire_model)
         except Exception as e:
             warnings.warn(f"Failed to initialize f110_gym wrapper for {track}: {e}")
             return None

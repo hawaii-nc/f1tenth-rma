@@ -16,15 +16,18 @@ Every one of the 7 randomized parameters now reaches the physics:
   motor_steering_scale -> scales the steering command
   motor_drive_scale    -> scales the velocity command
   delay_steering/drive -> FIFO queues
-NOTE on fidelity: f110_gym's single-track model uses a *linear* tire model.
-μ scales cornering stiffness; there is no friction-circle saturation, so the
-car cannot physically "exceed grip" in this simulator. See docs/SIM_FIDELITY.md.
+NOTE on fidelity: f110_gym's stock single-track model uses a *linear* tire
+model. μ scales cornering stiffness; there is no friction-circle saturation,
+so the car cannot physically "exceed grip". Pass tire_model='friction_circle'
+(config: environment.tire_model) for a tire that saturates at μF_z.
+See envs/tire_models.py and docs/SIM_FIDELITY.md.
 """
 import numpy as np
 from collections import deque
 from f110_gym.envs.f110_env import F110Env
 
 from ..paths import centerline_path
+from . import tire_models
 
 NOMINAL_VEHICLE_PARAMS = {
     'mu': 1.0489, 'C_Sf': 4.718, 'C_Sr': 5.4562,
@@ -71,8 +74,11 @@ class RealF110Wrapper:
     step(action) -> obs_vec, raw_obs_dict, done, info
     """
     def __init__(self, map_name="/f1tenth_gym/examples/example_map", timestep=0.01,
-                 track="example_map", ttc_thresh=0.05):
+                 track="example_map", ttc_thresh=0.05, tire_model="linear"):
+        if tire_model not in tire_models.TIRE_MODELS:
+            raise ValueError(f"Unknown tire_model {tire_model!r}; choose from {tire_models.TIRE_MODELS}")
         self.map_name = map_name
+        self.tire_model = tire_model
         self.timestep = timestep
         self.track = track
         self.ttc_thresh = ttc_thresh
@@ -124,6 +130,9 @@ class RealF110Wrapper:
         self.n_drive = n_drive
 
     def reset(self, physics_params=None, heading_offset=0.0):
+        # Process-wide switch; re-applied every episode so wrappers with
+        # different tire models can share one process (e.g. experiments).
+        tire_models.install(self.tire_model)
         self._build_env(physics_params)
         self._setup_delay_queues(physics_params)
         p = physics_params or {}
