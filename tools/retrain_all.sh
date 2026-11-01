@@ -53,7 +53,16 @@ if [[ ! -f $P1DIR/final.pt ]]; then
      --config "$REPO/$C1" --device cpu --num_envs "$NPROC" \
      --log_dir "$REPO/$P1DIR" --checkpoint_dir "$REPO/$P1DIR" --resume)
 fi
-P1=$P1DIR/final.pt
+# Base policy = the checkpoint with the lowest closed-loop validation crash rate
+# (tools/validate_checkpoints.py; ties go to the earliest). In Nov 2026 that was
+# the DAgger checkpoint: PPO fine-tuning raised validation crashes 0.00 -> 0.26 by
+# epoch 50, so the run was stopped there. Override with PHASE1_CKPT=<path>.
+python3 tools/validate_checkpoints.py "$P1DIR" --every 50
+P1=${PHASE1_CKPT:-$(python3 -c "
+import json, sys
+rows = [json.loads(l) for l in open('$P1DIR/validation.jsonl')]
+print('$P1DIR/' + min(rows, key=lambda r: (r['mean_crash_rate'], r['epoch']))['checkpoint'])")}
+echo "Phase 1 base policy: $P1"
 
 echo "== 2. Phase 2"
 if [[ ! -f $P2DIR/final.pt ]]; then

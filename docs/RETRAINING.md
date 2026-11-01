@@ -18,7 +18,7 @@ So Phase 1 (π, μ, V), Phase 2 (φ) and every experiment were rerun on the fixe
 | Tracks | 14 × 35% scale | 13 tracks, each at the smallest scale (0.35–0.70) at which Pure Pursuit laps it; Zandvoort dropped | At 35%, aut has a 0.24 m-radius hairpin vs the car's 0.74 m minimum turning radius; the expert crashed on 13/14 tracks. Zandvoort crashes the expert at the same point at every scale (map defect) |
 | Expert waypoints | TUMFTM racelines (scaled) | Centerline | Scaled racelines pass within 9 cm of the wall; the car's half-width is 15.5 cm |
 | Spawn | (0.7, 0) | Training: random point along the lap (+ drift heading); evaluation: start line | Fixed spawns meant the policy only ever saw the first metres of each track |
-| Training | PPO + IL loss, 1 env | DAgger pre-training (6 × 100k steps, β = 1, ½, ¼, …), 5 value-only epochs, then PPO + IL (same schedule as v42), 4 envs | PPO + IL from scratch never left the first metres (crash rate 0.99 after 1M steps). Plain behaviour cloning drifts; DAgger is the standard fix |
+| Training | PPO + IL loss, 1 env | DAgger (6 × 100k steps, β = 1, ½, ¼, …), then PPO + IL (same schedule as v42), 4 envs. **Base policy = the checkpoint with the lowest closed-loop validation crash rate, which was the DAgger checkpoint** | PPO + IL from scratch never left the first metres (crash rate 0.99 after 1M steps). Plain behaviour cloning drifts; DAgger is the standard fix. DAgger alone: 0/39 validation crashes at grip 1.0/0.6/0.4. PPO fine-tuning raised training reward but also validation crashes (0.26 by epoch 50), so it was stopped there |
 | Encoder μ | Never received a gradient (C21) | Trained by DAgger and by PPO/IL | |
 | `max_episode_steps` (Phase 1) | 34,000 | 5,000 | The grip drop fires at 30–90% of the episode, so with 34k it almost never happened |
 | Everything else | | Unchanged: networks, 113-D observation, rewards, randomization ranges, PPO hyperparameters, 16M PPO steps, Phase 2 config (k = 50, 800 episodes, 100 epochs, aux loss) | |
@@ -37,12 +37,12 @@ QUICK=1 bash tools/retrain_all.sh         # minutes-long smoke run of every stag
 `tools/retrain_all.sh` is resumable (each stage is skipped if its output exists):
 
 0. `pytest` + `tools/check_physics_injection.py` (μ reaches the simulated car; the right tire model is active)
-1. Phase 1 → `runs/phase1_retrain/final.pt` (`--resume` continues from `latest.pt`)
+1. Phase 1 → `runs/phase1_retrain/` (`--resume` continues from `latest.pt`), then `tools/validate_checkpoints.py` picks the base policy (lowest closed-loop crash rate on all tracks at grip 1.0/0.6/0.4; override with `PHASE1_CKPT=`)
 2. Phase 2 → `runs/phase2_retrain/final.pt` (parallel data collection)
 3. E0–E5 (E1/E2 split by grip across cores, merged with `tools/merge_e1_e2.py`) → `results/retrain_nov2026/linear/`
 4. Tire robustness: E0 + E1/E2 under the friction-circle tire with the same checkpoints → `results/retrain_nov2026/friction_circle/`
 
-On 4 CPU cores Phase 1 takes about 6 h, Phase 2 about 2–3 h, and the experiments about 3 h.
+On 4 CPU cores DAgger takes about 30 min (the full 16M PPO steps would add about 4 h), Phase 2 about 2–3 h, and the experiments about 3 h.
 
 ## Checks that made the difference (do these before any long run)
 
