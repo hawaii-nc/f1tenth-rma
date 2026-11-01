@@ -173,15 +173,21 @@ class Phase2Trainer:
         Collect state-action-intrinsics data by rolling out the Phase 1 policy
         with ground-truth intrinsics. Labels track mid-episode grip drops,
         because info['physics_vector'] reflects the physics actually applied.
+
+        phase2_training.num_envs > 1 runs that many simulators in parallel
+        (training/env_pool.py); each env's episodes are kept separate.
         """
-        print(f"[Data Collection] Collecting {num_episodes} episodes...")
-        
+        n = int(self.config.get('phase2_training', {}).get('num_envs', 1))
+        print(f"[Data Collection] Collecting {num_episodes} episodes with {n} env(s)...")
+        if n > 1:
+            return self._collect_parallel(num_episodes, n)
+
         with torch.no_grad():
             for episode in range(num_episodes):
                 obs, info = self.env.reset(options={'training': True})
                 done = False
                 sa_seq, z_seq, e_seq = [], [], []
-                
+
                 while not done:
                     obs_tensor = torch.as_tensor(obs, dtype=torch.float32, device=self.device)
                     intrinsics = self._true_intrinsics(info)
@@ -196,12 +202,43 @@ class Phase2Trainer:
                     done = terminated or truncated
 
                 self.buffer.add_episode(sa_seq, z_seq, e_seq)
-                
+
                 if (episode + 1) % max(1, num_episodes // 10) == 0:
-                    print(f"  Episode {episode + 1}/{num_episodes}, Buffer size: {len(self.buffer)}")
-        
+                    print(f"  Episode {episode + 1}/{num_episodes}, Buffer size: {len(self.buffer)}", flush=True)
+
         print(f"[Data Collection] Complete. Buffer has {len(self.buffer)} transitions")
-    
+
+    def _collect_parallel(self, num_episodes: int, n: int):
+        from .env_pool import make_pool
+        cfg = dict(self.config)
+        cfg['phase1_training'] = dict(cfg.get('phase1_training', {}), il={'use_expert_actions': False})
+        pool = make_pool(cfg, n, seed=int(self.config.get('phase2_training', {}).get('seed', 12345)))
+        obs, infos, _ = pool.reset()
+        seqs = [([], [], []) for _ in range(n)]
+        done_eps = 0
+        report = max(1, num_episodes // 10)
+        with torch.no_grad():
+            while done_eps < num_episodes:
+                e = torch.from_numpy(np.stack([inf['physics_vector'] for inf in infos])).to(self.device)
+                z = self.actor_critic.get_intrinsics(e)
+                mean, _ = self.actor_critic.policy(torch.from_numpy(obs).to(self.device), z)
+                act = mean.cpu().numpy()
+                zn = z.cpu().numpy()
+                for i in range(n):
+                    seqs[i][0].append(np.concatenate([obs[i], act[i]]))
+                    seqs[i][1].append(zn[i])
+                    seqs[i][2].append(infos[i]['physics_vector'])
+                obs, _, dones, infos, _, _ = pool.step(act)
+                for i in np.where(dones > 0)[0]:
+                    if done_eps < num_episodes:
+                        self.buffer.add_episode(*seqs[i])
+                        done_eps += 1
+                        if done_eps % report == 0:
+                            print(f"  Episode {done_eps}/{num_episodes}, Buffer size: {len(self.buffer)}", flush=True)
+                    seqs[i] = ([], [], [])
+        pool.close()
+        print(f"[Data Collection] Complete. Buffer has {len(self.buffer)} transitions")
+
     def train_epoch(self, num_epochs: int, batch_size: int):
         """
         Train adaptation module for multiple epochs.
@@ -384,6 +421,8 @@ def main():
                        help='Device: cuda, cpu, or auto')
     parser.add_argument('--log_dir', type=str, default='logs/phase2')
     parser.add_argument('--checkpoint_dir', type=str, default='checkpoints/phase2')
+    parser.add_argument('--num_envs', type=int, default=None,
+                        help='parallel simulators for data collection (phase2_training.num_envs)')
     args = parser.parse_args()
     
     # Load config
@@ -392,7 +431,10 @@ def main():
     if args.tire_model:
         config.setdefault('environment', {})['tire_model'] = args.tire_model
     print(f"Tire model: {config.get('environment', {}).get('tire_model', 'linear')}")
-    
+    if args.num_envs:
+        config.setdefault('phase2_training', {})['num_envs'] = args.num_envs
+    torch.set_num_threads(int(os.environ.get('TORCH_THREADS', '4')))
+
     # Determine device
     if args.device == 'auto':
         device = 'cuda' if torch.cuda.is_available() else 'cpu'

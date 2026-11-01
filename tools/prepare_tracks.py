@@ -14,9 +14,19 @@ A tight variant keeps the occupancy PNG and rescales everything metric:
 map resolution, map origin, centerline x/y and track half-widths, and the
 raceline x/y: all × scale (default 0.35).
 
+Scale (November 2026). A uniform 35% makes several corners tighter than the
+car can physically turn (min turning radius 0.33 m / tan(0.4189) = 0.74 m):
+aut_tight has a 0.24 m-radius hairpin, and the Pure Pursuit expert crashes on
+13 of 14 tracks. By default each track now uses the smallest scale from
+{0.35, 0.40, ..., 0.70} at which the expert completes a full lap (TIGHT_SCALE,
+found with the search in docs/RETRAINING.md). Zandvoort crashes the expert at
+the same point at every scale up to 0.70 (a map defect), so it is excluded
+from the retraining configs.
+
 Usage:
-    python tools/prepare_tracks.py                  # download racetracks + build all *_tight
-    python tools/prepare_tracks.py --scale 0.35 --racetracks /path/to/f1tenth_racetracks
+    python tools/prepare_tracks.py                  # download racetracks + build all *_tight (per-track scale)
+    python tools/prepare_tracks.py --scale 0.35     # the July reconstruction: uniform 35%
+    python tools/prepare_tracks.py --racetracks /path/to/f1tenth_racetracks
 
 Output goes to maps/ (or $F1TENTH_MAPS_DIR). Racelines go to maps/racelines/.
 """
@@ -38,6 +48,14 @@ RACETRACK_DB = {
     'spielberg': 'Spielberg', 'silverstone': 'Silverstone', 'monza': 'Monza',
     'sochi': 'Sochi', 'ims': 'IMS', 'zandvoort': 'Zandvoort', 'sepang': 'Sepang',
     'yasmarina': 'YasMarina', 'budapest': 'Budapest', 'melbourne': 'Melbourne',
+}
+
+# Smallest scale at which the Pure Pursuit expert laps the track (see above).
+TIGHT_SCALE = {
+    'aut': 0.70, 'esp': 0.60, 'gbr': 0.60, 'mco': 0.65,
+    'spielberg': 0.55, 'silverstone': 0.45, 'monza': 0.60, 'sochi': 0.45,
+    'ims': 0.35, 'zandvoort': 0.35, 'sepang': 0.40, 'yasmarina': 0.55,
+    'budapest': 0.35, 'melbourne': 0.40,
 }
 
 
@@ -81,7 +99,8 @@ def write_raceline(src_csv: Path, out_csv: Path, scale: float):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument('--scale', type=float, default=0.35)
+    ap.add_argument('--scale', type=float, default=None,
+                    help='uniform scale for every *_tight track (default: per-track TIGHT_SCALE)')
     ap.add_argument('--racetracks', type=Path, help='existing f1tenth_racetracks checkout (else cloned)')
     args = ap.parse_args()
 
@@ -90,9 +109,10 @@ def main():
 
     for name in BENCHMARK_TRACKS:
         tight = f'{name}_tight'
-        write_map(out / f'{name}.yaml', out / f'{name}.png', out, tight, args.scale)
-        write_centerline(out / f'{name}_centerline.csv', out / f'{tight}_centerline.csv', args.scale)
-        print(f'built {tight}')
+        scale = args.scale or TIGHT_SCALE[name]
+        write_map(out / f'{name}.yaml', out / f'{name}.png', out, tight, scale)
+        write_centerline(out / f'{name}_centerline.csv', out / f'{tight}_centerline.csv', scale)
+        print(f'built {tight} (scale {scale:.2f})')
 
     tmp = None
     db = args.racetracks
@@ -103,11 +123,17 @@ def main():
     try:
         for name, folder in RACETRACK_DB.items():
             src = db / folder
-            for variant, scale in ((name, 1.0), (f'{name}_tight', args.scale)):
+            for variant, scale in ((name, 1.0), (f'{name}_tight', args.scale or TIGHT_SCALE[name])):
                 write_map(src / f'{folder}_map.yaml', src / f'{folder}_map.png', out, variant, scale)
                 write_centerline(src / f'{folder}_centerline.csv', out / f'{variant}_centerline.csv', scale)
-                write_raceline(src / f'{folder}_raceline.csv', out / 'racelines' / f'{variant}_raceline.csv', scale)
-            print(f'built {name} and {name}_tight')
+                if variant == name:
+                    # Not for *_tight: a scaled raceline keeps its full-scale
+                    # distance to the walls ×scale, but the car does not shrink,
+                    # so it ends up inside the car's half-width (0.155 m) of a
+                    # wall and the expert crashes within ~50 steps. The Phase 1
+                    # expert falls back to the centerline, which laps every track.
+                    write_raceline(src / f'{folder}_raceline.csv', out / 'racelines' / f'{variant}_raceline.csv', scale)
+            print(f'built {name} and {name}_tight (scale {args.scale or TIGHT_SCALE[name]:.2f})')
     finally:
         if tmp:
             shutil.rmtree(tmp, ignore_errors=True)
