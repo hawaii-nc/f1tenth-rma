@@ -159,3 +159,18 @@ def test_same_seed_same_run(tmp_path):
     c = cfg(2); c['phase1_training']['seed'] = 7
     tr = Phase1Trainer(c, device='cpu', log_dir=str(tmp_path / 's7'), checkpoint_dir=str(tmp_path / 's7'))
     assert not np.array_equal(tr.actor_critic.policy.network[0].weight.detach().numpy(), runs[0][0].numpy())
+
+
+def test_phase2_on_policy_round_runs(tmp_path):
+    """On-policy φ rounds: collect with φ's estimate (after k steps), label with true z."""
+    from f1tenth_research.training.phase2_adaptation import Phase2Trainer
+    c = cfg(2)
+    c['networks']['adaptation']['history_window'] = 10
+    c['phase2_training'].update(num_envs=2, num_eval_episodes=2, num_epochs=1, batch_size=16, max_grad_steps=5,
+                                on_policy={'rounds': 1, 'episodes_per_round': 2, 'grad_steps_per_round': 5})
+    tr = Phase2Trainer(str(REPO / 'checkpoints/final/phase1_v42.pt'), c, device='cpu',
+                       log_dir=str(tmp_path), checkpoint_dir=str(tmp_path))
+    tr.evaluate = lambda num_episodes=50: {}
+    tr.train()
+    assert (tmp_path / 'onpolicy_round1.pt').exists()
+    assert len(tr.buffer.episodes) == 4 and tr.global_step == 10

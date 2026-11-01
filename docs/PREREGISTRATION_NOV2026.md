@@ -46,3 +46,22 @@ Everything below is fixed now. Results that contradict it will be reported as su
 - H1: uncertain. The July R² was 0.08 on the buggy pipeline. Expected higher now that the grip drop reaches the physics and μ is trained.
 - B1: pass via speed. A grip-blind robust policy should learn to drive slowly everywhere.
 - G-hold: pass.
+
+---
+
+## Addendum, 2026-11-01 ~23:00 UTC: post-hoc runs (registered before they ran)
+
+**What happened.** The seed-0 results failed G1, H2 and H3, and they are reported as such: φ crashed *more* than Blind at μ = 0.4 (0.39 vs 0.31) and drove at ~2.13 m/s regardless of grip. G0 passed, H4's hallucination arm passed (believing μ = 0.4 at true μ = 1.0 slowed the car to the Oracle's 1.19 m/s), and E5 gave grip R² of 0.9999 for the encoder, 0.04 for history statistics, and ≈ 0 for φ. The replicate-seed suite was paused: replicating a configuration whose mechanism is known to fail is low value.
+
+**Diagnosis (before the runs below).**
+1. *Observability.* In the linear single-track model, μ only enters the understeer gradient. With f110_gym's parameters, K ≈ 0.0088/μ s²/m, so at 2 m/s the steady-state yaw gain at μ = 0.4 differs from μ = 1.0 by ~5%, below the ±20% motor-steering randomization. Grip is nearly unobservable from a 0.5 s history at these speeds.
+2. *Action leakage.* φ was trained on oracle-driven rollouts, where low grip is revealed by the oracle's *own* slower driving. Under φ that cue is absent: a fixed point at high-grip behaviour (φ's 2.13 m/s exceeds every oracle speed).
+
+**Post-hoc runs, labelled post hoc in all write-ups:**
+
+| ID | Change | Isolates | Prediction |
+|---|---|---|---|
+| P1 | Same base policy; φ trained with 3 on-policy rounds (250 episodes, 10k steps each) after the oracle round | Action leakage | φ's speed falls to ≤ the Blind/Oracle range at μ = 1.0, and its μ = 1.0 crash rate drops to ≈ Blind's. E5 φ R² stays < 0.3 (observability limit). G1 still fails |
+| P2 | Friction-circle tire for training *and* evaluation: Phase 1 DAgger + φ with on-policy rounds | Observability (μ now caps acceleration at μg, and cornering saturates) | E5 history R² > 0.3 and φ R² > P1's. G1 (≥ 30% gap closed at μ = 0.4) passes. φ crash rate at μ = 0.4 < Blind's |
+
+Same E1/E2 (N = 100) and E5 (N = 200) protocol and the same statistics (tools/stats.py). If P2 passes, the replicate seeds, robust baseline and held-out tracks (R1–R3) are run on the P2 configuration. Otherwise they are run on the original configuration, as planned.
