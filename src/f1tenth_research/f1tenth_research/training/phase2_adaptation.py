@@ -253,8 +253,18 @@ class Phase2Trainer:
             epoch_loss = 0.0
             num_batches = 0
             
-            # Mini-batch training
+            # Mini-batch training (optionally capped by phase2_training.max_grad_steps:
+            # 100 full epochs over a 2M-transition buffer is ~780k steps, fine on
+            # a GPU but ~30 h on a 4-core CPU)
+            max_steps = int(self.config.get('phase2_training', {}).get('max_grad_steps', 0))
+            if max_steps and self.global_step >= max_steps:
+                print(f"[Training] reached max_grad_steps={max_steps}", flush=True)
+                break
             while num_batches < len(self.buffer) // batch_size:
+                if max_steps and self.global_step >= max_steps:
+                    break
+                if num_batches and num_batches % 1000 == 0:
+                    print(f"  [Epoch {epoch}] step {self.global_step}: running loss {epoch_loss / num_batches:.6f}", flush=True)
                 try:
                     histories, intrinsics, physics = self.buffer.get_batch(batch_size)
                 except RuntimeError:
@@ -284,7 +294,7 @@ class Phase2Trainer:
             
             if num_batches > 0:
                 avg_loss = epoch_loss / num_batches
-                print(f"[Epoch {epoch}] Loss: {avg_loss:.6f}")
+                print(f"[Epoch {epoch}] Loss: {avg_loss:.6f} (step {self.global_step})", flush=True)
                 self.writer.add_scalar('train/mse_loss', avg_loss, self.global_step)
             # Data collection alone takes hours: never lose a run to a crash
             # late in training. Overwritten each time (one file, not per epoch).
