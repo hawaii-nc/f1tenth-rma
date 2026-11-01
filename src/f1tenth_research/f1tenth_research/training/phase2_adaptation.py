@@ -211,28 +211,44 @@ class Phase2Trainer:
 
         print(f"[Data Collection] Complete. Buffer has {len(self.buffer)} transitions")
 
-    def _collect_parallel(self, num_episodes: int, n: int):
+    def _collect_parallel(self, num_episodes: int, n: int, use_phi: bool = False, seed_offset: int = 0):
         from .env_pool import make_pool
         cfg = dict(self.config)
         cfg['phase1_training'] = dict(cfg.get('phase1_training', {}), il={'use_expert_actions': False})
-        pool = make_pool(cfg, n, seed=int(self.config.get('phase2_training', {}).get('seed', 12345)))
+        pool = make_pool(cfg, n, seed=int(self.config.get('phase2_training', {}).get('seed', 12345)) + seed_offset)
         obs, infos, _ = pool.reset()
         seqs = [([], [], []) for _ in range(n)]
+        k = self.buffer.window_size
+        hist = [deque(maxlen=k) for _ in range(n)]
+        z_nominal = self.actor_critic.get_intrinsics(
+            torch.tensor([1, 1, 1, 1, 1, 0, 0], dtype=torch.float32, device=self.device))
         done_eps = 0
         report = max(1, num_episodes // 10)
         with torch.no_grad():
             while done_eps < num_episodes:
                 e = torch.from_numpy(np.stack([inf['physics_vector'] for inf in infos])).to(self.device)
-                z = self.actor_critic.get_intrinsics(e)
-                mean, _ = self.actor_critic.policy(torch.from_numpy(obs).to(self.device), z)
+                z = self.actor_critic.get_intrinsics(e)          # label: the true intrinsics
+                z_act = z
+                if use_phi:
+                    # On-policy (RMA): act on φ's own estimate, exactly as at deployment
+                    # (eval/harness.py Phi: nominal until k steps of history exist).
+                    z_act = z_nominal.expand_as(z).clone()
+                    full = [i for i in range(n) if len(hist[i]) >= k]
+                    if full:
+                        h = torch.from_numpy(np.stack([np.asarray(hist[i], np.float32) for i in full])).to(self.device)
+                        z_act[full] = self.adaptation(h)
+                mean, _ = self.actor_critic.policy(torch.from_numpy(obs).to(self.device), z_act)
                 act = mean.cpu().numpy()
                 zn = z.cpu().numpy()
+                for i in range(n):
+                    hist[i].append(np.concatenate([obs[i], act[i]]))
                 for i in range(n):
                     seqs[i][0].append(np.concatenate([obs[i], act[i]]))
                     seqs[i][1].append(zn[i])
                     seqs[i][2].append(infos[i]['physics_vector'])
                 obs, _, dones, infos, _, _ = pool.step(act)
                 for i in np.where(dones > 0)[0]:
+                    hist[i].clear()
                     if done_eps < num_episodes:
                         self.buffer.add_episode(*seqs[i])
                         done_eps += 1
@@ -387,6 +403,24 @@ class Phase2Trainer:
         
         print(f"[Training] Training for {num_epochs} epochs with batch size {batch_size}...")
         self.train_epoch(num_epochs, batch_size)
+
+        # On-policy rounds (Kumar et al. 2021, RMA): roll out with φ's own
+        # estimate, label with the true intrinsics, aggregate, keep training.
+        # Removes the "action leakage" of oracle-driven data (the oracle slows
+        # down at low grip, so its own speed reveals the grip; φ-driven it doesn't).
+        onp = phase2_config.get('on_policy') or {}
+        n_env = int(phase2_config.get('num_envs', 1))
+        for r in range(int(onp.get('rounds', 0))):
+            if n_env < 2:
+                raise ValueError('on_policy rounds need phase2_training.num_envs >= 2')
+            print(f"[On-policy round {r + 1}] collecting with phi's estimates", flush=True)
+            self.adaptation.eval()
+            self._collect_parallel(int(onp.get('episodes_per_round', 200)), n_env, use_phi=True,
+                                   seed_offset=100_000 * (r + 1))
+            self.adaptation.train()
+            phase2_config['max_grad_steps'] = self.global_step + int(onp.get('grad_steps_per_round', 10000))
+            self.train_epoch(num_epochs, batch_size)
+            self.save_checkpoint(f'onpolicy_round{r + 1}.pt')
         
         # Evaluation
         print("[Training] Evaluating...")
