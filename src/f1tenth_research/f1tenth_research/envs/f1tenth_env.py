@@ -35,6 +35,9 @@ Reset options (all optional):
   disturbance_step (int)   force the grip drop at this step (E3); -1 disables
   disturbance_grip (float) grip_factor after the forced drop
   track (str)              force a specific track
+  spawn_frac (float)       start at this fraction of the lap (default: random
+                           when training and environment.random_spawn is
+                           true (default), else the fixed start line)
   obs_noise (bool)         LiDAR noise/dropout on/off (default: on iff training)
 """
 
@@ -297,9 +300,16 @@ class F1TenthRMAEnv(gym.Env):
         if training and np.random.rand() < self.drift_spawn_prob:
             heading_offset = float(np.random.uniform(-DRIFT_SPAWN_MAX_HEADING, DRIFT_SPAWN_MAX_HEADING))
 
+        spawn_frac = options.get('spawn_frac')
+        if spawn_frac is None and training and self.config.get('random_spawn', True):
+            spawn_frac = float(np.random.rand())
+
         if self.base_env is None:
             raw_obs_vec = np.zeros(3, dtype=np.float32)
             raw_obs_dict = None
+        elif spawn_frac is not None and getattr(self.base_env, 'supports_spawn_frac', False):
+            raw_obs_vec, raw_obs_dict = self.base_env.reset(
+                self.current_physics_params, heading_offset=heading_offset, spawn_frac=spawn_frac)
         else:
             raw_obs_vec, raw_obs_dict = self.base_env.reset(
                 self.current_physics_params, heading_offset=heading_offset)

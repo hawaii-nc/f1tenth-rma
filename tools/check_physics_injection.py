@@ -57,10 +57,10 @@ def main():
     ap.add_argument('--config', default=str(REPO / 'configs' / 'final_phase2_crashtol.yaml'))
     ap.add_argument('--track', default='aut_tight')
     ap.add_argument('--tire-model', default='linear', choices=['linear', 'friction_circle'])
-    ap.add_argument('--drop-step', type=int, default=60)
+    ap.add_argument('--drop-step', type=int, default=30)
     ap.add_argument('--drop-grip', type=float, default=0.4)
-    ap.add_argument('--steps', type=int, default=90)
-    ap.add_argument('--steer', type=float, default=0.15)
+    ap.add_argument('--steps', type=int, default=45)
+    ap.add_argument('--steer', type=float, default=0.05)
     ap.add_argument('--speed', type=float, default=2.0)
     a = ap.parse_args()
 

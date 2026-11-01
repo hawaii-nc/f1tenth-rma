@@ -20,6 +20,7 @@ Training scale: ~100M timesteps (scale to F1Tenth hardware/sim speed)
 """
 
 import os
+import time
 import numpy as np
 import torch
 import torch.nn as nn
@@ -35,6 +36,7 @@ from ..models import RMAActorCritic, PolicyNetwork, IntrinsicsEncoder, ValueNetw
 from ..experts import PurePursuitExpert
 from ..paths import centerline_path, raceline_path
 from ..envs.reward import RewardComputer
+from .env_pool import create_experts, expert_action, make_pool
 
 
 class Phase1Trainer:
@@ -80,15 +82,16 @@ class Phase1Trainer:
         else:
             self.total_timesteps = self.training_config.get('total_timesteps', 100_000_000)
         
-        # Create environment(s)
-        self.num_envs = self.training_config.get('num_envs', 16)
-        self.envs = self._create_envs()
-        
-        # Get observation and action dimensions
-        self.obs_dim = (self.envs.single_observation_space.shape[0] if hasattr(self.envs, 'single_observation_space') else self.envs.observation_space.shape[0])
-        self.action_dim = self.envs.single_action_space.shape[0] if hasattr(self.envs, 'single_action_space') else 2
-        self.env_params_dim = 7  # Configurable based on randomization
-        
+        # Environment pool: one simulator per worker (num_envs), auto-reset,
+        # per-env expert labels and physics. State persists across rollouts.
+        self.num_envs = int(self.training_config.get('num_envs', 1))
+        self.pool = make_pool(config, self.num_envs, seed=int(self.training_config.get('seed', 0)))
+        self._obs, self._infos, self._experts = self.pool.reset()
+        self.obs_dim = self._obs.shape[1]
+        self.action_dim = 2
+        self.env_params_dim = 7
+        self.episode_stats = []
+
         # Initialize networks
         self.actor_critic = RMAActorCritic(
             obs_dim=self.obs_dim,
@@ -117,86 +120,11 @@ class Phase1Trainer:
         self.writer = SummaryWriter(log_dir)
         self.global_step = 0
         self.global_episode = 0
+        self.epoch = 0
         self.metrics = defaultdict(list)
     
-    def _create_envs(self):
-        """Create parallel environments using multiprocessing spawn context.
-
-        Uses spawn (not fork) to avoid shared memory conflicts with f110_gym
-        inside Docker. Each worker process runs an independent F1TenthRMAEnv.
-        Falls back to single env if num_envs=1 or if multiprocessing fails.
-        """
-        num_envs = self.num_envs
-        config = self.config
-        max_steps = self.env_config.get('max_episode_steps', 1000)
-        # None -> the env samples from environment.tracks every episode
-        track = None
-
-        if num_envs <= 1:
-            env = F1TenthRMAEnv(
-                config=config,
-                max_episode_steps=max_steps,
-                track=track,
-            )
-            return env
-
-        # Parallel environments using subprocess workers
-        import multiprocessing as mp
-        import gymnasium as gym
-        from gymnasium.vector import AsyncVectorEnv
-
-        def make_env_fn(cfg, ms, tr):
-            def _init():
-                return F1TenthRMAEnv(config=cfg, max_episode_steps=ms, track=tr)
-            return _init
-
-        try:
-            # Set spawn context before creating AsyncVectorEnv
-            # to avoid fork-related shared memory conflicts with f110_gym
-            mp.set_start_method('spawn', force=True)
-            env_fns = [make_env_fn(config, max_steps, track) for _ in range(num_envs)]
-            vec_env = AsyncVectorEnv(env_fns)
-            print(f"[ParallelEnv] Created {num_envs} parallel environments (spawn)")
-            return vec_env
-        except Exception as e:
-            print(f"[ParallelEnv] Failed to create parallel envs: {e}")
-            print("[ParallelEnv] Falling back to single environment")
-            return F1TenthRMAEnv(
-                config=config,
-                max_episode_steps=max_steps,
-                track=track,
-            )
-    
-    def _create_expert(self) -> Optional[Dict[str, PurePursuitExpert]]:
-        """One Pure Pursuit expert per training track, keyed by track name."""
-        if not self.training_config.get('il', {}).get('use_expert_actions', False):
-            return None
-        expert_type = self.expert_config.get('type', 'pure_pursuit')
-        if expert_type != 'pure_pursuit':
-            warnings.warn(f"Unknown expert type: {expert_type}, disabling expert")
-            return None
-
-        tracks = self.env_config.get('tracks') or [self.env_config.get('track', 'example_map')]
-        experts = {}
-        for track in tracks:
-            if track == 'example_map':
-                # Real raceline waypoints (x_m, y_m columns), per f1tenth_gym example
-                wpt_data = np.loadtxt('/f1tenth_gym/examples/example_waypoints.csv',
-                                      delimiter=';', skiprows=3)
-                waypoints = wpt_data[:, 1:3]
-            else:
-                # Prefer the TUMFTM minimum-curvature raceline; fall back to the
-                # centerline (x, y, w_right, w_left; no header).
-                rl = raceline_path(track)
-                if rl.exists():
-                    waypoints = np.loadtxt(rl, delimiter=',', comments='#')[:, 1:3]
-                else:
-                    waypoints = np.loadtxt(centerline_path(track), delimiter=',')[:, 0:2]
-            experts[track] = PurePursuitExpert(
-                config=self.expert_config.get('pure_pursuit', {}),
-                waypoints=waypoints,
-            )
-        return experts
+    def _create_expert(self):
+        return create_experts(self.config)
 
     def compute_gae(
         self,
@@ -241,164 +169,138 @@ class Phase1Trainer:
         return advantages, returns
     
     def get_expert_action(self, info: Dict) -> Optional[np.ndarray]:
-        """
-        Expert action for the current step, from the privileged pose in info.
-
-        The observation has no pose (map-agnostic by design), so the pose
-        comes from info. See bug C5 in docs/BUGS_AND_LESSONS.md.
-        """
-        if self.expert is None or 'poses_x' not in info:
-            return None
-        expert = self.expert.get(info.get('track'))
-        if expert is None:
-            return None
-        state = {
-            'position': (info['poses_x'], info['poses_y']),
-            'yaw': info['pose_theta'],
-            'velocity': info.get('velocity', 0.0),
-            'yaw_rate': info.get('yaw_rate', 0.0),
-        }
-        return expert.compute_action(state, info.get('physics_params', {}))
+        """Expert action from the privileged pose in info (bug C5: never from obs)."""
+        return expert_action(self.expert, info)
 
     def rollout(self, num_steps: int) -> Dict:
         """
-        Perform environment rollout for PPO.
-        
-        Collects trajectories: (obs, action, reward, value, log_prob, done, expert_action)
-        and computes GAE afterward.
-        
-        Args:
-            num_steps: Number of steps to rollout
-            
-        Returns:
-            Dictionary with rollout data for training update
+        Collect about num_steps transitions (num_steps // num_envs per env).
+
+        Episodes continue across rollouts (no forced reset). GAE runs per env,
+        bootstrapping each env from its own last observation. Each transition's
+        intrinsics come from that env's physics, and its imitation label from
+        that env's expert at that state (NaN + mask where no expert exists).
         """
-        rollout_data = {
-            'obs': [],
-            'actions': [],
-            'rewards': [],
-            'values': [],
-            'log_probs': [],
-            'dones': [],
-            'advantages': [],
-            'returns': [],
-            'expert_actions': [],
-            'intrinsics': [],
-        }
-        
-        obs, info = self.envs.reset()
-        is_vec = hasattr(self.envs, 'num_envs')
-        n_envs = self.envs.num_envs if is_vec else 1
+        n = self.num_envs
+        T = max(1, num_steps // n)
+        obs_buf = np.zeros((T, n, self.obs_dim), np.float32)
+        act_buf = np.zeros((T, n, self.action_dim), np.float32)
+        logp_buf = np.zeros((T, n), np.float32)
+        val_buf = np.zeros((T, n), np.float32)
+        rew_buf = np.zeros((T, n), np.float32)
+        done_buf = np.zeros((T, n), np.float32)
+        intr_buf = np.zeros((T, n, 8), np.float32)
+        phys_buf = np.zeros((T, n, 7), np.float32)
+        exp_buf = np.full((T, n, self.action_dim), np.nan, np.float32)
 
-        def to2d(o):
-            o = np.array(o, dtype=np.float32)
-            return o if o.ndim == 2 else o[np.newaxis]
-
-        def get_ep_tensor(info_, idx=0):
-            """Extract physics params as 1D tensor for env idx."""
-            try:
-                if isinstance(info_, (list, tuple)):
-                    d = info_[idx] if idx < len(info_) else {}
-                elif isinstance(info_, dict):
-                    raw = info_.get('physics_params', {})
-                    d = raw[idx] if isinstance(raw, (list,tuple)) else raw
-                else:
-                    d = {}
-                if not isinstance(d, dict):
-                    d = {}
-                def s(v, default):
-                    if isinstance(v, (list, np.ndarray)):
-                        return float(np.array(v).flat[0])
-                    return float(v) if v is not None else float(default)
-                arr = np.array([
-                    s(d.get('grip_factor'),        1.0),
-                    s(d.get('mass_scale'),          1.0),
-                    s(d.get('inertia_scale'),       1.0),
-                    s(d.get('motor_steering_scale'),1.0),
-                    s(d.get('motor_drive_scale'),   1.0),
-                    s(d.get('delay_steering'),      0.0),
-                    s(d.get('delay_drive'),         0.0),
-                ], dtype=np.float32)
-            except Exception:
-                arr = np.array([1.,1.,1.,1.,1.,0.,0.], dtype=np.float32)
-            return torch.from_numpy(arr).float().to(self.device)
-
+        obs, infos, experts = self._obs, self._infos, self._experts
         with torch.no_grad():
-            for step in range(num_steps):
-                obs2d = to2d(obs)  # (n_envs, obs_dim)
+            for t in range(T):
+                e = torch.from_numpy(np.stack([inf['physics_vector'] for inf in infos])).to(self.device)
+                intr = self.actor_critic.get_intrinsics(e)
+                obs_t = torch.from_numpy(obs).to(self.device)
+                a, lp, _, v, _ = self.actor_critic.get_action_and_value(obs_t, intr)
+                obs_buf[t], act_buf[t] = obs, a.cpu().numpy()
+                logp_buf[t], val_buf[t] = lp.cpu().numpy(), v.reshape(-1).cpu().numpy()
+                intr_buf[t] = intr.cpu().numpy()
+                phys_buf[t] = e.cpu().numpy()
+                for i, ea in enumerate(experts):
+                    if ea is not None:
+                        exp_buf[t, i] = ea
+                env_action = torch.clamp(a, -1.0, 1.0).cpu().numpy()
+                obs, rew_buf[t], done_buf[t], infos, experts, finished = self.pool.step(env_action)
+                self.episode_stats.extend(finished)
+                self.global_step += n
 
-                actions_list, log_probs_list, values_list, intrinsics_list = [], [], [], []
-                for i in range(n_envs):
-                    ep_t = get_ep_tensor(info, i)
-                    intr = self.actor_critic.get_intrinsics(ep_t)
-                    obs_t = torch.from_numpy(obs2d[i]).float().to(self.device)
-                    a, lp, _, v, _ = self.actor_critic.get_action_and_value(obs_t, intr)
-                    actions_list.append(a)
-                    log_probs_list.append(lp)
-                    values_list.append(v)
-                    intrinsics_list.append(intr)
-
-                actions_batch    = torch.stack(actions_list)
-                log_probs_batch  = torch.stack(log_probs_list)
-                values_batch     = torch.stack(values_list)
-                intrinsics_batch = torch.stack(intrinsics_list)
-
-                env_action = torch.clamp(actions_batch, -1.0, 1.0).cpu().numpy()
-                if not is_vec:
-                    env_action = env_action[0]
-
-                # Expert action from first env
-                info0 = info[0] if isinstance(info, (list, tuple)) else info
-                expert_action = self.get_expert_action(info0) if isinstance(info0, dict) else None
-
-                obs, reward, terminated, truncated, info = self.envs.step(env_action)
-
-                if is_vec:
-                    rewards = np.array(reward, dtype=np.float32)
-                    dones   = np.array(np.logical_or(terminated, truncated), dtype=np.float32)
-                else:
-                    rewards = np.array([float(reward)], dtype=np.float32)
-                    dones   = np.array([float(bool(terminated or truncated))], dtype=np.float32)
-                    if dones[0]:
-                        obs, info = self.envs.reset()
-
-                for i in range(n_envs):
-                    rollout_data['obs'].append(obs2d[i])
-                    rollout_data['actions'].append(actions_batch[i].cpu().numpy())
-                    rollout_data['rewards'].append(float(rewards[i]))
-                    rollout_data['values'].append(values_batch[i].cpu().numpy())
-                    rollout_data['log_probs'].append(log_probs_batch[i].cpu().numpy())
-                    rollout_data['dones'].append(float(dones[i]))
-                    rollout_data['intrinsics'].append(intrinsics_batch[i].cpu().numpy())
-                    if expert_action is not None:
-                        rollout_data['expert_actions'].append(expert_action)
-
-                self.global_step += n_envs
-
-            # Bootstrap value
-            obs2d_f = to2d(obs)
-            ep_f = get_ep_tensor(info, 0)
-            intr_f = self.actor_critic.get_intrinsics(ep_f)
-            obs_f  = torch.from_numpy(obs2d_f[0]).float().to(self.device)
-            next_value = self.actor_critic.value(obs_f, intr_f).cpu().numpy().item()
+            e = torch.from_numpy(np.stack([inf['physics_vector'] for inf in infos])).to(self.device)
+            next_values = self.actor_critic.value(torch.from_numpy(obs).to(self.device),
+                                                  self.actor_critic.get_intrinsics(e)).reshape(-1).cpu().numpy()
+        self._obs, self._infos, self._experts = obs, infos, experts
 
         ppo_config = self.training_config.get('ppo', {})
-        rewards_arr = np.array(rollout_data['rewards'], dtype=np.float32)
-        values_arr = np.array(rollout_data['values'], dtype=np.float32).flatten()
-        dones_arr = np.array(rollout_data['dones'], dtype=np.float32)
-        advantages, returns = self.compute_gae(
-            rewards_arr,
-            values_arr,
-            next_value,
-            dones_arr,
-            gamma=ppo_config.get('gamma', 0.99),
-            gae_lambda=ppo_config.get('gae_lambda', 0.95),
-        )
-        rollout_data['advantages'] = advantages
-        rollout_data['returns'] = returns
+        adv = np.zeros((T, n), np.float32)
+        ret = np.zeros((T, n), np.float32)
+        for i in range(n):
+            adv[:, i], ret[:, i] = self.compute_gae(
+                rew_buf[:, i], val_buf[:, i], float(next_values[i]), done_buf[:, i],
+                gamma=ppo_config.get('gamma', 0.99), gae_lambda=ppo_config.get('gae_lambda', 0.95))
 
-        return rollout_data
-    
+        def flat(x):  # env-major: each env's trajectory stays contiguous
+            return np.ascontiguousarray(np.swapaxes(x, 0, 1).reshape(n * T, *x.shape[2:]))
+
+        exp_flat = flat(exp_buf)
+        mask = ~np.isnan(exp_flat).any(axis=1)
+        return {
+            'obs': flat(obs_buf), 'actions': flat(act_buf), 'log_probs': flat(logp_buf),
+            'values': flat(val_buf), 'rewards': flat(rew_buf), 'dones': flat(done_buf),
+            'intrinsics': flat(intr_buf), 'physics': flat(phys_buf), 'advantages': flat(adv), 'returns': flat(ret),
+            'expert_actions': np.nan_to_num(exp_flat), 'expert_mask': mask,
+        }
+
+    def dagger_pretrain(self):
+        """
+        DAgger pre-training of π and μ before PPO (phase1_training.dagger).
+
+        Iteration k: the pool drives with the expert's action with probability
+        β_k = beta0 · decay^k per step (else the policy's mean + exploration
+        noise); every visited state is labelled with the expert's action; π and
+        μ are trained by MSE on the aggregated dataset. Pure IL inside PPO only
+        ever saw the first metres of each track plus crash states (the policy
+        crashed within ~100 steps), and plain behaviour cloning drifts off the
+        expert's state distribution; DAgger fixes both (Ross et al., 2011).
+        """
+        dc = self.training_config.get('dagger', {})
+        iters = int(dc.get('iterations', 0))
+        if iters <= 0 or self.epoch > 0 or getattr(self, '_dagger_done', False):
+            return
+        steps = int(dc.get('steps_per_iter', 50_000))
+        beta0, decay = float(dc.get('beta0', 1.0)), float(dc.get('beta_decay', 0.5))
+        noise = float(dc.get('action_noise', 0.1))
+        epochs, bs = int(dc.get('epochs', 10)), int(dc.get('batch_size', 512))
+        n = self.num_envs
+        X, E, Y = [], [], []
+        opt = optim.Adam(list(self.actor_critic.policy.parameters()) +
+                         list(self.actor_critic.encoder.parameters()), lr=float(dc.get('learning_rate', 3e-4)))
+        obs, infos, experts = self._obs, self._infos, self._experts
+        for k in range(iters):
+            beta = beta0 * decay ** k
+            for _ in range(max(1, steps // n)):
+                e = np.stack([inf['physics_vector'] for inf in infos])
+                with torch.no_grad():
+                    mean, _ = self.actor_critic.policy(torch.from_numpy(obs).to(self.device),
+                                                       self.actor_critic.get_intrinsics(torch.from_numpy(e).to(self.device)))
+                act = mean.cpu().numpy() + np.random.normal(0, noise, size=(n, 2))
+                for i, ea in enumerate(experts):
+                    if ea is not None:
+                        X.append(obs[i]); E.append(e[i]); Y.append(ea)
+                        if np.random.rand() < beta:
+                            act[i] = ea + np.random.normal(0, noise, size=2)
+                obs, _, _, infos, experts, finished = self.pool.step(np.clip(act, -1, 1).astype(np.float32))
+                self.episode_stats.extend(finished)
+            Xt = torch.from_numpy(np.array(X, np.float32)).to(self.device)
+            Et = torch.from_numpy(np.array(E, np.float32)).to(self.device)
+            Yt = torch.from_numpy(np.array(Y, np.float32)).to(self.device)
+            for _ in range(epochs):
+                perm = torch.randperm(len(Xt))
+                for j in range(0, len(Xt), bs):
+                    b = perm[j:j + bs]
+                    mu, _ = self.actor_critic.policy(Xt[b], self.actor_critic.get_intrinsics(Et[b]))
+                    loss = ((mu - Yt[b]) ** 2).mean()
+                    opt.zero_grad(); loss.backward(); opt.step()
+            eps, self.episode_stats = self.episode_stats, []
+            crash = np.mean([x['crash'] for x in eps]) if eps else float('nan')
+            ln = np.mean([x['length'] for x in eps]) if eps else float('nan')
+            print(f"[DAgger {k}] beta={beta:.3f} dataset={len(X)} bc_mse={loss.item():.4f} | "
+                  f"episodes={len(eps)} crash_rate={crash:.2f} mean_len={ln:.0f}", flush=True)
+            self.writer.add_scalar('dagger/bc_mse', loss.item(), k)
+        self._obs, self._infos, self._experts = obs, infos, experts
+        # PPO's exploration std starts at DAgger's noise level: the default
+        # (exp(-0.5) = 0.6 rad) exceeds the whole steering range and would undo DAgger.
+        with torch.no_grad():
+            self.actor_critic.policy.log_std.fill_(float(np.log(noise)))
+        self._dagger_done = True
+        self.save_checkpoint('dagger.pt')
+
     def update(self, rollout_data: Dict, epoch: int):
         """
         Update policy and value function using collected rollout.
@@ -467,14 +369,26 @@ class Phase1Trainer:
         # Convert rollout data to tensors
         obs_tensor = torch.from_numpy(np.array(rollout_data['obs'])).float().to(self.device)
         actions_tensor = torch.from_numpy(np.array(rollout_data['actions'])).float().to(self.device)
-        returns_tensor = torch.from_numpy(rollout_data['returns']).float().to(self.device)
-        advantages_tensor = torch.from_numpy(rollout_data['advantages']).float().to(self.device)
+        returns_tensor = torch.from_numpy(np.asarray(rollout_data['returns'])).float().to(self.device)
+        advantages_tensor = torch.from_numpy(np.asarray(rollout_data['advantages'])).float().to(self.device)
         intrinsics_tensor = torch.from_numpy(np.array(rollout_data['intrinsics'])).float().to(self.device)
+        # Recompute μ(e) inside the loss so the encoder is trained with π (bug C21:
+        # stored, detached intrinsics meant μ never received a gradient).
+        physics_tensor = (torch.from_numpy(np.asarray(rollout_data['physics'])).float().to(self.device)
+                          if 'physics' in rollout_data else None)
         old_log_probs_tensor = torch.from_numpy(np.array(rollout_data['log_probs'])).float().to(self.device)
 
         expert_actions_tensor = None
+        expert_mask_tensor = None
         if il_config.get('enabled', False) and len(rollout_data['expert_actions']) == len(rollout_data['obs']):
             expert_actions_tensor = torch.from_numpy(np.array(rollout_data['expert_actions'])).float().to(self.device)
+            mask = rollout_data.get('expert_mask')
+            mask = np.ones(len(rollout_data['obs']), bool) if mask is None else np.asarray(mask, bool)
+            if not mask.any():
+                raise RuntimeError('IL is enabled but no transition has an expert action '
+                                   '(lesson: a missing imitation signal must be loud)')
+            expert_mask_tensor = torch.from_numpy(mask.astype(np.float32)).to(self.device)
+        self._last_il_weight = il_weight
         
         # Normalize advantages
         advantages_tensor = (advantages_tensor - advantages_tensor.mean()) / (advantages_tensor.std() + 1e-8)
@@ -491,7 +405,8 @@ class Phase1Trainer:
                 actions_batch = actions_tensor[batch_indices]
                 returns_batch = returns_tensor[batch_indices]
                 advantages_batch = advantages_tensor[batch_indices]
-                intrinsics_batch = intrinsics_tensor[batch_indices]
+                intrinsics_batch = (self.actor_critic.get_intrinsics(physics_tensor[batch_indices])
+                                    if physics_tensor is not None else intrinsics_tensor[batch_indices])
                 old_log_probs_batch = old_log_probs_tensor[batch_indices]
                 
                 mean_batch, log_std_batch = self.actor_critic.policy(obs_batch, intrinsics_batch)
@@ -510,13 +425,18 @@ class Phase1Trainer:
                 il_loss = torch.tensor(0.0, device=self.device)
                 if expert_actions_tensor is not None:
                     expert_actions_batch = expert_actions_tensor[batch_indices]
-                    il_loss = ((mean_batch - expert_actions_batch) ** 2).mean()
+                    m = expert_mask_tensor[batch_indices]
+                    per = ((mean_batch - expert_actions_batch) ** 2).mean(dim=-1)
+                    il_loss = (per * m).sum() / m.sum().clamp(min=1.0)
                 
                 # Combined loss
                 total_loss = policy_loss + value_coeff * value_loss - entropy_coeff * entropy
                 
                 if il_config.get('enabled', False):
                     total_loss += il_weight * il_loss
+                if epoch < int(self.training_config.get('value_warmup_epochs', 0)):
+                    # Fit V to the (DAgger-initialised) policy before letting PPO move π
+                    total_loss = value_coeff * value_loss
                 
                 # Backward pass
                 self.optimizer.zero_grad()
@@ -545,50 +465,53 @@ class Phase1Trainer:
     
     def train(self):
         """
-        Main training loop (Phase 1).
-        
-        Iteratively:
-        1. Rollout trajectories with current policy
-        2. Update policy and value function via PPO + IL
-        3. Log metrics and save checkpoints
+        Main training loop (Phase 1): rollout -> PPO + IL update -> log -> checkpoint.
+        Resumable: load_checkpoint() restores the epoch, IL schedule and step count.
         """
         rollout_steps = self.training_config.get('rollout_steps', 2048)
         checkpoint_interval = self.training_config.get('checkpoint_interval', 10)
         log_interval = self.training_config.get('log_interval', 100)
-        eval_interval = self.training_config.get('eval_interval', 1000)
-        
-        epoch = 0
+
+        self.dagger_pretrain()
         while self.global_step < self.total_timesteps:
-            # Rollout
-            print(f"[Epoch {epoch}] Rollout ({rollout_steps} steps)...")
+            epoch = self.epoch
+            t0 = time.time()
             rollout_data = self.rollout(rollout_steps)
-            
-            # Update
-            print(f"[Epoch {epoch}] Update...")
+            t1 = time.time()
             self.update(rollout_data, epoch)
-            
-            # Logging
+            t2 = time.time()
+
             if epoch % log_interval == 0:
-                avg_reward = np.mean(rollout_data['rewards']) if len(rollout_data['rewards']) > 0 else 0
+                avg_reward = float(np.mean(rollout_data['rewards'])) if len(rollout_data['rewards']) else 0.0
                 self._reward_history.append(avg_reward)  # track for adaptive IL rescue
-                print(f"[Epoch {epoch}] Step {self.global_step}: Avg Reward = {avg_reward:.3f}")
-                
+                eps, self.episode_stats = self.episode_stats, []
+                if eps:
+                    crash = np.mean([e['crash'] for e in eps])
+                    ep_len = np.mean([e['length'] for e in eps])
+                    self.writer.add_scalar('episodes/crash_rate', crash, self.global_step)
+                    self.writer.add_scalar('episodes/length', ep_len, self.global_step)
+                    ep_txt = f"episodes={len(eps)} crash_rate={crash:.2f} mean_len={ep_len:.0f}"
+                else:
+                    ep_txt = "episodes=0"
+                sps = len(rollout_data['rewards']) / max(t1 - t0, 1e-6)
+                print(f"[Epoch {epoch}] Step {self.global_step}: Avg Reward = {avg_reward:.3f} | {ep_txt} | "
+                      f"IL w={getattr(self, '_last_il_weight', 0.0):.3f} | {sps:.0f} steps/s, update {t2 - t1:.0f}s",
+                      flush=True)
                 self.writer.add_scalar('train/avg_reward', avg_reward, self.global_step)
                 for key, values in self.metrics.items():
                     if len(values) > 0:
                         self.writer.add_scalar(f'train/{key}', np.mean(values), self.global_step)
                 self.metrics.clear()
-            
-            # Checkpointing
+
+            self.epoch += 1
             if epoch % checkpoint_interval == 0:
                 self.save_checkpoint(f'checkpoint_epoch_{epoch}.pt')
-                print(f"[Epoch {epoch}] Checkpoint saved")
-            
-            epoch += 1
-        
+                self.save_checkpoint('latest.pt')
+
         print("[Training Complete] Phase 1 training finished")
         self.save_checkpoint('final.pt')
-    
+        self.pool.close()
+
     def save_checkpoint(self, filename: str):
         """Save model checkpoint."""
         path = os.path.join(self.checkpoint_dir, filename)
@@ -597,6 +520,9 @@ class Phase1Trainer:
             'optimizer': self.optimizer.state_dict(),
             'global_step': self.global_step,
             'config': self.config,
+            'epoch': self.epoch,
+            'reward_history': [float(x) for x in self._reward_history],
+            'rescue': [int(self._rescue_count), int(self._rescue_epoch), float(self._rescue_il_weight)],
         }, path)
         print(f"Checkpoint saved to {path}")
     
@@ -607,7 +533,12 @@ class Phase1Trainer:
         self.actor_critic.load_state_dict(checkpoint['actor_critic'])
         self.optimizer.load_state_dict(checkpoint['optimizer'])
         self.global_step = checkpoint['global_step']
-        print(f"Checkpoint loaded from {path}")
+        self.epoch = int(checkpoint.get('epoch', 0))
+        self._reward_history = list(checkpoint.get('reward_history', []))
+        if 'rescue' in checkpoint:
+            rc, re_, rw = checkpoint['rescue']
+            self._rescue_count, self._rescue_epoch, self._rescue_il_weight = int(rc), int(re_), float(rw)
+        print(f"Checkpoint loaded from {path} (epoch {self.epoch}, step {self.global_step})")
 
 
 def main():
@@ -626,6 +557,10 @@ def main():
                        help='Directory for TensorBoard logs')
     parser.add_argument('--checkpoint_dir', type=str, default='checkpoints/phase1',
                        help='Directory for model checkpoints')
+    parser.add_argument('--num_envs', type=int, default=None,
+                        help='override phase1_training.num_envs (parallel simulator processes)')
+    parser.add_argument('--resume', action='store_true',
+                        help='continue from <checkpoint_dir>/latest.pt if it exists')
     args = parser.parse_args()
     
     # Load config
@@ -637,6 +572,8 @@ def main():
     
     if args.debug:
         config['phase1_training']['debug_mode'] = True
+    if args.num_envs:
+        config['phase1_training']['num_envs'] = args.num_envs
     
     # Determine device
     if args.device == 'auto':
@@ -647,7 +584,10 @@ def main():
     print(f"Training on device: {device}")
     
     # Create trainer and train
+    torch.set_num_threads(1)  # the simulators get the cores; the MLPs are small
     trainer = Phase1Trainer(config, device=device, log_dir=args.log_dir, checkpoint_dir=args.checkpoint_dir)
+    if args.resume and os.path.exists(os.path.join(args.checkpoint_dir, 'latest.pt')):
+        trainer.load_checkpoint('latest.pt')
     trainer.train()
 
 

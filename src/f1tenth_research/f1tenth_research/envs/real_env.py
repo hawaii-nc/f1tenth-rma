@@ -51,7 +51,7 @@ def vehicle_params_from_physics(physics_params):
     return params
 
 
-def spawn_pose_from_centerline(centerline_xy, spawn_xy=(0.7, 0.0)):
+def spawn_pose_from_centerline(centerline_xy, spawn_xy=(0.7, 0.0), spawn_frac=None):
     """
     Pose at the centerline point nearest spawn_xy, heading along the track.
 
@@ -59,15 +59,23 @@ def spawn_pose_from_centerline(centerline_xy, spawn_xy=(0.7, 0.0)):
     column in the TUMFTM raceline CSVs is 90° off and must not be used.
     """
     xy = np.asarray(centerline_xy)[:, 0:2]
-    d = np.hypot(xy[:, 0] - spawn_xy[0], xy[:, 1] - spawn_xy[1])
-    idx = int(np.argmin(d))
+    if spawn_frac is not None:
+        # Training: anywhere along the lap, so the policy sees every corner
+        idx = int(spawn_frac * len(xy)) % len(xy)
+    else:
+        d = np.hypot(xy[:, 0] - spawn_xy[0], xy[:, 1] - spawn_xy[1])
+        idx = int(np.argmin(d))
     ip = max(0, idx - 2)
     inn = min(len(xy) - 1, idx + 2)
     heading = float(np.arctan2(xy[inn, 1] - xy[ip, 1], xy[inn, 0] - xy[ip, 0]))
-    return float(spawn_xy[0]), float(spawn_xy[1]), heading
+    # Spawn ON the centerline (bug C16). Returning spawn_xy itself put the car
+    # up to 0.7 m off the centerline (half-width 0.38 m) on the racetrack-DB
+    # tight tracks, i.e. inside or outside the walls.
+    return float(xy[idx, 0]), float(xy[idx, 1]), heading
 
 
 class RealF110Wrapper:
+    supports_spawn_frac = True
     """
     Single-agent wrapper around F110Env.
     reset(physics_params) -> obs_vec
@@ -129,7 +137,7 @@ class RealF110Wrapper:
         self.n_steer = n_steer
         self.n_drive = n_drive
 
-    def reset(self, physics_params=None, heading_offset=0.0):
+    def reset(self, physics_params=None, heading_offset=0.0, spawn_frac=None):
         # Process-wide switch; re-applied every episode so wrappers with
         # different tire models can share one process (e.g. experiments).
         tire_models.install(self.tire_model)
@@ -140,7 +148,7 @@ class RealF110Wrapper:
         self.drive_scale = float(p.get('motor_drive_scale', 1.0))
 
         if self._centerline is not None:
-            x, y, heading = spawn_pose_from_centerline(self._centerline)
+            x, y, heading = spawn_pose_from_centerline(self._centerline, spawn_frac=spawn_frac)
         else:
             x, y, heading = 0.7, 0.0, 1.37079632679  # example_map default (pi/2 - 0.20)
         poses = np.array([[x, y, heading + heading_offset]])
