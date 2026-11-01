@@ -29,6 +29,19 @@ from f110_gym.envs.f110_env import F110Env
 from ..paths import centerline_path
 from . import tire_models
 
+# f110_gym keeps ONE LiDAR/map simulator per process (RaceCar.scan_simulator is
+# a class attribute). Building an F110Env for another track replaces the map
+# for every car in the process, so with one cached env per track all tracks
+# ray-cast (and iTTC-collide) against whichever map was loaded last (bug C22).
+# Each wrapper snapshots the scan simulator after loading its own map and
+# restores it whenever it becomes the active one.
+_ACTIVE = {'wrapper': None}
+
+
+def _scan_simulator():
+    from f110_gym.envs.base_classes import RaceCar
+    return RaceCar.scan_simulator
+
 NOMINAL_VEHICLE_PARAMS = {
     'mu': 1.0489, 'C_Sf': 4.718, 'C_Sr': 5.4562,
     'lf': 0.15875, 'lr': 0.17145, 'h': 0.074, 'm': 3.74,
@@ -109,6 +122,8 @@ class RealF110Wrapper:
             self.env = F110Env(map=self.map_name, map_ext=".png",
                                params=self.vehicle_params, num_agents=1,
                                timestep=self.timestep)
+            self._scan_state = dict(_scan_simulator().__dict__)
+            _ACTIVE['wrapper'] = self
         else:
             # Reusing the env avoids re-loading the map PNG every episode.
             self.env.update_params(self.vehicle_params)
@@ -117,6 +132,12 @@ class RealF110Wrapper:
         # 0.05s triggers at 40cm -- within car half-width, stops wall phasing.
         for agent in self.env.sim.agents:
             agent.ttc_thresh = self.ttc_thresh
+
+    def _activate_map(self):
+        """Make f110_gym's process-wide scan simulator use this track's map."""
+        if _ACTIVE['wrapper'] is not self:
+            _scan_simulator().__dict__.update(self._scan_state)
+            _ACTIVE['wrapper'] = self
 
     def set_grip(self, grip_factor: float):
         """Change tire friction mid-episode (wet patch / E3 step change)."""
@@ -142,6 +163,7 @@ class RealF110Wrapper:
         # different tire models can share one process (e.g. experiments).
         tire_models.install(self.tire_model)
         self._build_env(physics_params)
+        self._activate_map()
         self._setup_delay_queues(physics_params)
         p = physics_params or {}
         self.steer_scale = float(p.get('motor_steering_scale', 1.0))
@@ -183,6 +205,7 @@ class RealF110Wrapper:
         delayed_velocity = self._apply_delay(self.drive_queue, self.n_drive, velocity_cmd)
 
         ctrl = np.array([[delayed_steer, delayed_velocity]])
+        self._activate_map()
         obs, _, done, info = self.env.step(ctrl)
         self.last_steer = delayed_steer
         self.last_vel = float(obs['linear_vels_x'][0])
