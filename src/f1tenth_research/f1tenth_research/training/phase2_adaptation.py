@@ -249,6 +249,10 @@ class Phase2Trainer:
                 avg_loss = epoch_loss / num_batches
                 print(f"[Epoch {epoch}] Loss: {avg_loss:.6f}")
                 self.writer.add_scalar('train/mse_loss', avg_loss, self.global_step)
+            # Data collection alone takes hours: never lose a run to a crash
+            # late in training. Overwritten each time (one file, not per epoch).
+            if (epoch + 1) % 10 == 0:
+                self.save_checkpoint('latest.pt')
     
     def evaluate(self, num_episodes: int = 50) -> Dict[str, float]:
         """
@@ -374,6 +378,8 @@ def main():
                        help='Path to Phase 1 trained model')
     parser.add_argument('--config', type=str, default='configs/rma_config.yaml',
                        help='Path to config YAML')
+    parser.add_argument('--tire_model', type=str, default=None, choices=['linear', 'friction_circle'],
+                        help="override environment.tire_model in the config (default: config's, else linear)")
     parser.add_argument('--device', type=str, default='auto',
                        help='Device: cuda, cpu, or auto')
     parser.add_argument('--log_dir', type=str, default='logs/phase2')
@@ -383,6 +389,9 @@ def main():
     # Load config
     with open(args.config, 'r') as f:
         config = yaml.safe_load(f)
+    if args.tire_model:
+        config.setdefault('environment', {})['tire_model'] = args.tire_model
+    print(f"Tire model: {config.get('environment', {}).get('tire_model', 'linear')}")
     
     # Determine device
     if args.device == 'auto':

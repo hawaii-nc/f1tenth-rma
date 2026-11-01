@@ -36,12 +36,10 @@ Ordered by value per hour. Items 1–4 make the existing claims trustworthy, 5�
 
 | # | Task | Why | Effort |
 |---|---|---|---|
-| 1 | **Set up the Docker image and run `pytest`, then `e0_grip_gate.py -n 40`** on the real f110_gym | Confirms the environment and the E0 gate under the fixed physics | ½ day |
-| 2 | **Retrain φ with the fixed disturbance + buffer** (C1, C2, C8, C9) against the existing `phase1_v42.pt` | φ's labels were wrong in the old pipeline. This is the most likely place for a real improvement over R² ≈ 0.08 | 1–2 days compute |
-| 3 | **Re-run E1/E2, E4, E5** with the new φ and the old φ side by side | Turns "pre-fix" numbers into citable ones. Keep the old φ as an ablation | 1 day compute |
-| 4 | **E3** with the new φ (k = 50) and a k = 100 φ | The only experiment with no result yet; a window-length ablation is cheap and makes a good figure | 1–2 days |
+| 1–3 | **One command:** `bash tools/retrain_fixed.sh` (in tmux, in Docker; try `QUICK=1` first). It runs `pytest` and `tools/check_physics_injection.py` (confirms μ reaches the real f110_gym), retrains φ with the fixed disturbance + buffer (C1, C2, C8, C9) against `phase1_v42.pt`, then runs E0–E5 with the new φ and the July φ side by side into `results/<tag>/{new,old}/` | φ's labels were wrong in the old pipeline, so this is the most likely place for a real improvement over R² ≈ 0.08. It also turns "pre-fix" numbers into citable ones, with the old φ kept as an ablation | 2–3 days compute |
+| 4 | **E3** with the new φ (k = 50; `retrain_fixed.sh` already runs this) and a k = 100 φ | The only experiment with no result yet; a window-length ablation is cheap and makes a good figure | 1–2 days |
 | 5 | **Raise the speed cap** (`max_velocity` 3 → 5–6 on full-scale tracks) and retrain Phase 1 | At ρ ≈ 0.2 the car is never near the limit, so no safety claim is possible. The poster names this as the first open item | 2–3 days compute |
-| 6 | **Saturating-tire robustness check** (see [SIM_FIDELITY.md](SIM_FIDELITY.md)) | Pre-empts the obvious reviewer objection to a linear tire model | 2–4 days |
+| 6 | **Saturating-tire robustness check**: the tire model is now implemented (`--tire-model friction_circle`, see [SIM_FIDELITY.md](SIM_FIDELITY.md)). Run `TIRE_MODEL=friction_circle bash tools/retrain_fixed.sh`, or just the experiments with the existing checkpoints | Pre-empts the obvious reviewer objection to a linear tire model, and is the first step toward the advisor's "learn on the fly on the real car" full-paper idea | 1–2 days compute |
 | 7 | **Real car: no-adaptation baseline on the same four tire wraps, plus measured μ per wrap** (inclined plane or skidpad) | The poster's two named open items. Hallucination on the real car (E4, pure software) is the cheapest strong real-world result | 1–2 lab days |
 | 8 | Safety shield on vs off (E1/E2 with `--shield`); "learned vs enforced rules" | A publishable question named in the project record | 2 days |
 | 9 | Gazebo Tier 2 (E1, E2, E4 only) | Independent physics engine | 1 week |
@@ -53,7 +51,7 @@ Ordered by value per hour. Items 1–4 make the existing claims trustworthy, 5�
 - **Do not trust the raceline `psi` column.** It is 90° off; compute headings with arctan2.
 - **Do not use AsyncVectorEnv with f110_gym in Docker.** Use `num_envs: 1`.
 - **Do not commit per-epoch checkpoints.** Curate into `checkpoints/`.
-- **Do not assume the simulator punishes speed.** f110_gym's tires never saturate (see SIM_FIDELITY.md).
+- **Do not assume the simulator punishes speed.** f110_gym's stock tires never saturate. Use `tire_model: friction_circle` when that matters (see SIM_FIDELITY.md).
 - **Run anything longer than ~10 min in tmux**, not with `nohup &`.
 - **Before any long run:** check per-term reward signs at small scale (`eval/sanity_check_rollout.py`), and check that `expert_actions` is non-empty (`tests/test_training_smoke.py` shows how).
 - **The real car:** secure it (wheels off the ground) for first tests. Hold R2 to engage; release R2, or hold L1, for manual override.
@@ -73,4 +71,4 @@ Ordered by value per hour. Items 1–4 make the existing claims trustworthy, 5�
 
 ## If you only have one week
 
-Do items 1–3. That turns the existing poster story (44% gap closure, 1.25× steadier margin, real-car p-values) into numbers produced by a pipeline without known bugs. Whether they go up or down, that is the honest version of the paper.
+Run `bash tools/retrain_fixed.sh` (items 1–3). That turns the existing poster story (44% gap closure, 1.25× steadier margin, real-car p-values) into numbers produced by a pipeline without known bugs. Whether they go up or down, that is the honest version of the paper.

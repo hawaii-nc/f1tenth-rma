@@ -26,7 +26,7 @@ def main():
     ap.add_argument('--track', default='aut_tight')
     args = ap.parse_args()
 
-    cfg = load_config(args.config)
+    cfg = load_config(args.config, args.tire_model)
     ac, _, _ = load_policy_pair(args.phase1, None, args.device)
     env = make_env(cfg, args.max_steps)
     ctrl = Blind(ac, args.device)

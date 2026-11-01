@@ -617,6 +617,8 @@ def main():
     parser = argparse.ArgumentParser(description='Phase 1 Training: PPO + IL')
     parser.add_argument('--config', type=str, default='configs/rma_config.yaml',
                        help='Path to config YAML')
+    parser.add_argument('--tire_model', type=str, default=None, choices=['linear', 'friction_circle'],
+                        help="override environment.tire_model in the config (default: config's, else linear)")
     parser.add_argument('--device', type=str, default='auto',
                        help='Device: cuda, cpu, or auto')
     parser.add_argument('--debug', action='store_true', help='Enable debug mode')
@@ -629,6 +631,9 @@ def main():
     # Load config
     with open(args.config, 'r') as f:
         config = yaml.safe_load(f)
+    if args.tire_model:
+        config.setdefault('environment', {})['tire_model'] = args.tire_model
+    print(f"Tire model: {config.get('environment', {}).get('tire_model', 'linear')}")
     
     if args.debug:
         config['phase1_training']['debug_mode'] = True

@@ -39,7 +39,7 @@ def main():
                     help='sample mass/inertia/motor/delay from the training range too')
     args = ap.parse_args()
 
-    cfg = load_config(args.config)
+    cfg = load_config(args.config, args.tire_model)
     ac, phi, _ = load_policy_pair(args.phase1, args.phase2, args.device)
     env = make_env(cfg, args.max_steps)
     tracks = eval_tracks(args, cfg)

@@ -32,7 +32,7 @@ The safety question: when grip drops, does the car keep a steady safety margin i
 
 Details and caveats are in [docs/RESULTS.md](docs/RESULTS.md).
 
-The simulation numbers above came from the lab code in July. While putting this repo together I found bugs in that pipeline, most importantly that the mid-episode grip drop never reached the simulator's physics. I also found that f110_gym's tire model never saturates. Both are fixed or documented in [docs/BUGS_AND_LESSONS.md](docs/BUGS_AND_LESSONS.md) and [docs/SIM_FIDELITY.md](docs/SIM_FIDELITY.md), and the sim experiments need to be re-run with this code before the numbers go in a paper.
+The simulation numbers above came from the lab code in July. While putting this repo together I found bugs in that pipeline, most importantly that the mid-episode grip drop never reached the simulator's physics. I also found that f110_gym's tire model never saturates. Both are fixed or documented in [docs/BUGS_AND_LESSONS.md](docs/BUGS_AND_LESSONS.md) and [docs/SIM_FIDELITY.md](docs/SIM_FIDELITY.md), and the sim experiments need to be re-run with this code before the numbers go in a paper: `bash tools/retrain_fixed.sh` does the retraining and the re-runs in one go. A saturating (friction-circle) tire model is now available with `--tire-model friction_circle`.
 
 ## Layout
 
