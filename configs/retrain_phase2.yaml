@@ -1,6 +1,8 @@
 # Phase 2 / experiments config for the retrained pipeline (November 2026), derived
 # from final_phase2_crashtol.yaml. Only change: the 13 drivable tracks (and an
 # explicit tire_model). See docs/RETRAINING.md.
+# Also: max_grad_steps 30000 caps phi training on CPU (100 full epochs over the
+# buffer would be ~720k steps, ~30 h on 4 CPU cores); num_envs 4 for collection.
 environment:
   drift_spawn_prob: 0.3
   log_interval: 10
@@ -108,6 +110,8 @@ phase1_training:
   track_reweight_interval: 50
   track_weight_floor: 0.05
 phase2_training:
+  max_grad_steps: 30000
+  num_envs: 4
   aux_loss_weight: 1.0
   aux_param_weights:
   - 3.0
