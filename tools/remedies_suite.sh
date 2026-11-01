@@ -7,7 +7,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 export PYTHONPATH="$PWD/src/f1tenth_research${PYTHONPATH:+:$PYTHONPATH}"
 export OMP_NUM_THREADS=1
-NPROC=${NPROC:-$(nproc)}
+NPROC=${NPROC:-$(nproc --all)}  # --all: plain nproc obeys OMP_NUM_THREADS (=1 below)
 RES=${RES:-results/retrain_nov2026}
 BASE=${BASE:-runs/phase1_retrain/selected.pt}
 
