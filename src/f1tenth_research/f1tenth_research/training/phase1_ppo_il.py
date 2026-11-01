@@ -82,6 +82,16 @@ class Phase1Trainer:
         else:
             self.total_timesteps = self.training_config.get('total_timesteps', 100_000_000)
         
+        # Full seeding: main-process numpy/torch (network init, DAgger mixing,
+        # exploration noise); workers are seeded seed + 1000·i in env_pool.
+        seed = int(self.training_config.get('seed', 0))
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        # Robust (domain-randomization) baseline: the encoder only ever sees the
+        # nominal physics vector, so π gets no grip information (RMA's "robust" baseline).
+        self.blind_intrinsics = bool(self.training_config.get('blind_intrinsics', False))
+        self._nominal_e = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0], np.float32)
+
         # Environment pool: one simulator per worker (num_envs), auto-reset,
         # per-env expert labels and physics. State persists across rollouts.
         self.num_envs = int(self.training_config.get('num_envs', 1))
@@ -172,6 +182,13 @@ class Phase1Trainer:
         """Expert action from the privileged pose in info (bug C5: never from obs)."""
         return expert_action(self.expert, info)
 
+    def _encoder_input(self, infos) -> np.ndarray:
+        """Physics vectors fed to μ (all nominal when blind_intrinsics)."""
+        e = np.stack([inf['physics_vector'] for inf in infos]).astype(np.float32)
+        if self.blind_intrinsics:
+            e[:] = self._nominal_e
+        return e
+
     def rollout(self, num_steps: int) -> Dict:
         """
         Collect about num_steps transitions (num_steps // num_envs per env).
@@ -196,7 +213,7 @@ class Phase1Trainer:
         obs, infos, experts = self._obs, self._infos, self._experts
         with torch.no_grad():
             for t in range(T):
-                e = torch.from_numpy(np.stack([inf['physics_vector'] for inf in infos])).to(self.device)
+                e = torch.from_numpy(self._encoder_input(infos)).to(self.device)
                 intr = self.actor_critic.get_intrinsics(e)
                 obs_t = torch.from_numpy(obs).to(self.device)
                 a, lp, _, v, _ = self.actor_critic.get_action_and_value(obs_t, intr)
@@ -212,7 +229,7 @@ class Phase1Trainer:
                 self.episode_stats.extend(finished)
                 self.global_step += n
 
-            e = torch.from_numpy(np.stack([inf['physics_vector'] for inf in infos])).to(self.device)
+            e = torch.from_numpy(self._encoder_input(infos)).to(self.device)
             next_values = self.actor_critic.value(torch.from_numpy(obs).to(self.device),
                                                   self.actor_critic.get_intrinsics(e)).reshape(-1).cpu().numpy()
         self._obs, self._infos, self._experts = obs, infos, experts
@@ -265,7 +282,7 @@ class Phase1Trainer:
         for k in range(iters):
             beta = beta0 * decay ** k
             for _ in range(max(1, steps // n)):
-                e = np.stack([inf['physics_vector'] for inf in infos])
+                e = self._encoder_input(infos)
                 with torch.no_grad():
                     mean, _ = self.actor_critic.policy(torch.from_numpy(obs).to(self.device),
                                                        self.actor_critic.get_intrinsics(torch.from_numpy(e).to(self.device)))
@@ -559,6 +576,11 @@ def main():
                        help='Directory for model checkpoints')
     parser.add_argument('--num_envs', type=int, default=None,
                         help='override phase1_training.num_envs (parallel simulator processes)')
+    parser.add_argument('--seed', type=int, default=None, help='override phase1_training.seed')
+    parser.add_argument('--total_timesteps', type=int, default=None,
+                        help='override phase1_training.total_timesteps (0 = DAgger only)')
+    parser.add_argument('--blind_intrinsics', action='store_true',
+                        help='robust baseline: train without grip information (nominal physics into μ)')
     parser.add_argument('--resume', action='store_true',
                         help='continue from <checkpoint_dir>/latest.pt if it exists')
     args = parser.parse_args()
@@ -574,6 +596,12 @@ def main():
         config['phase1_training']['debug_mode'] = True
     if args.num_envs:
         config['phase1_training']['num_envs'] = args.num_envs
+    if args.seed is not None:
+        config['phase1_training']['seed'] = args.seed
+    if args.total_timesteps is not None:
+        config['phase1_training']['total_timesteps'] = args.total_timesteps
+    if args.blind_intrinsics:
+        config['phase1_training']['blind_intrinsics'] = True
     
     # Determine device
     if args.device == 'auto':

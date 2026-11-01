@@ -1,0 +1,132 @@
+# Held-out-track variant of configs/retrain_phase1.yaml: identical except that mco_tight, silverstone_tight, budapest_tight
+# are removed from training (generalization test G-hold, docs/PREREGISTRATION_NOV2026.md).
+# Phase 1 retraining config (November 2026), derived from final_phase1_v42.yaml.
+# Differences from v42, all forced by the rebuilt environment (docs/RETRAINING.md):
+#   tracks: 13 *_tight tracks at per-track drivable scale (zandvoort dropped: map defect)
+#   max_episode_steps: 34000 -> 5000 so the mid-episode grip drop (30-90% of the
+#     episode) actually happens before most episodes end
+#   num_envs: 1 -> 4 (training/env_pool.py; per-env GAE, expert labels and physics)
+#   tire_model: linear (stock f110_gym), stated explicitly
+#   random_spawn: training episodes start anywhere along the lap (eval keeps the start line)
+#   dagger: DAgger pre-training of pi and mu before PPO; value_warmup_epochs: PPO first
+#     fits V only. Without these the policy never got past the first metres of a track.
+environment:
+  drift_spawn_prob: 0.3
+  max_velocity: 3.0
+  observation:
+    include_lidar: true
+    lidar_beams: 108
+    lidar_max_range: 10.0
+    lidar_noise_std: 0.02
+    lidar_dropout_prob: 0.05
+    normalize_obs: true
+  log_interval: 10
+  max_episode_steps: 5000
+  randomization:
+    apply_post_scale_noise: true
+    disturbance_end: 0.9
+    disturbance_friction_scale: 0.7
+    disturbance_magnitude: 0.3
+    disturbance_start: 0.3
+    disturbance_timing:
+    - 0.3
+    - 0.9
+    enabled: true
+    mid_episode_disturbance: true
+    noise_fraction: 0.2
+  reward:
+    lookahead_distance: 1.5
+    max_action_diff: 0.4
+    max_lateral_accel: 10.0
+    max_track_error: 0.5
+    max_velocity_error: 3.0
+    max_yaw_rate_error: 4.0
+    min_speed: -0.1
+    use_wall_proximity: false
+    vdes_base_speed: 4.0
+    vdes_lookahead_steps: 8
+    vdes_min_speed: 1.0
+    weight_alive: 0.01
+    weight_collision: 1.0
+    weight_smoothness: 0.05
+    weight_velocity_tracking: 0.0
+    weight_wall_proximity: 0.2
+    weight_progress: 5.0
+    weight_centerline_error: 0.1
+    centerline_error_threshold: 0.0
+    weight_speed_turn: 0.5
+    speed_turn_steer_threshold: 0.15
+    weight_yaw_rate_tracking: 0.0
+    wheelbase: 0.33
+  track: aut
+  tracks:
+  - aut_tight
+  - esp_tight
+  - gbr_tight
+  - spielberg_tight
+  - monza_tight
+  - sochi_tight
+  - ims_tight
+  - sepang_tight
+  - yasmarina_tight
+  - melbourne_tight
+  tire_model: linear
+  random_spawn: true
+expert:
+  pure_pursuit:
+    lookahead_distance_base: 0.5
+    max_speed: 3.0
+    min_speed: 0.5
+  type: pure_pursuit
+phase1_training:
+  batch_size: 256
+  il:
+    enabled: true
+    il_weight_decay: 0.0035
+    il_weight_end: 0.01
+    il_weight_start: 1.0
+    rescue:
+      max_rescues: 8
+      plateau_threshold: 0.05
+      plateau_window: 100
+      rescue_decay: 0.1
+      rescue_il_weight: 0.3
+    use_expert_actions: true
+  log_interval: 10
+  num_envs: 4
+  num_epochs: 10
+  ppo:
+    clip_eps: 0.2
+    entropy_coeff: 0.001
+    gae_lambda: 0.95
+    gamma: 0.99
+    learning_rate: 0.0003
+    max_grad_norm: 0.5
+    value_coeff: 0.5
+  rollout_steps: 34000
+  track_reweight_interval: 50
+  reweight_eval_episodes: 3
+  track_weight_floor: 0.05
+  total_timesteps: 16000000
+  seed: 3333
+  dagger:
+    iterations: 6
+    steps_per_iter: 100000
+    beta0: 1.0
+    beta_decay: 0.5
+    action_noise: 0.1
+    epochs: 10
+    batch_size: 512
+    learning_rate: 0.0003
+  value_warmup_epochs: 5
+phase2_training:
+  learning_rate: 0.001
+  buffer_size: 1000000
+  num_eval_episodes: 200
+  num_epochs: 100
+  batch_size: 256
+networks:
+  adaptation:
+    state_action_dim: 115
+    history_window: 100
+    intrinsics_dim: 8

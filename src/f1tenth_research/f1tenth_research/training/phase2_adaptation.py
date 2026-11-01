@@ -111,6 +111,9 @@ class Phase2Trainer:
         """
         self.device = torch.device(device)
         self.config = config
+        seed = int(config.get('phase2_training', {}).get('seed', 12345))
+        np.random.seed(seed)
+        torch.manual_seed(seed)
         self.log_dir = log_dir
         self.checkpoint_dir = checkpoint_dir
         
@@ -431,6 +434,7 @@ def main():
                        help='Device: cuda, cpu, or auto')
     parser.add_argument('--log_dir', type=str, default='logs/phase2')
     parser.add_argument('--checkpoint_dir', type=str, default='checkpoints/phase2')
+    parser.add_argument('--seed', type=int, default=None, help='override phase2_training.seed')
     parser.add_argument('--num_envs', type=int, default=None,
                         help='parallel simulators for data collection (phase2_training.num_envs)')
     args = parser.parse_args()
@@ -443,6 +447,8 @@ def main():
     print(f"Tire model: {config.get('environment', {}).get('tire_model', 'linear')}")
     if args.num_envs:
         config.setdefault('phase2_training', {})['num_envs'] = args.num_envs
+    if args.seed is not None:
+        config.setdefault('phase2_training', {})['seed'] = args.seed
     torch.set_num_threads(int(os.environ.get('TORCH_THREADS', '4')))
 
     # Determine device
