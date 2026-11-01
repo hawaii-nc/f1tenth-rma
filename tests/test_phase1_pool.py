@@ -134,3 +134,28 @@ def test_dagger_pretrain_runs_and_beats_random(tmp_path):
     tr = Phase1Trainer(c, device='cpu', log_dir=str(tmp_path), checkpoint_dir=str(tmp_path))
     tr.dagger_pretrain()
     assert (tmp_path / 'dagger.pt').exists()
+
+
+def test_blind_intrinsics_hides_grip(tmp_path):
+    """Robust baseline: μ only ever sees the nominal physics vector."""
+    from f1tenth_research.training.phase1_ppo_il import Phase1Trainer
+    c = cfg(3)
+    c['phase1_training']['blind_intrinsics'] = True
+    tr = Phase1Trainer(c, device='cpu', log_dir=str(tmp_path), checkpoint_dir=str(tmp_path))
+    data = tr.rollout(120)
+    assert np.allclose(data['intrinsics'], data['intrinsics'][0])
+    assert np.allclose(data['physics'], [1, 1, 1, 1, 1, 0, 0])
+
+
+def test_same_seed_same_run(tmp_path):
+    from f1tenth_research.training.phase1_ppo_il import Phase1Trainer
+    runs = []
+    for k in range(2):
+        tr = Phase1Trainer(cfg(2), device='cpu', log_dir=str(tmp_path / str(k)), checkpoint_dir=str(tmp_path / str(k)))
+        d = tr.rollout(80)
+        runs.append((tr.actor_critic.policy.network[0].weight.detach().clone(), d['actions']))
+    assert np.array_equal(runs[0][0].numpy(), runs[1][0].numpy())
+    np.testing.assert_allclose(runs[0][1], runs[1][1])
+    c = cfg(2); c['phase1_training']['seed'] = 7
+    tr = Phase1Trainer(c, device='cpu', log_dir=str(tmp_path / 's7'), checkpoint_dir=str(tmp_path / 's7'))
+    assert not np.array_equal(tr.actor_critic.policy.network[0].weight.detach().numpy(), runs[0][0].numpy())
