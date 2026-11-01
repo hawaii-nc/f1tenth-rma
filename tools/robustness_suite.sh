@@ -12,7 +12,7 @@ cd "$(dirname "$0")/.."
 REPO=$PWD
 export PYTHONPATH="$REPO/src/f1tenth_research${PYTHONPATH:+:$PYTHONPATH}"
 export OMP_NUM_THREADS=1   # several experiment processes share the cores
-NPROC=${NPROC:-$(nproc)}
+NPROC=${NPROC:-$(nproc --all)}  # --all: plain nproc obeys OMP_NUM_THREADS (=1 below)
 RES=${RES:-results/retrain_nov2026}
 MAIN_P1=${MAIN_P1:-runs/phase1_retrain/selected.pt}
 MAIN_P2=${MAIN_P2:-runs/phase2_retrain/final.pt}
