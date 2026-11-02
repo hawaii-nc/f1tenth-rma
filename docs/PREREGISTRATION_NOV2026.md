@@ -93,3 +93,23 @@ Same E1/E2 (N = 100) and E5 (N = 200) protocol and the same statistics (tools/st
 | In between | Report as partially explained by speed |
 
 **Prediction.** At 1.15 m/s, capped Blind will be about as safe as φ (the Oracle is safe at 1.19). At 1.28 m/s, capped Blind will crash somewhat more than φ. So φ's benefit is mostly speed, with a small adaptive part.
+
+---
+
+## Amendment 4, 2026-11-02 (before running): longer history window instead of the high-speed test
+
+**High-speed test dropped (not run).** The planned 3 → 5 m/s test needed an expert that can drive the tracks at speed. With a physics-based corner and braking speed profile (`experts/__init__.py`, `corner_speed`, off by default), the expert still could not lap the 0.63–0.76 m-wide tracks reliably above ~3.5 m/s (4 m/s: 1 of 8 laps; IMS oval failed at full grip). Making it work needs a better high-speed controller or wider tracks, which is future work.
+
+**Why a longer window.** The current setup already has headroom: the Oracle drives 1.98 m/s at μ = 1.0 and is safe at μ = 0.4, while P2's φ hedges at 1.28 m/s because its grip estimate is weak (E5 R² 0.26 from 0.5 s). A longer history (k = 200 steps = 2 s) is the most direct way to make grip more readable. This is also HANDOFF item 4 (window ablation).
+
+**Run (W).** P2 base policy (`runs/phase1_fc/final.pt`), φ retrained exactly as in P2 but with k = 200. Then E1/E2 (N = 100), E3, E5, and the speed-matched Blind control with caps set by a rule fixed now: **the cap equals φ_k200's own mean speed at μ = 1.0, and separately at μ = 0.4**.
+
+**Predictions.**
+
+| ID | Prediction | Pass if |
+|---|---|---|
+| W1 | Longer window, more grip information | E5 φ R² > 0.26 (P2's k = 50) |
+| W2 | Less hedging | φ_k200's speed at μ = 1.0 > φ_k50's (1.28 m/s), with crash at μ = 0.4 ≤ 0.10 |
+| W3 | Adaptation beats speed (the key test) | At μ = 0.4, Blind capped at φ_k200's μ = 1.0 speed crashes ≥ 0.10 more than φ_k200, McNemar p < 0.05 |
+
+Expected: W1 and W2 pass. W3 is uncertain: it needs φ to be both faster at high grip and safe at low grip.
