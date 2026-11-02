@@ -87,3 +87,30 @@ def test_paired_episodes_are_deterministic(env, policy):
     a = run_episode(env, ac, Blind(ac), 0.6, seed=3, track='aut_tight', max_steps=100, keep_trace=True)
     b = run_episode(env, ac, Blind(ac), 0.6, seed=3, track='aut_tight', max_steps=100, keep_trace=True)
     assert a.trace['steer'] == b.trace['steer']
+
+
+def test_eval_episodes_differ_by_seed_but_pair_across_controllers(monkeypatch):
+    """Pseudo-replication fix: seeds must give distinct starts; controllers share them."""
+    from f1tenth_research.eval import harness
+    seen = []
+    monkeypatch.setattr(harness, 'EVAL_SPAWN', 'random')
+    fracs = [harness.spawn_frac_for(s) for s in range(50)]
+    assert len(set(fracs)) == 50 and all(0 <= f < 1 for f in fracs)
+    assert harness.spawn_frac_for(7) == harness.spawn_frac_for(7)
+
+    class Stop(Exception):
+        pass
+
+    class Env:
+        max_episode_steps = 1
+        def reset(self, seed=None, options=None):
+            seen.append(options.get('spawn_frac'))
+            raise Stop
+    for s in (0, 0, 1):
+        with pytest.raises(Stop):
+            harness.run_episode(Env(), None, harness.Controller(), 1.0, seed=s)
+    assert seen[0] == seen[1] != seen[2]
+    monkeypatch.setattr(harness, 'EVAL_SPAWN', 'start')
+    with pytest.raises(Stop):
+        harness.run_episode(Env(), None, harness.Controller(), 1.0, seed=0)
+    assert seen[-1] is None
