@@ -65,7 +65,25 @@ Against the pre-registered checks: G1 passes (37% ≥ 30%), H2 fails narrowly (a
 
 ### P2: friction-circle tire (observability)
 
-*Running.*
+Everything retrained and evaluated under the saturating friction-circle tire (envs/tire_models.py): Phase 1 DAgger base policy (validation crash rate 1/13 tracks at every grip, aut_tight, Oracle included; speeds 1.98 / 1.52 / 1.20 m/s at μ = 1.0 / 0.6 / 0.4), then φ with the oracle round plus 3 on-policy rounds. N = 100 paired episodes per cell.
+
+| μ | crash φ / Blind / Oracle | speed φ / Blind / Oracle (m/s) | gap closed (ρ) [95% CI] | McNemar p (Holm) |
+|---:|---|---|---|---:|
+| 1.0 | **0.00** / 0.08 / 0.08 | 1.30 / 1.98 / 1.98 | n/a | 0.016 |
+| 0.8 | 0.00 / 0.08 / 0.08 | 1.25 / 1.98 / 1.78 | 25% [10%, 39%] | 0.016 |
+| 0.6 | 0.00 / 0.16 / 0.08 | 1.18 / 1.98 / 1.52 | 95% [90%, 100%] | 9.2e-5 |
+| 0.4 | **0.08** / 0.39 / 0.08 | 1.15 / 1.96 / 1.20 | 85% [83%, 87%] | 3.7e-9 |
+
+Cross-grip ρ variance Blind/φ: **18.4×** [15.2, 22.4]. E5 grip R²: encoder 0.998, **history 0.37**, **φ 0.36** (linear tire: 0.04 and ≈ 0).
+
+Against the checks (post hoc, P2 predictions in the addendum):
+
+- G1, H2 and H3 all **pass**. φ's crash rate at μ = 0.4 equals the Oracle's (0.08), against Blind's 0.39.
+- Both P2 predictions held: history R² 0.37 > 0.3, and φ R² 0.36 > P1's 0.01. H1 (R² ≥ 0.7) still fails.
+- **Partial adaptation plus caution.** φ's speed now falls with grip (1.30 → 1.15 m/s, ≈ 19% of the Oracle's 1.98 → 1.20 swing), so grip information is being used. But φ is still 34% slower than the Oracle at μ = 1.0. Part of the "gap closed" comes from uniform caution, which is why the robust baseline (section 3) is the decisive comparison.
+- The pre-registered E0 (Blind, aut_tight only) is **uninformative** for this base policy: aut_tight is the track it fails at every grip, Oracle included (crash rate 1.0 at all μ). A post-hoc E0 on three other tracks is in section 3.
+
+**Interpretation.** With a tire that saturates, grip becomes partly observable from 0.5 s of motion (R² 0.37 vs 0.04), and the adaptation module starts to use it. That is the mechanism the July story assumed. In the stock f110_gym tire it is essentially absent. This supports the advisor's point (Oct 31) that the choice of tire model decides whether the method can work at all.
 
 ## 3. Robustness (replicate seeds, robust baseline, held-out tracks)
 
