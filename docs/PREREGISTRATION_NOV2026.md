@@ -113,3 +113,13 @@ Same E1/E2 (N = 100) and E5 (N = 200) protocol and the same statistics (tools/st
 | W3 | Adaptation beats speed (the key test) | At μ = 0.4, Blind capped at φ_k200's μ = 1.0 speed crashes ≥ 0.10 more than φ_k200, McNemar p < 0.05 |
 
 Expected: W1 and W2 pass. W3 is uncertain: it needs φ to be both faster at high grip and safe at low grip.
+
+---
+
+## Amendment 5, 2026-11-02 (before running): speed-matched control for the replicate seeds
+
+Seen before writing this: seed 1's E1/E2 (φ crash 0.05 vs Blind 0.46 at μ = 0.4; φ speed 1.48 → 1.29 m/s). Not yet seen: any speed-matched run for seeds 1 or 2.
+
+**Run.** For each replicate seed s ∈ {1, 2}: that seed's base policy as Blind, capped at **φ_s's own mean speed at μ = 1.0** (the amendment-4 rule), same E1/E2 protocol, paired with φ_s's episodes.
+
+**Readout (as W3).** Adaptation beats speed for seed s if, at μ = 0.4, the capped Blind crashes ≥ 0.10 more than φ_s, McNemar p < 0.05. Reported per seed, alongside seed 0 (amendment 3: not met).
