@@ -65,3 +65,13 @@ Everything below is fixed now. Results that contradict it will be reported as su
 | P2 | Friction-circle tire for training *and* evaluation: Phase 1 DAgger + φ with on-policy rounds | Observability (μ now caps acceleration at μg, and cornering saturates) | E5 history R² > 0.3 and φ R² > P1's. G1 (≥ 30% gap closed at μ = 0.4) passes. φ crash rate at μ = 0.4 < Blind's |
 
 Same E1/E2 (N = 100) and E5 (N = 200) protocol and the same statistics (tools/stats.py). If P2 passes, the replicate seeds, robust baseline and held-out tracks (R1–R3) are run on the P2 configuration. Otherwise they are run on the original configuration, as planned.
+
+---
+
+## Amendment 2, 2026-11-02 (before the reruns below): evaluation episodes were replays
+
+**Problem found.** With the evaluation protocol inherited from July (start line, fixed physics, no observation noise), every seed on a given track replays the *same* deterministic episode. In every E1/E2 run so far, each (controller, grip, track) group of ~8 episodes has exactly **one** distinct outcome. So "N = 100" was **13 distinct episodes per cell**. Point estimates are unaffected as averages over tracks, but every CI and p-value computed so far treats copies as independent and is **invalid**. E0 (one track) had effectively N = 1 per grip. The July protocol had the same property.
+
+**Change.** Each evaluation episode starts at a point along the lap drawn from its seed (`eval/harness.py`, `spawn_frac_for`). Every controller gets the same start for the same seed, so paired tests stay valid, and different seeds give different episodes. `--spawn start` reproduces the old protocol. `tools/stats.py` now reports the number of distinct outcomes per cell and warns on replication.
+
+**Reruns (same hypotheses, thresholds and N as fixed above):** original configuration (E0, E1/E2, E3, E4, E5); its friction-circle evaluation (T1, N = 40); P1 (E1/E2, E5); P2 (E0, E1/E2, E3, E5). Earlier start-line results are kept under `*_startline/` and reported as superseded. The robustness suite (R0–R4) runs afterwards with the new protocol.

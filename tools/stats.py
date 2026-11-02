@@ -112,7 +112,13 @@ def analyse(run: Path):
             spd = np.array([v['speed'] for v in d.values()])
             lo, hi = wilson(int(cr.sum()), len(cr))
             rl, rh = boot(lambda i: np.nanmean(rho[i]), len(rho))
-            res['cells'].append({'controller': c, 'grip': g, 'n': len(cr), 'crash_rate': float(cr.mean()),
+            n_distinct = len({(v['crash'], v['speed'], v['rho']) for v in d.values()})
+            if n_distinct < len(cr):
+                res.setdefault('warnings', []).append(
+                    f"{c} μ={g}: only {n_distinct} distinct outcomes among {len(cr)} episodes "
+                    f"(deterministic replays?): CIs and p-values treat them as independent")
+            res['cells'].append({'controller': c, 'grip': g, 'n': len(cr), 'n_distinct': n_distinct,
+                                 'crash_rate': float(cr.mean()),
                                  'crash_ci': [lo, hi], 'mean_speed': float(spd.mean()),
                                  'mean_rho': float(np.nanmean(rho)), 'rho_ci': [rl, rh]})
     if not {'oracle', 'phi', 'blind'} <= set(ctrls):
@@ -180,6 +186,8 @@ def md(res):
         ci = res.get('variance_ratio_ci')
         out.append(f"\nCross-grip ρ variance, Blind/φ: {res['variance_ratio_blind_over_phi']:.2f}×"
                    + (f" [{ci[0]:.2f}, {ci[1]:.2f}]" if ci else ''))
+    if res.get('warnings'):
+        out += ['', f"**WARNING: pseudo-replication** in {len(res['warnings'])} cells, e.g. {res['warnings'][0]}"]
     if res.get('hypotheses'):
         out += [''] + [f"- {k}: **{'PASS' if v else 'FAIL'}**" for k, v in res['hypotheses'].items()]
     return '\n'.join(out) + '\n'

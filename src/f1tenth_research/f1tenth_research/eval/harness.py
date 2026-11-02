@@ -151,6 +151,19 @@ def physics_for(grip: float, others: Optional[Dict] = None) -> Dict[str, float]:
     return p
 
 
+# Evaluation start positions. 'start' (the July protocol) starts every episode
+# on the start line with fixed physics and no noise, so on a given track every
+# seed replays the *same* deterministic episode: "N = 100" over 13 tracks was
+# really 13 distinct episodes per cell. 'random' draws the start point along the
+# lap from the seed, so seeds give distinct episodes while all controllers still
+# see the same start for the same seed (paired). Set by experiments/_common.py --spawn.
+EVAL_SPAWN = 'random'
+
+
+def spawn_frac_for(seed: int) -> float:
+    return float(np.random.default_rng([int(seed), 7919]).random())
+
+
 @torch.no_grad()
 def run_episode(
     env: F1TenthRMAEnv,
@@ -183,6 +196,8 @@ def run_episode(
         opts['disturbance_grip'] = disturbance_grip
     if track is not None:
         opts['track'] = track
+    if EVAL_SPAWN == 'random':
+        opts['spawn_frac'] = spawn_frac_for(seed)
     obs, info = env.reset(seed=seed, options=opts)
     controller.reset()
 

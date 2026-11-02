@@ -24,8 +24,21 @@ DEFAULT_PHASE2 = REPO / 'checkpoints' / 'final' / 'phase2_crashtol_clean.pt'
 DEFAULT_CONFIG = REPO / 'configs' / 'final_phase2_crashtol.yaml'
 
 
+class _Parser(argparse.ArgumentParser):
+    """Applies --spawn to the harness when arguments are parsed."""
+
+    def parse_args(self, *a, **k):
+        args = super().parse_args(*a, **k)
+        from f1tenth_research.eval import harness
+        harness.EVAL_SPAWN = args.spawn
+        return args
+
+
 def base_parser(description: str, n_default: int = 100) -> argparse.ArgumentParser:
-    ap = argparse.ArgumentParser(description=description)
+    ap = _Parser(description=description)
+    ap.add_argument('--spawn', default='random', choices=['random', 'start'],
+                    help="episode start: 'random' = seeded point along the lap, same for every controller "
+                         "(default); 'start' = July protocol (start line: one distinct episode per track)")
     ap.add_argument('--phase1', default=str(DEFAULT_PHASE1), help='actor-critic checkpoint')
     ap.add_argument('--phase2', default=str(DEFAULT_PHASE2), help='adaptation (φ) checkpoint')
     ap.add_argument('--config', default=str(DEFAULT_CONFIG), help='YAML with an environment: block')
