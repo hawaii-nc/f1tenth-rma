@@ -46,7 +46,26 @@ Linear (stock) tire. Base policy: DAgger checkpoint. φ: k = 50, trained on orac
 
 ## 2. Post-hoc remedies (registered before running; labelled post hoc)
 
-*Running. P1 = on-policy φ (removes action leakage). P2 = friction-circle tire for training and evaluation (makes grip observable through the μg acceleration cap and cornering saturation).* Results will be added here.
+### P1: on-policy φ (linear tire, same base policy)
+
+φ was trained with the oracle round, then 3 on-policy rounds (250 episodes and 10k gradient steps each), in which the car drives on φ's own estimate as at deployment. N = 100 paired episodes per cell.
+
+| μ | crash φ / Blind / Oracle | speed φ / Blind / Oracle (m/s) | gap closed (ρ) [95% CI] | McNemar p (Holm) |
+|---:|---|---|---|---:|
+| 1.0 | 0.00 / 0.00 / 0.00 | **1.54** / 1.98 / 1.98 | n/a | 1 |
+| 0.8 | 0.00 / 0.00 / 0.00 | 1.53 / 1.98 / 1.79 | 70% [61%, 79%] | 1 |
+| 0.6 | 0.00 / 0.08 / 0.00 | 1.53 / 1.98 / 1.52 | 57% [51%, 63%] | 0.023 |
+| 0.4 | **0.08** / 0.31 / 0.00 | 1.53 / 1.98 / 1.19 | 37% [32%, 42%] | 9.5e-7 |
+
+Cross-grip ρ variance Blind/φ: 1.65× [1.34, 2.04]. E5 grip R²: encoder 0.9999, history 0.08, **φ 0.01**.
+
+Against the pre-registered checks: G1 passes (37% ≥ 30%), H2 fails narrowly (a 0.23 reduction vs the 0.30 threshold, though highly significant), and H3 fails. **But the mechanism is not adaptation.** φ drives at a constant ~1.53 m/s at *every* grip and still decodes nothing about grip (R² 0.01). Removing action leakage turned φ from over-confident into uniformly cautious: it learned the speed that is safest on average over the training grips. That is what a robust policy does, and it is why "gap closed" improves without any grip estimation. It costs 22% speed at μ = 1.0. The P1 prediction (φ R² < 0.3, speed no longer above the oracle range) held. The prediction that G1 would still fail did not, but only through hedging.
+
+**Implication.** On the linear tire, the honest comparison for φ is a *robust* policy trained without grip information (B1), not Blind. That baseline is run in section 3.
+
+### P2: friction-circle tire (observability)
+
+*Running.*
 
 ## 3. Robustness (replicate seeds, robust baseline, held-out tracks)
 
