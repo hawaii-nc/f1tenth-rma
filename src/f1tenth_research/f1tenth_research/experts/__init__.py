@@ -91,6 +91,43 @@ class PurePursuitExpert(F1TenthExpertController):
         
         if len(self.waypoints) == 0:
             warnings.warn("PurePursuitExpert initialized without waypoints")
+        elif self.config.get('corner_speed', False):
+            self._precompute_corner_profile()
+
+    # ----------------------------------------------------- corner speed profile
+    def _precompute_corner_profile(self):
+        """Arc length and local turning radius (3-point circle over ~0.5 m) per waypoint."""
+        xy = np.asarray(self.waypoints, dtype=float)[:, :2]
+        n = len(xy)
+        seg = np.hypot(*np.diff(np.vstack([xy, xy[:1]]), axis=0).T)
+        self._ds = float(np.median(seg))
+        self._arc = np.concatenate([[0.0], np.cumsum(seg[:-1])])
+        k = max(1, int(round(0.25 / max(self._ds, 1e-6))))
+        a, b, c = xy[(np.arange(n) - k) % n], xy, xy[(np.arange(n) + k) % n]
+        ab, bc, ca = np.hypot(*(b - a).T), np.hypot(*(c - b).T), np.hypot(*(a - c).T)
+        area = np.abs((b[:, 0] - a[:, 0]) * (c[:, 1] - a[:, 1]) - (b[:, 1] - a[:, 1]) * (c[:, 0] - a[:, 0])) / 2
+        self._radius = np.where(area > 1e-12, ab * bc * ca / np.maximum(4 * area, 1e-12), np.inf)
+
+    def _corner_speed_limit(self, closest_idx: int, grip_factor: float) -> float:
+        """
+        Highest speed from which the car can still take every corner within
+        corner_preview_m: v ≤ √(v_c² + 2·a_b·d), v_c = √(f·μ·g·R), a_b = f_b·μ·g.
+        μ is the true friction (privileged, like the rest of the expert's inputs).
+        """
+        mu = float(self.config.get('mu_nominal', 1.0489)) * float(grip_factor)
+        g = 9.81
+        f_lat = float(self.config.get('lat_accel_frac', 0.6))
+        f_brk = float(self.config.get('brake_accel_frac', 0.5))
+        n = len(self._radius)
+        # Look far enough ahead to brake from top speed: max(preview, v_max²/(2·a_b) + 0.5 m)
+        a_b = f_brk * mu * g
+        preview = max(float(self.config.get('corner_preview_m', 3.0)),
+                      float(self.config.get('max_speed', 3.0)) ** 2 / (2 * max(a_b, 1e-6)) + 0.5)
+        m = min(n, int(preview / max(self._ds, 1e-6)) + 1)
+        idx = (closest_idx + np.arange(m)) % n
+        d = np.arange(m) * self._ds
+        v_c = np.sqrt(f_lat * mu * g * self._radius[idx])
+        return float(np.min(np.sqrt(v_c ** 2 + 2 * f_brk * mu * g * d)))
     
     def _default_config(self) -> Dict:
         """Default Pure Pursuit parameters."""
@@ -146,11 +183,11 @@ class PurePursuitExpert(F1TenthExpertController):
         current_velocity = state.get('velocity', 0.0)
         
         # Find lookahead point
-        target = self._find_lookahead_point(x, y)
+        target = self._find_lookahead_point(x, y, current_velocity)
         
         # Compute steering command via Pure Pursuit
         steering = self._compute_pure_pursuit_steering(
-            x, y, yaw, target
+            x, y, yaw, target, current_velocity
         )
         
         # Adapt for grip factor
@@ -170,6 +207,10 @@ class PurePursuitExpert(F1TenthExpertController):
             desired_speed = self.config['nominal_speed'] * speed_scale
         else:
             desired_speed = self.config['nominal_speed']
+
+        if self.config.get('corner_speed', False) and len(self.waypoints):
+            closest = int(np.argmin(np.hypot(self.waypoints[:, 0] - x, self.waypoints[:, 1] - y)))
+            desired_speed = min(desired_speed, self._corner_speed_limit(closest, grip_factor))
         
         # Clamp steering to physical limits
         steering = np.clip(steering, -self.config['max_steering'], self.config['max_steering'])
@@ -181,7 +222,7 @@ class PurePursuitExpert(F1TenthExpertController):
         
         return np.array([steering, throttle], dtype=np.float32)
     
-    def _find_lookahead_point(self, x: float, y: float) -> Tuple[float, float]:
+    def _find_lookahead_point(self, x: float, y: float, velocity: float = 0.0) -> Tuple[float, float]:
         """
         Find the lookahead point on the reference trajectory.
         
@@ -193,7 +234,8 @@ class PurePursuitExpert(F1TenthExpertController):
         Returns:
             (target_x, target_y) coordinates
         """
-        lookahead = self.config['lookahead_distance_base']
+        lookahead = self.config['lookahead_distance_base'] + \
+            float(self.config.get('lookahead_speed_gain', 0.0)) * max(0.0, float(velocity))
         
         # Compute distances to all waypoints
         dx = self.waypoints[:, 0] - x
@@ -219,6 +261,7 @@ class PurePursuitExpert(F1TenthExpertController):
         y: float,
         yaw: float,
         target: Tuple[float, float],
+        velocity: float = 0.0,
     ) -> float:
         """
         Compute steering command via Pure Pursuit control law.
@@ -253,7 +296,8 @@ class PurePursuitExpert(F1TenthExpertController):
         
         # Pure Pursuit formula
         wheelbase = self.config['wheelbase']
-        lookahead = self.config['lookahead_distance_base']
+        lookahead = self.config['lookahead_distance_base'] + \
+            float(self.config.get('lookahead_speed_gain', 0.0)) * max(0.0, float(velocity))
         
         steering = np.arctan2(2.0 * wheelbase * np.sin(alpha), lookahead)
         return steering
