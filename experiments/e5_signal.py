@@ -26,6 +26,7 @@ import numpy as np
 import torch
 from _common import base_parser, eval_tracks, load_config, out_dir, track_for
 
+from f1tenth_research.eval import harness  # noqa: E402
 from f1tenth_research.eval.harness import make_env, load_policy_pair, physics_for, write_outputs
 from f1tenth_research.envs.randomization import PhysicsRandomizer, PARAM_KEYS
 from f1tenth_research.metrics import cv_r2
@@ -56,9 +57,11 @@ def main():
                 np.random.seed(args.seed + ep)
                 s = randomizer.sample_training()
                 others = {key: s[key] for key in PARAM_KEYS if key != 'grip_factor'}
-            obs, info = env.reset(seed=args.seed + ep, options={
-                'training': False, 'obs_noise': False, 'disturbance_step': -1,
-                'physics_params': physics_for(grip, others), 'track': track_for(ep, tracks)})
+            opts = {'training': False, 'obs_noise': False, 'disturbance_step': -1,
+                    'physics_params': physics_for(grip, others), 'track': track_for(ep, tracks)}
+            if harness.EVAL_SPAWN == 'random':   # same start protocol as run_episode (amendment 2)
+                opts['spawn_frac'] = harness.spawn_frac_for(args.seed + ep)
+            obs, info = env.reset(seed=args.seed + ep, options=opts)
             e = torch.as_tensor(info['physics_vector'])
             z_true = ac.get_intrinsics(e)
             window = deque(maxlen=k)
