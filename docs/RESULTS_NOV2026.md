@@ -15,7 +15,7 @@ All numbers come from the rebuilt, bug-fixed pipeline on the real f1tenth_gym (c
 | **P1** (linear tire, on-policy φ), post hoc | **0.07** (0.32 / 0.00) | 47% [40, 54] | 2.45× | **1.54 → 1.53** (constant) | 0.00 | PASS / FAIL / FAIL |
 | **P2** (friction-circle tire, on-policy φ), post hoc | **0.07** (0.44 / 0.05) | **85%** [76, 91] | **14.7×** [8.0, 31.2] | 1.28 → 1.14 | **0.26** | **PASS / PASS / PASS** |
 
-**The finding in one paragraph.** The base policy uses a correct grip belief perfectly: Oracle has ≈ 0 crashes at every grip and slows from 1.98 to 1.19 m/s, and injecting a false low-grip belief slows it by exactly that much (E4). Whether the adaptation module φ can *supply* that belief depends on the simulator. In f1tenth_gym's stock linear tire, grip barely changes the car's motion at these speeds (history R² 0.04), and φ cannot estimate it. Trained the July way (on oracle-driven data), φ is **worse than not adapting at all**. Trained on its own rollouts (P1), it becomes safe only by driving uniformly slowly, which a non-adaptive policy could do. With a saturating friction-circle tire (P2), grip becomes partly observable (history R² 0.23, φ 0.26, vs ≈ 0 on the linear tire). φ then matches the Oracle's low-grip safety (crash 0.07 vs 0.05; Blind 0.44, McNemar p = 6×10⁻¹¹), passes all three pre-registered checks, and its speed starts to track grip. It still adapts only about a fifth as much as the Oracle and is 35% slower at full grip. *Whether P2's φ beats a robust (non-adaptive) policy trained the same way is being tested (section 3, R2)* and decides how strong the adaptation claim can be.
+**The finding in one paragraph.** The base policy uses a correct grip belief perfectly: Oracle has ≈ 0 crashes at every grip and slows from 1.98 to 1.19 m/s, and injecting a false low-grip belief slows it by exactly that much (E4). Whether the adaptation module φ can *supply* that belief depends on the simulator. In f1tenth_gym's stock linear tire, grip does not measurably change the car's motion at these speeds (history R² ≈ 0), and φ cannot estimate it. Trained the July way (on oracle-driven data), φ is **worse than not adapting at all**. Trained on its own rollouts (P1), it becomes safe only by driving uniformly slowly. With a saturating friction-circle tire (P2), grip becomes partly observable (R² ≈ 0.25), and φ passes all three pre-registered checks against Blind (crash 0.07 vs 0.44 at μ = 0.4). It also beats a robust policy trained without grip information (0.07 vs 0.16, p = 0.012), but that policy drives 25% faster. **The decisive control (amendment 3) is Blind with its speed capped at φ's own speed. It is just as safe (0.05–0.06 vs 0.07 at μ = 0.4).** So φ's safety benefit is explained by driving slower, not by estimating grip. Its grip-dependent speed modulation is real but small (~18% of the Oracle's). The defensible claims are: (1) a grip-aware base policy is safe *given* the grip; (2) in the stock F1TENTH simulator, grip is not observable from proprioception at these speeds, so RMA-style adaptation cannot work there, and the July-style training makes it actively harmful (action leakage); (3) a saturating tire makes grip partly observable, but at a 3 m/s cap the benefit of adapting is matched by simply slowing down. Showing a benefit *of adaptation* needs a regime where slowing down everywhere is costly (higher speed caps, a lap-time objective) or more informative histories. That is the next experiment.
 
 ## 1. Pre-registered experiments, original configuration
 
@@ -86,6 +86,44 @@ Variance ratio Blind/φ **14.7×** [8.0, 31.2]. E5 grip R²: encoder 0.998, **hi
 
 **Interpretation.** With a tire that saturates, grip becomes partly observable from 0.5 s of motion (R² ≈ 0.25), and the adaptation module uses it, which is the mechanism the July story assumed. In the stock f1tenth_gym tire it is essentially absent. This supports the advisor's point (Oct 31) that the tire model decides whether the method can work at all, and that adapting online on the real car may be necessary.
 
-## 3. Robustness (friction-circle configuration)
+## 3. Controls and robustness (friction-circle configuration)
 
-*Running (`tools/robustness_suite.sh`, CONF=fc): post-hoc E0 on three more tracks; R2 robust baseline (same DAgger recipe, no grip information); R1 replicate seeds 1 and 2; R3 held-out tracks (mco, silverstone, budapest).*
+### R2: robust baseline (B1)
+
+Same DAgger recipe and tire, but μ only ever sees the nominal physics vector, so the policy gets no grip information. Paired with P2's φ episodes (same seeds and starts):
+
+| μ | crash φ / robust | McNemar p | speed φ / robust (m/s) |
+|---:|---|---:|---|
+| 1.0 | 0.00 / 0.01 | 1 | 1.28 / 1.60 |
+| 0.8 | 0.03 / 0.01 | 0.62 | 1.23 / 1.60 |
+| 0.6 | 0.00 / 0.05 | 0.062 | 1.18 / 1.59 |
+| 0.4 | **0.07 / 0.16** | **0.012** | 1.14 / 1.59 |
+
+B1 **passes** on its crash criterion. But the robust policy is 25% faster at every grip: neither is better on both speed and safety.
+
+### B2: speed-matched Blind (amendment 3, the decisive control)
+
+The P2 base policy as Blind, with its commanded speed capped at φ's own speeds:
+
+| μ | crash φ | Blind capped at 1.15 m/s | Blind capped at 1.28 m/s |
+|---:|---:|---:|---:|
+| 1.0 | 0.00 | 0.00 | 0.01 |
+| 0.8 | 0.03 | 0.00 | 0.01 |
+| 0.6 | 0.00 | 0.00 | 0.06 (p = 0.031 vs φ) |
+| 0.4 | 0.07 | **0.05** (p = 0.5) | **0.06** (p = 1) |
+
+Pre-registered readout: at μ = 0.4, Blind capped at 1.15 m/s is within 0.05 of φ, so **φ's low-grip safety is explained by its speed**. φ's only measurable edge over the faster (1.28 m/s) cap is at μ = 0.6 (0.00 vs 0.06). The adaptation claim is therefore limited to *grip-dependent speed modulation* (1.28 → 1.14 m/s, ~18% of the Oracle's), with no safety benefit beyond what a fixed slower speed gives at this speed cap. This matches the amendment-3 prediction.
+
+### Post-hoc E0 on more tracks (friction-circle base policy, Blind, N = 40, random starts)
+
+| track | μ = 1.0 | 0.8 | 0.6 | 0.4 | 0.2 | G0 |
+|---|---:|---:|---:|---:|---:|---|
+| sochi_tight | 0.00 | 0.00 | 0.00 | 0.30 | 1.00 | PASS |
+| sepang_tight | 0.00 | 0.00 | 0.25 | 0.28 | 1.00 | PASS |
+| ims_tight (oval) | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | not met: no corner needs the grip |
+
+Whether grip is load-bearing depends on the track's tightest corners, so E0 should be reported across tracks, not only aut_tight.
+
+### R1 / R3
+
+*Running: replicate training seeds 1 and 2 of the P2 configuration; held-out tracks.*
