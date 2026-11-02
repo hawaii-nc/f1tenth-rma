@@ -124,6 +124,27 @@ Pre-registered readout: at μ = 0.4, Blind capped at 1.15 m/s is within 0.05 of 
 
 Whether grip is load-bearing depends on the track's tightest corners, so E0 should be reported across tracks, not only aut_tight.
 
+### W: 2-second history window (amendment 4)
+
+The P2 base policy, with φ retrained exactly as in P2 but with k = 200 steps (2 s) instead of 50. It replaces the high-speed test, which was infeasible: the expert could not lap the narrow tracks above ~3.5 m/s.
+
+| μ | crash φ_k200 / Blind / Oracle | speed φ_k200 (φ_k50) | Blind capped at 1.17 m/s: crash (McNemar p vs φ_k200) |
+|---:|---|---|---|
+| 1.0 | 0.01 / 0.11 / 0.11 | **1.17** (1.28) | 0.00 (1) |
+| 0.8 | 0.01 / 0.11 / 0.09 | 1.16 (1.23) | 0.00 (1) |
+| 0.6 | 0.01 / 0.13 / 0.07 | 1.16 (1.18) | 0.00 (1) |
+| 0.4 | 0.08 / 0.44 / 0.05 | 1.15 (1.14) | 0.05 (0.55) |
+
+E5 grip R²: φ_k200 **0.02** (φ_k50 0.26); history probe −0.07. E3: "settles" in 0 steps, which is trivial because the estimate is constant. Gap closed at μ = 0.4: 65% [52, 80]. Variance ratio 3.4×.
+
+| Prediction | Result |
+|---|---|
+| W1: φ R² > 0.26 | **FAIL** (0.02) |
+| W2: faster at μ = 1.0 than φ_k50, crash at μ = 0.4 ≤ 0.10 | **FAIL** (1.17 < 1.28 m/s) |
+| W3: Blind capped at φ's μ = 1.0 speed crashes ≥ 0.10 more than φ at μ = 0.4 | **FAIL** (0.05 vs 0.08) |
+
+With the longer window, φ learned essentially nothing about grip and fell back to one cautious speed (~1.16 m/s) everywhere. That is safe against Blind but no better than simply capping Blind's speed. The most likely reason is optimization: a 4× larger input (200 × 115) with the same data and gradient budget. Either way, a longer window by itself is not a fix.
+
 ### R1 / R3
 
 *Running: replicate training seeds 1 and 2 of the P2 configuration; held-out tracks.*
