@@ -75,3 +75,21 @@ Same E1/E2 (N = 100) and E5 (N = 200) protocol and the same statistics (tools/st
 **Change.** Each evaluation episode starts at a point along the lap drawn from its seed (`eval/harness.py`, `spawn_frac_for`). Every controller gets the same start for the same seed, so paired tests stay valid, and different seeds give different episodes. `--spawn start` reproduces the old protocol. `tools/stats.py` now reports the number of distinct outcomes per cell and warns on replication.
 
 **Reruns (same hypotheses, thresholds and N as fixed above):** original configuration (E0, E1/E2, E3, E4, E5); its friction-circle evaluation (T1, N = 40); P1 (E1/E2, E5); P2 (E0, E1/E2, E3, E5). Earlier start-line results are kept under `*_startline/` and reported as superseded. The robustness suite (R0–R4) runs afterwards with the new protocol.
+
+---
+
+## Amendment 3, 2026-11-02 (before running): speed-matched control (B2)
+
+**Why.** P2's φ is safer than Blind at low grip, but it is also slower at every grip (1.28 → 1.14 m/s vs Blind's ~1.97), and the Oracle shows that ~1.2 m/s is safe at μ = 0.4. Its safety could therefore come from *driving slowly* rather than from estimating grip. The robust baseline (R2) does not settle this either, because it drives faster (~1.6 m/s in validation).
+
+**Control (B2).** The P2 base policy as Blind (nominal grip belief), with its commanded velocity capped (`--speed-cap`) at **1.15 m/s** (≈ φ's speed at μ = 0.4) and at **1.28 m/s** (≈ φ's speed at μ = 1.0). Friction-circle tire, same E1/E2 protocol (N = 100 per grip, random starts, paired seeds).
+
+**Pre-registered readout.**
+
+| Outcome at μ = 0.4 | Conclusion |
+|---|---|
+| Capped Blind (1.28 m/s) crash rate ≥ φ's + 0.10, McNemar p < 0.05 | φ's low-grip safety is **not** explained by speed alone: grip adaptation contributes |
+| Capped Blind (1.15 m/s) crash rate within 0.05 of φ's | φ's safety is explained by its speed. The adaptation claim is limited to "speed is modulated by inferred grip", ~18% of the Oracle's modulation |
+| In between | Report as partially explained by speed |
+
+**Prediction.** At 1.15 m/s, capped Blind will be about as safe as φ (the Oracle is safe at 1.19). At 1.28 m/s, capped Blind will crash somewhat more than φ. So φ's benefit is mostly speed, with a small adaptive part.

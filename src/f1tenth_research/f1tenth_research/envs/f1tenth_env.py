@@ -121,6 +121,10 @@ class F1TenthRMAEnv(gym.Env):
         # 8.0 for the old June checkpoints, 3.0 for v27 onward
         self.max_velocity = float(self.config.get('max_velocity', 8.0))
         self.drift_spawn_prob = float(self.config.get('drift_spawn_prob', 0.0))
+        # Optional speed governor (m/s) for the speed-matched control (amendment 3):
+        # clips the commanded velocity; the observation still reports the policy's command.
+        cap = self.config.get('speed_cap')
+        self.speed_cap = float(cap) if cap is not None else None
         self.tire_model = str(self.config.get('tire_model', 'linear'))
         if self.tire_model not in TIRE_MODELS:
             # Checked here so a typo can never silently fall back to the mock env.
@@ -411,6 +415,8 @@ class F1TenthRMAEnv(gym.Env):
         steer_cmd = float(action[0])
         throttle_cmd = float(action[1])
         velocity_cmd = self.throttle_to_velocity(throttle_cmd)
+        if self.speed_cap is not None:
+            velocity_cmd = min(velocity_cmd, self.speed_cap)
         sim_action = np.array([steer_cmd, velocity_cmd], dtype=np.float32)
 
         # Step base environment
