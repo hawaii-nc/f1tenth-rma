@@ -114,3 +114,16 @@ def test_eval_episodes_differ_by_seed_but_pair_across_controllers(monkeypatch):
     with pytest.raises(Stop):
         harness.run_episode(Env(), None, harness.Controller(), 1.0, seed=0)
     assert seen[-1] is None
+
+
+def test_speed_cap_clips_command():
+    from f1tenth_research.envs import F1TenthRMAEnv
+    from fake_sim import FakeSim
+    F1TenthRMAEnv.wrapper_factory = staticmethod(FakeSim)
+    try:
+        env = F1TenthRMAEnv(config={'environment': {'speed_cap': 1.2, 'max_velocity': 3.0, 'tracks': ['aut']}})
+        env.reset(options={'training': False, 'track': 'aut'})
+        _, _, _, _, info = env.step(np.array([0.0, 1.0], dtype=np.float32))
+        assert info['velocity_cmd'] == pytest.approx(1.2)
+    finally:
+        F1TenthRMAEnv.wrapper_factory = None

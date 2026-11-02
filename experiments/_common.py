@@ -31,6 +31,8 @@ class _Parser(argparse.ArgumentParser):
         args = super().parse_args(*a, **k)
         from f1tenth_research.eval import harness
         harness.EVAL_SPAWN = args.spawn
+        global _SPEED_CAP
+        _SPEED_CAP = args.speed_cap
         return args
 
 
@@ -39,6 +41,8 @@ def base_parser(description: str, n_default: int = 100) -> argparse.ArgumentPars
     ap.add_argument('--spawn', default='random', choices=['random', 'start'],
                     help="episode start: 'random' = seeded point along the lap, same for every controller "
                          "(default); 'start' = July protocol (start line: one distinct episode per track)")
+    ap.add_argument('--speed-cap', type=float, default=None,
+                    help='clip every commanded velocity to this many m/s (speed-matched control, amendment 3)')
     ap.add_argument('--phase1', default=str(DEFAULT_PHASE1), help='actor-critic checkpoint')
     ap.add_argument('--phase2', default=str(DEFAULT_PHASE2), help='adaptation (φ) checkpoint')
     ap.add_argument('--config', default=str(DEFAULT_CONFIG), help='YAML with an environment: block')
@@ -53,11 +57,16 @@ def base_parser(description: str, n_default: int = 100) -> argparse.ArgumentPars
     return ap
 
 
+_SPEED_CAP = None
+
+
 def load_config(path: str, tire_model: str = None) -> dict:
     with open(path) as f:
         cfg = yaml.safe_load(f)
     if tire_model:
         cfg.setdefault('environment', {})['tire_model'] = tire_model
+    if _SPEED_CAP is not None:
+        cfg.setdefault('environment', {})['speed_cap'] = _SPEED_CAP
     return cfg
 
 
