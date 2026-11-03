@@ -8,14 +8,26 @@ All numbers come from the rebuilt, bug-fixed pipeline on the real f1tenth_gym (c
 
 ## Summary
 
-| Configuration | φ crash at μ = 0.4 (Blind / Oracle) | ρ gap closed at μ = 0.4 | Variance ratio Blind/φ | φ speed μ = 1.0 → 0.4 (Oracle 1.98 → 1.19) | φ grip R² (E5) | Pre-registered G1 / H2 / H3 |
+| Configuration | φ crash at μ = 0.4 (Blind / Oracle) | ρ gap closed at μ = 0.4 | Variance ratio Blind/φ | φ speed μ = 1.0 → 0.4 (Oracle 1.98 → 1.19) | φ grip R² (E5) | G1 / H2 / H3 |
 |---|---|---|---|---|---|---|
 | **Original** (linear tire, φ on oracle data) | 0.39 (0.32 / 0.00) | **−16%** [−24, −7] | 0.83× | 2.13 → 2.11 | −0.02 | FAIL / FAIL / FAIL |
 | Original, evaluated on friction-circle tire (T1) | 0.65 (0.55 / 0.00) | −13% [−22, −7] | 0.87× | 2.13 → 2.02 | n/a | FAIL / FAIL / FAIL |
-| **P1** (linear tire, on-policy φ), post hoc | **0.07** (0.32 / 0.00) | 47% [40, 54] | 2.45× | **1.54 → 1.53** (constant) | 0.00 | PASS / FAIL / FAIL |
-| **P2** (friction-circle tire, on-policy φ), post hoc | **0.07** (0.44 / 0.05) | **85%** [76, 91] | **14.7×** [8.0, 31.2] | 1.28 → 1.14 | **0.26** | **PASS / PASS / PASS** |
+| **P1** (linear tire, on-policy φ), post hoc | 0.07 (0.32 / 0.00) | 47% [40, 54] | 2.45× | **1.54 → 1.53** (constant) | 0.00 | PASS / FAIL / FAIL |
+| **P2** (friction-circle tire, on-policy φ), post hoc: 3 seeds | **0.04 ± 0.03** (0.44 / ~0.03) | **83% ± 7** | **16.2× ± 5.9** | ~1.35 → ~1.19 | **0.28 ± 0.05** | **PASS / PASS / PASS** (all seeds) |
+| P2, held-out tracks (never trained on) | 0.02 (0.49 / 0.00) | 89% [84, 93] | 15.9× | 1.28 → 1.18 | n/a | PASS / PASS / PASS |
+| W: P2 with a 2 s window | 0.08 (0.44 / 0.05) | 65% [52, 80] | 3.4× | 1.17 → 1.15 (constant) | 0.02 | PASS / PASS / FAIL |
+| **Controls (P2 setup)** | | | | | | |
+| Robust baseline (no grip info) | 0.16 | n/a | n/a | 1.60 → 1.59 | n/a | φ safer, p = 0.012, but 25% slower |
+| **Blind capped at φ's speed** (3 seeds) | **0.06 / 0.07 / 0.01** (φ: 0.07 / 0.05 / 0.01) | n/a | n/a | = φ's | n/a | **as safe as φ, every seed** |
 
-**The finding in one paragraph.** The base policy uses a correct grip belief perfectly: Oracle has ≈ 0 crashes at every grip and slows from 1.98 to 1.19 m/s, and injecting a false low-grip belief slows it by exactly that much (E4). Whether the adaptation module φ can *supply* that belief depends on the simulator. In f1tenth_gym's stock linear tire, grip does not measurably change the car's motion at these speeds (history R² ≈ 0), and φ cannot estimate it. Trained the July way (on oracle-driven data), φ is **worse than not adapting at all**. Trained on its own rollouts (P1), it becomes safe only by driving uniformly slowly. With a saturating friction-circle tire (P2), grip becomes partly observable (R² ≈ 0.25), and φ passes all three pre-registered checks against Blind (crash 0.07 vs 0.44 at μ = 0.4). It also beats a robust policy trained without grip information (0.07 vs 0.16, p = 0.012), but that policy drives 25% faster. **The decisive control (amendment 3) is Blind with its speed capped at φ's own speed. It is just as safe (0.05–0.06 vs 0.07 at μ = 0.4).** So φ's safety benefit is explained by driving slower, not by estimating grip. Its grip-dependent speed modulation is real but small (~18% of the Oracle's). The defensible claims are: (1) a grip-aware base policy is safe *given* the grip; (2) in the stock F1TENTH simulator, grip is not observable from proprioception at these speeds, so RMA-style adaptation cannot work there, and the July-style training makes it actively harmful (action leakage); (3) a saturating tire makes grip partly observable, but at a 3 m/s cap the benefit of adapting is matched by simply slowing down. Showing a benefit *of adaptation* needs a regime where slowing down everywhere is costly (higher speed caps, a lap-time objective) or more informative histories. That is the next experiment.
+**The finding in one paragraph.** The base policy uses a correct grip belief perfectly: Oracle has ≈ 0 crashes at every grip and slows from 1.98 to 1.19 m/s, and injecting a false low-grip belief slows it by exactly that much (E4). Whether the adaptation module φ can *supply* that belief depends on the simulator. In f1tenth_gym's stock linear tire, grip does not measurably change the car's motion at these speeds (history R² ≈ 0), and φ cannot estimate it. Trained the July way (on oracle-driven data), φ is **worse than not adapting at all**; trained on its own rollouts, it becomes safe only by driving uniformly slowly. With a saturating friction-circle tire, grip becomes partly observable (R² 0.28 ± 0.05 over 3 seeds). φ then passes all three pre-registered checks against Blind on every seed (crash 0.04 vs 0.44 at μ = 0.4) and transfers to unseen tracks (89% gap closed). **But on every seed, Blind capped at φ's own top speed is just as safe.** φ's safety comes from driving at a safe speed (which it does learn, with some grip-dependent modulation), not from grip estimation adding safety beyond that.
+
+**Defensible claims for the paper.**
+
+1. A grip-aware RMA base policy is safe *given* the grip, and its caution is causally driven by its grip belief (Oracle, E4).
+2. In the stock F1TENTH simulator, grip is not observable from proprioception at these speeds, so RMA-style grip adaptation cannot work there. July-style training makes it actively harmful (action leakage), which explains the July E5 result.
+3. A saturating tire makes grip partly observable. φ then learns a safe, mildly grip-modulated speed that replicates across seeds and transfers to unseen tracks.
+4. **Limitation:** at a 3 m/s cap on these tracks, a fixed speed cap matches φ's safety. A benefit *of adaptation itself* would need a regime where uniform slowness is costly (higher speeds, a lap-time objective) and better grip estimates (R² 0.28 now), or measurements on the real car. That is the advisor's suggested direction (learning online on the real car).
 
 ## 1. Pre-registered experiments, original configuration
 
@@ -179,4 +191,12 @@ Phase 1 and φ retrained without mco_tight, silverstone_tight and budapest_tight
 
 ### Amendment 5: speed-matched control for seeds 1 and 2
 
-*Running.*
+Each seed's base policy as Blind, capped at that seed's φ speed at μ = 1.0, paired with φ's episodes:
+
+| μ = 0.4 | φ crash | capped-Blind crash | McNemar p | speed φ / capped (m/s) |
+|---|---:|---:|---:|---|
+| seed 0 (amendment 3, cap 1.28) | 0.07 | 0.06 | 1 | 1.14 / 1.26 |
+| seed 1 (cap 1.48) | 0.05 | 0.07 | 0.69 | 1.29 / 1.46 |
+| seed 2 (cap 1.29) | 0.01 | 0.01 | 1 | 1.14 / 1.28 |
+
+**Readout: not met for any seed** (needed capped Blind ≥ 0.10 worse than φ, p < 0.05). Across all three seeds, a non-adaptive car that never exceeds φ's own top speed is as safe as φ at every grip level. The grip-related crash cliff for this base policy lies between ~1.5 and ~1.9 m/s, so any speed cap below it removes most of the risk. φ's grip-dependent slowing (0.10–0.19 m/s, roughly 13–24% of the Oracle's 0.79 m/s swing) adds no measurable safety on top.
