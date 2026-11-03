@@ -1,108 +1,95 @@
-# Rapid Motor Adaptation for Real-Time Grip Calibration in Autonomous Racing
+# You Cannot See Grip Without Using It: Active Probing for Rapid Motor Adaptation in Autonomous Racing
 
-*Workshop-paper draft, target IEEE IV 2027 Workshops (papers due Feb 1, 2027).*
-*Builds on the July 13 IEEE draft and the poster. Every **[RE-RUN]** marks a number to be regenerated with this repo (see docs/HANDOFF.md). Citation keys refer to `references.bib`.*
+*Workshop-paper draft (rewrite of Nov 3, 2026), target IEEE IV 2027 Workshops (papers due Feb 1, 2027).*
+*All simulation numbers come from `results/retrain_nov2026/` (see `docs/RESULTS_NOV2026.md`); every prediction was registered first in `docs/PREREGISTRATION_NOV2026.md`. **[S2]** marks a number to fill in from training seed 2, **[CITE]** a reference still to find and verify, **[A7]** a result from the amendment-7 robustness runs. Citation keys refer to `references.bib`.*
 
 **Nathan Chong** (University of Hawaiʻi at Mānoa; NSF REU at UNLV) and **Venkata Prashant Modekurthy** (UNLV)
 
 ---
 
-**Abstract.** A race car's safe operating envelope is set by tire–road friction, which changes with surface, wear and payload, and which no onboard sensor measures directly. We ask whether a learned controller can infer its available grip from its own motion and spend a *steady fraction* of it. We adapt the two-phase Rapid Motor Adaptation (RMA) framework [kumar2021rma, zhang2025extreme] to the F1TENTH platform [okelly2020f1tenth].
-
-- **Phase 1** trains a PPO policy, with imitation from a grip-aware Pure Pursuit expert, conditioned on a latent encoding of seven randomized physics parameters.
-- **Phase 2** trains a 1-D CNN to reproduce that latent from the last 50 state–action pairs.
-
-The deployed controller is map-agnostic: it observes 108 LiDAR ranges and 5 motion signals, with no map, pose or raceline. We measure safety by friction-circle utilization ρ, the fraction of available grip in use.
-
-In simulation, the adaptation module closes **44%** of the gap between a grip-blind and an oracle controller at μ = 0.4, with **1.25×** lower cross-grip ρ variance **[RE-RUN]**. On a 1/10-scale car, wrapping the tires to lower grip significantly changes the frozen policy's own steering (p = 0.0001) and yaw rate (p = 0.009) across 81 trials. We also report a limitation that shapes the interpretation: the standard F1TENTH simulator's linear tire model never saturates.
+**Abstract.** Tire–road friction sets a race car's safe operating envelope, changes with surface, wear and payload, and is not measured by any onboard sensor. Rapid Motor Adaptation (RMA) [kumar2021rma, zhang2025extreme] promises to infer such hidden conditions from the robot's recent motion. We apply it to grip on the F1TENTH platform [okelly2020f1tenth] and find that, done the standard way, it cannot work: with the car's actions decoupled from grip, its 0.5 s motion history carries no information about grip (R² −0.02), for three tire models, because the car is close to neutral steer and drives well inside the friction circle. An adaptation module trained the standard way instead reads grip off the expert's own driving (action leakage) and becomes *less* safe than not adapting at all; a module trained on its own rollouts is safe only because it drives uniformly slowly, and a speed-capped non-adaptive car matches it. We then add an **active probe**: a brief speed pulse on straights that asks the tires for more than low grip can give. With a proprioceptive adaptation module, grip becomes readable (R² 0.90–0.93 **[S2]**), the car drives within 0.1 m/s of an oracle's speed at every grip, and at μ = 0.4 it crashes in 0.02–0.07 of episodes vs 0.46–0.47 for a non-adaptive car capped at its top speed (p < 10⁻¹¹), across training seeds **[S2]**.
 
 ## I. Introduction
 
-- Grip governs the limits of safe control, and it changes: rain, tire wear, dust, payload. A controller tuned for nominal conditions is either conservative everywhere or unsafe when conditions degrade.
-- Human drivers infer grip from how the car responds and leave a margin. We want a car that does the same: a steady **margin**, not a steady **speed**.
-- RMA formalizes "infer the condition from behaviour", but it has been shown on legged robots [kumar2021rma] and quadcopters [zhang2025extreme], not on ground racing, where one condition-dependent constraint (friction) dominates.
+- Grip governs the limits of safe control, and it changes: rain, tire wear, dust, payload. A controller tuned for nominal grip is either conservative everywhere or unsafe when grip falls.
+- RMA [kumar2021rma] trains a base policy on privileged physics, then an adaptation module that recovers those physics from recent states and actions. It works for legged robots and quadcopters [zhang2025extreme], whose dynamics expose the hidden parameters all the time.
+- A car's grip is different: below the limit, the tires deliver whatever force is asked of them, at any grip. Grip shows only near the limit, which a cautious controller never visits. This is the familiar excitation requirement of tire–road friction estimation **[CITE: friction-estimation survey]**.
+- **Question.** Can an RMA controller on F1TENTH infer grip from its own motion, and does adapting to it beat simply driving slower?
 
 **Contributions:**
 
-1. To our knowledge, the first latent-intrinsics RMA on F1TENTH ground racing, end to end from simulation to a real car.
-2. A fully map-agnostic observation (LiDAR + proprioception) for both the policy and the adaptation module.
-3. A safety evaluation built on friction-circle utilization, with paired Oracle / φ-RMA / Blind controllers sharing one policy, plus causal belief-injection tests.
-4. A real-car tire-wrap experiment.
-5. An analysis of what the simulator's tire model can and cannot show.
+1. **A leakage-free observability test.** Rolling out the policy with a *random* grip belief, independent of the true grip, removes the information that the controller's own actions carry. Under it, the motion history contains no grip information for the linear, friction-circle and Fiala brush tires, which explains why standard RMA fails here and why apparent successes are leakage.
+2. **Active grip probing for RMA.** A 0.1 s speed pulse every 0.5 s on straights, applied identically to all controllers, plus a proprioception-only adaptation module, makes grip readable and yields oracle-like speed modulation.
+3. **A speed-matched control.** Comparing against a non-adaptive car capped at the adaptive car's own speed separates *adaptation* from *slowness*. Without the probe, slowness explains all of the safety gain; with it, adaptation does not.
+4. **Methodology**: pre-registered hypotheses and amendments, paired episodes from seeded random starts (fixing a pseudo-replication flaw in our earlier protocol), three training seeds and held-out tracks.
 
 ## II. Related work
 
-- **RMA.** Base policy plus an adaptation module trained by regression on privileged encodings [kumar2021rma]. The quadcopter extension adds joint PPO+IL with a decaying imitation weight [zhang2025extreme].
+- **RMA.** Base policy plus an adaptation module regressed on privileged encodings [kumar2021rma]; joint PPO+IL with a decaying imitation weight for quadcopters [zhang2025extreme]. RMA's adaptation module is trained on its own rollouts to avoid distribution shift; we show a second reason it matters, action leakage.
 - **Learning on F1TENTH.** LiDAR-only deep RL [hell2024lidar, evans2023trajectory], imitation-learning benchmarks [sun2023ilbenchmark], and the survey and benchmarks in [evans2024unifying]. None estimates vehicle physics online.
-- **Domain randomization** gives robustness [tobin2017dr]. RMA turns this into *adaptation* by conditioning on the sampled physics.
-- **Safety framing.** The friction circle / g-g diagram [milliken1995rcvd]. Rules-as-constraints [shalevshwartz2017rss, achiam2017cpo].
+- **Domain randomization** gives robustness [tobin2017dr]; RMA turns it into adaptation by conditioning on the sampled physics.
+- **Tire–road friction estimation** needs excitation: slip-based and force-based estimators work when the tires are loaded and fail in steady driving **[CITE]**. Active excitation for system identification and dual control **[CITE]**. We bring this to learned adaptation.
+- **Friction circle / g-g diagram** [milliken1995rcvd].
 
 ## III. Method
 
-**A. Observation and action.** x_t ∈ ℝ¹¹³:
+**A. Platform and observation.** f1tenth_gym [okelly2020f1tenth] single-track model at 100 Hz, with a friction-circle tire we add: each axle's lateral force is capped at √((μF_z)² − F_x²) and acceleration at μg (the stock model never saturates). x_t ∈ ℝ¹¹³: speed, steering, the previous speed and steering commands, yaw rate, and 108 LiDAR beams (clipped at 10 m, normalized). The action is (steering ∈ [−0.42, 0.42] rad, speed command ∈ [0, 3] m/s). No map or pose enters the controller.
 
-- v, applied steering, previous v and steering commands, and yaw rate;
-- 108 LiDAR beams, evenly subsampled from 1080, clipped at 10 m and normalized.
+**B. Randomization.** Per episode e ∈ ℝ⁷: grip ∈ [0.4, 1.0] (μ = 1.0489·grip); mass, inertia, steering and drive gains ±20%; steering and drive delays 0–50 ms; then ±20% noise. 30% of training episodes get one mid-episode grip drop (×0.7). LiDAR noise σ = 0.02 and 5% dropout.
 
-The action is (steering δ ∈ [−0.4189, 0.4189] rad, throttle ∈ [−1, 1] ↦ v_cmd ∈ [0, 3.0] m/s). No map-specific signal enters π or φ.
+**C. Phase 1 (base policy).** π(x, z) (MLP 3×256) and encoder z = μ(e) ∈ ℝ⁸ (7→128→128→8), trained by DAgger (6 × 100k steps, β halving from 1) from a grip-aware Pure Pursuit expert [coulter1992purepursuit] on 13 circuits [betz2022racing], each scaled to the tightest size the expert can lap (0.35–0.70). PPO fine-tuning lowered closed-loop validation, so we use the DAgger policy.
 
-**B. Randomization.** Per episode we sample e ∈ ℝ⁷:
+**D. Phase 2 (adaptation module).** φ: Conv1d stack (32-32-8, kernel 5) and FC (→128→8), mapping the last k = 50 steps (0.5 s) to ẑ. MSE to μ(e), plus an auxiliary physics head (grip weighted 3×). Data: 800 episodes driven by the true z, then **3 on-policy rounds** (250 episodes each, driven by φ's own ẑ, labelled with the true z) [kumar2021rma].
 
-- grip ∈ [0.4, 1.0] (μ = 1.0489·grip);
-- mass, inertia (correlated), and steering and drive gains, each ±20%;
-- steering and drive delays of 0–50 ms;
+**E. Active grip probe.** Every 50 steps, for 10 steps (0.1 s), add 2.0 m/s to the speed command while |steer| < 0.15 rad. The speed controller then requests ~9.5 m/s², which the tire caps at μg, so the achieved acceleration measures grip. The probe runs identically for every controller, in training and evaluation. With the probe, φ takes only the 7 proprioceptive channels (speed, steering, the two previous commands, yaw rate, and the action); the 108 LiDAR channels swamp the signal (offline R² 0.15 vs 0.67).
 
-followed by ±20% multiplicative noise. In 30% of episodes, one mid-episode grip drop (×0.7) is applied at a uniform time in [30%, 90%] of the episode. During training, LiDAR gets noise (σ = 0.02) and 5% beam dropout.
+**F. Controllers.** One frozen π with three sources of z: **Oracle** μ(e_true), **φ** φ(history), **Blind** μ(e_nominal). **Speed-matched Blind:** Blind with its speed command capped at φ's own mean speed at μ = 1.0.
 
-**C. Phase 1.** Networks:
-
-- the policy π(x, z): an MLP, 3×256;
-- the value V(x, z);
-- the encoder z = μ(e) ∈ ℝ⁸, 7→128→128→8.
-
-They are trained jointly with PPO (clip 0.2, γ 0.99, λ 0.95, lr 3·10⁻⁴) plus an imitation loss toward a grip-aware Pure Pursuit expert [coulter1992purepursuit] on minimum-curvature racelines [heilmeier2020mincurv]. The IL weight decays from 1.0 toward 0.01, with plateau-triggered rescues. The policy trains on 14 circuits [betz2022racing] at 35% scale (matching a 2–3 ft physical track), for 16M steps.
-
-Reward: 5.0 × centerline progress, 0.05 smoothness, 0.01 alive, −1 collision, 0.5 speed–turn coupling, 0.1 centerline error.
-
-**D. Phase 2.** φ is a Conv1d stack (115→32→32→8, kernel 5) followed by an FC layer (400→128→8). It maps the last k = 50 (x, a) pairs to ẑ and is trained by MSE against μ(e) on Phase 1 rollouts, plus an auxiliary physics loss with grip weighted 3×.
-
-**E. Controllers.** One frozen π, three intrinsics sources:
-
-- **Oracle:** μ(e_true);
-- **φ-RMA:** φ(history);
-- **Blind:** μ(e_nominal).
-
-**F. Safety metric.** ρ = √(a_lat² + a_long²)/(μg), with a_lat = vω and a_long = dv/dt. A calibrated driver holds ρ roughly constant as μ changes.
+**G. Leakage-free observability test.** Roll out π with z = μ(e) where the grip entry of e is drawn uniformly from [0.2, 1.0] independently of the true grip, so the actions carry no grip information. Fit (i) a ridge probe on physical window features (peak acceleration and braking, lateral acceleration, yaw rate vs kinematic yaw rate, speed error) and (ii) φ's architecture, both scored by grouped cross-validation over episodes.
 
 ## IV. Experiments
 
-**Simulation** (f1tenth_gym [okelly2020f1tenth]): forced μ ∈ {1.0, 0.8, 0.6, 0.4}, N = 100 episodes per cell, paired seeds, tracks round-robin.
+Forced μ ∈ {1.0, 0.8, 0.6, 0.4}, N = 100 episodes per cell, each starting at a seeded random point on the lap, the same for every controller (paired). Statistics: Wilson CIs, exact McNemar on paired crashes, Wilcoxon on ρ, Holm across grips, episode bootstrap.
 
-- **E0:** grip gate.
-- **E1/E2:** crash rate and ρ.
-- **E3:** step change in grip.
-- **E4:** belief injection. Blindfold = believe 1.0 at true 0.4; hallucinate = believe 0.4 at true 1.0; restore = blindfold, then φ.
-- **E5:** linear probes ẑ → μ.
+- **E1/E2:** crash rate, speed and friction-circle utilization ρ = √(a_lat² + a_long²)/(μg).
+- **E5:** grip R² of ẑ (ridge, cross-validated by episode, N = 200 episodes, grip uniform in [0.2, 1.0]).
+- **Speed-matched control (Q3):** at μ = 0.4, does capped Blind crash ≥ 0.10 more than φ (McNemar p < 0.05)?
+- Configurations: **P2** (friction-circle tire, on-policy φ, no probe) and **Q** (P2 + probe + proprioceptive φ), three training seeds each; held-out tracks (mco, silverstone, budapest never seen in training).
 
-**Real car:** a Traxxas Slash 4×4 F1TENTH build with Jetson and ROS 2, running the same frozen checkpoint. One 90° corner with cardboard walls on polished concrete. Four tire conditions (bare, foil, duct tape, electrical tape), 19–21 trials each, 81 total.
+## V. Results
 
-## V. Results **[RE-RUN all simulation numbers]**
+**A. Without excitation, grip is not observable.** Leakage-free test, 240 episodes per condition:
 
-**Table I. Mean ρ by grip** (July 2026 pilot, N = 100):
+| driving | tire | grip R² (physical features, 0.5 s) |
+|---|---|---|
+| random belief | friction circle | **−0.02** |
+| random belief | Fiala brush | −0.03 |
+| oracle belief | friction circle | 0.97 (leakage) |
+| φ's belief | friction circle | 0.68 (leakage) |
+| random belief **+ probe** | friction circle | **0.84** (0.997 per episode) |
 
-| μ | Oracle | φ-RMA | Blind |
+Below the limit, grip barely changes the yaw response (steady cornering, μ 0.4 vs 1.0: −3% at 1.5 m/s, −5% at 2 m/s), and the policy's 99th-percentile acceleration (3–3.7 m/s²) and lateral acceleration (~2 m/s²) stay under even low-grip μg (3.9 m/s² at μ = 0.4). With the probe, peak acceleration tracks μg: 3.1 / 5.1 / 7.3 / 8.6 m/s² for grip bins 0.2–0.4 … 0.8–1.0.
+
+**B. Standard RMA fails, in two different ways.** Linear tire, φ trained on oracle-driven data: φ drives *faster* than the oracle at every grip (2.13 m/s), crashes more than Blind at μ = 0.4 (0.39 vs 0.32), and decodes no grip (R² −0.02): action leakage. On-policy φ removes the leakage but learns a constant 1.53 m/s. With the friction-circle tire (P2, 3 seeds), φ is far safer than Blind (crash 0.04 ± 0.03 vs 0.44 at μ = 0.4) but slows only 0.10–0.19 m/s with grip (Oracle 0.79), R² 0.28 ± 0.05, and **Blind capped at φ's speed is as safe on every seed** (0.06 / 0.07 / 0.01 vs φ 0.07 / 0.05 / 0.01).
+
+**C. With the probe, adaptation beats slowness.** Table I (Q, per training seed):
+
+| | seed 0 | seed 1 | seed 2 |
 |---|---|---|---|
-| 1.0 | 0.102 | 0.094 | 0.102 |
-| 0.8 | 0.119 | 0.116 | 0.126 |
-| 0.6 | 0.142 | 0.154 | 0.166 |
-| 0.4 | 0.185 | 0.215 | 0.239 |
+| φ speed μ = 1.0 → 0.4 (m/s) | 2.02 → 1.28 | 2.06 → 1.29 | **[S2]** |
+| Oracle speed μ = 1.0 → 0.4 | 2.12 → 1.27 | 2.11 → 1.27 | **[S2]** |
+| crash at μ = 0.4: φ / Blind / Oracle | 0.07 / 0.46 / 0.06 | 0.02 / 0.47 / 0.00 | **[S2]** |
+| speed-matched Blind crash at μ = 0.4 (McNemar p) | 0.46 (4×10⁻¹²) | 0.47 (6×10⁻¹⁴) | **[S2]** |
+| E5 φ grip R² | 0.90 | 0.93 | **[S2]** |
+| ρ gap closed at μ = 0.4 | 87% | 82% | **[S2]** |
 
-- **E0:** crash rate rises as grip falls, so grip is load-bearing.
-- **E1/E2:** φ-RMA sits between Oracle and Blind at every degraded grip. It closes 44% of Blind's gap at μ = 0.4, with 1.25–1.27× lower cross-grip ρ variance at N = 20, 40 and 100. This is below our pre-registered 10× target, so it is a partial effect.
-- **E4:** restoring φ after a blindfold moves behaviour 25% of the way toward the safe side. Caveat: the injected beliefs were > 4 SD outside φ's typical outputs.
-- **E5:** ẑ decodes grip weakly (R² ≈ 0.08), yet calibration improves. The adaptation is behavioural rather than a clean grip readout.
+Because the probe adds speed on top of the cap, the speed-matched Blind actually drives ~0.1 m/s *faster* than φ at μ = 1.0; a cap matched on measured speed and a cap sweep tracing the fixed-limit speed–safety frontier are in **[A7/6b]**. Probe ablation (probe off at test time), held-out tracks and the grip-step response: **[A7]**.
 
-**Table II. Real car** (frozen checkpoint, 81 trials):
+**Cost of the probe.** Same base policies, seeds and starts, without → with the probe (seeds 0, 1 **[S2]**): crash rates change by at most 0.02 for Blind (μ = 1.0: 0.11 → 0.11, 0.09 → 0.10; μ = 0.4: 0.44 → 0.46, 0.46 → 0.47) and for the Oracle (μ = 0.4: 0.05 → 0.06, 0.00 → 0.00), and the pulses raise mean speed by 0.07–0.15 m/s.
+
+**D. A pre-registered check that failed.** H3 (cross-grip variance of ρ, Blind/φ ≥ 10×) fails with the probe (3.7×, 3.3× **[S2]**), but the Oracle itself reaches only 5.4–5.6×: each pulse loads the tires near the limit at every grip, which changes what ρ measures. Without the probe the check passed (16×) for the wrong reason, a uniformly slow φ.
+
+**E. Real-car pilot (July 2026, earlier pipeline).** A Traxxas Slash 4×4 F1TENTH build ran the July checkpoint (linear tire, no probe) through one 90° corner on polished concrete with four tire wraps, 81 trials:
 
 | Tires | n | pass | yaw (rad/s) | steer (rad) |
 |---|---|---|---|---|
@@ -111,17 +98,18 @@ Reward: 5.0 × centerline progress, 0.05 smoothness, 0.01 alive, −1 collision,
 | duct | 21 | 21 | 0.663 | 0.129 |
 | electrical | 19 | 18 | 0.661 | 0.128 |
 
-Bare vs electrical tape: yaw p = 0.009, steering p = 0.0001 (Mann–Whitney U). φ's estimate is 12× more variable on tape than on bare rubber.
+Bare vs electrical tape: yaw p = 0.009, steering p = 0.0001 (Mann–Whitney U). This shows that the policy's commands respond to a real tire change; it does not test the probe or the retrained pipeline.
 
 ## VI. Discussion and limitations
 
-- **Linear tires.** f1tenth_gym's single-track model scales cornering stiffness by μ but never saturates. Low grip produces understeer, not loss of traction, and ρ > 1 has no consequence. Our ρ results therefore show that the policy *asks for less grip when it believes grip is low*, not that it avoids slides. **[ADD: saturating-tire robustness check if done]**
-- **Margin.** With ρ ≤ 0.24 the car never nears the limit. **[ADD: higher speed-cap results]**
-- **Real car.** No measured μ per tire wrap and no matched no-adaptation baseline yet. **[ADD]**
-- **Pipeline.** A bug in the July pipeline meant mid-episode grip drops changed the labels but not the simulated physics. All simulation numbers here are regenerated with the fix. **[confirm after re-run]**
+- **The probe changes the method.** The controller no longer adapts passively: it spends a small, fixed amount of driving on measuring grip. This is a design choice with a cost (speed fluctuations, tire wear, energy) that we fix rather than optimize; a learned, risk-aware probing policy is future work.
+- **Simulation idealizations.** φ receives the true vehicle speed. On the real car the speed estimate comes from wheel speed, which *rises* during wheelspin, so the probe's signal must come from the IMU's longitudinal acceleration or wheel-vs-IMU slip. The friction-circle tire caps acceleration cleanly; real tires spin up progressively. The real motor's current limit may cap acceleration before high grip does, so high grip levels may be indistinguishable.
+- **Regime.** Speeds ≤ 3 m/s on narrow (0.63–0.76 m) scaled tracks; our expert cannot lap them above ~3.5 m/s, so high-speed results are open.
+- **Uniform grip.** Grip is constant over the track (plus one drop); real surfaces vary patch to patch.
+- **Real car.** No probe trials and no measured μ per surface yet. The next experiment: probe pulses on 2–3 surfaces, logging wheel speed, IMU and commands, to test whether the achieved acceleration separates the surfaces as in simulation.
 
 ## VII. Conclusion
 
-A two-phase RMA controller can run on a 1/10-scale race car from LiDAR and motion alone. It shifts its operating point toward an oracle's as grip falls, and its own commands respond to a real tire change. The effect is real but partial. The next steps are a saturating tire model, a speed regime that approaches the limit, and measured real-world friction.
+On F1TENTH, RMA cannot infer grip from passive driving: the information is not in the motion, and models that appear to succeed are reading their own actions or simply driving slowly. A brief, deliberate speed pulse makes grip observable; an RMA controller with that probe matches an oracle's speed at every grip and beats a speed-matched non-adaptive car on safety at low grip, across training seeds. The method is ready for real-car tests, which we describe.
 
 **Acknowledgment.** Supported by NSF REU Site Award #2349616 (UNLV Smart Cities). Thanks to Ederic Oytas for hardware support.
