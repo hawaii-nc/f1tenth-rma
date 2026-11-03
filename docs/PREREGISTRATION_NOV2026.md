@@ -158,3 +158,13 @@ Config `configs/retrain_phase2_fc_probe.yaml`, script `tools/probe_suite.sh`. Ev
 Also reported, no threshold: the probe's cost (Oracle and Blind speed and crash rate with the probe vs P2's runs without it, same seeds and starts).
 
 **Expected.** Q1 and Q2 pass. Q3 is the open question: it passes only if φ_Q drives near the Oracle's speed on high grip while staying safe on low grip. If Q3 fails, the paper keeps the amendment-5 conclusion (safety comes from speed). Either way the diagnostic stands as a result: passive proprioceptive grip adaptation is not possible in this simulator below the limit; it needs excitation.
+
+### Amendment 6b, 2026-11-03 (after Q seed 0's E1/E2 and Q3, before running): cap sweep
+
+**Seen before writing this:** Q seed 0's E1/E2, E5 and Q3 (pass). **Problem:** the probe pulse is added on top of the speed cap, so Blind capped at φ_Q's μ = 1.0 speed (2.02 m/s) actually averaged 2.12 m/s at μ = 1.0, faster than φ_Q (2.02). Q3 followed the registered rule, but it is not a true speed match.
+
+**Run (all seeds, after the Q suite).** Blind (with the probe) at caps chosen so its *measured* speed at μ = 1.0 equals φ_Q's: cap_matched = cap − (measured capped-Blind speed − φ_Q speed) at μ = 1.0, from the Q3 run (seed 0: 2.02 − 0.10 = 1.92). Plus, for seed 0 only, a sweep at caps 1.3, 1.5 and 1.7 m/s to trace the speed-vs-safety frontier of a fixed speed limit.
+
+**Readouts.**
+- Q3m (per seed, same rule as Q3): at μ = 0.4, Blind at cap_matched crashes ≥ 0.10 more than φ_Q, McNemar p < 0.05.
+- Frontier (seed 0, descriptive): for each cap, (speed at μ = 1.0, crash at μ = 0.4). φ_Q **dominates** a fixed limit if no cap achieves both speed at μ = 1.0 ≥ φ_Q's − 0.05 m/s and crash at μ = 0.4 ≤ φ_Q's + 0.05.
