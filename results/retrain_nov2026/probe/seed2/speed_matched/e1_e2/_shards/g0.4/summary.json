@@ -1,0 +1,35 @@
+{
+  "summary": [
+    {
+      "controller": "blind",
+      "grip": 0.4,
+      "n": 100,
+      "crash_rate": 0.43,
+      "completion_rate": 0.57,
+      "mean_speed": 1.9888641872248356,
+      "mean_rho": 0.5270944462040152,
+      "rho_sem": 0.011115053705124266,
+      "mean_progress_m": 38.16900684568212
+    }
+  ],
+  "args": {
+    "spawn": "random",
+    "speed_cap": 2.0,
+    "phase1": "runs/phase1_fc_seed2/final.pt",
+    "phase2": "runs/phase2_fc_probe_seed2/final.pt",
+    "config": "configs/retrain_phase2_fc_probe.yaml",
+    "episodes": 100,
+    "tracks": null,
+    "max_steps": 2500,
+    "seed": 0,
+    "out": "results/retrain_nov2026/probe/seed2/speed_matched/e1_e2/_shards/g0.4",
+    "device": "cpu",
+    "tire_model": "friction_circle",
+    "grips": [
+      0.4
+    ],
+    "controllers": [
+      "blind"
+    ]
+  }
+}
