@@ -1,0 +1,80 @@
+{
+  "summary": [
+    {
+      "controller": "blind",
+      "grip": 0.6,
+      "n": 100,
+      "crash_rate": 0.02,
+      "completion_rate": 0.98,
+      "mean_speed": 2.069704001860876,
+      "mean_rho": 0.45365140355681866,
+      "rho_sem": 0.004180065286004443,
+      "mean_progress_m": 49.468827382258375
+    },
+    {
+      "controller": "oracle",
+      "grip": 0.6,
+      "n": 100,
+      "crash_rate": 0.0,
+      "completion_rate": 1.0,
+      "mean_speed": 1.6220464030379842,
+      "mean_rho": 0.3969840330845663,
+      "rho_sem": 0.001912379758824742,
+      "mean_progress_m": 39.71654801736382
+    },
+    {
+      "controller": "phi",
+      "grip": 0.6,
+      "n": 100,
+      "crash_rate": 0.0,
+      "completion_rate": 1.0,
+      "mean_speed": 1.6275018945490753,
+      "mean_rho": 0.3993137683758187,
+      "rho_sem": 0.0037415058494210144,
+      "mean_progress_m": 39.71051425267707
+    }
+  ],
+  "args": {
+    "spawn": "random",
+    "speed_cap": null,
+    "phase1": "runs/phase1_fc_holdout/final.pt",
+    "phase2": "runs/phase2_fc_probe_holdout/final.pt",
+    "config": "configs/retrain_phase2_fc_probe.yaml",
+    "episodes": 100,
+    "tracks": [
+      "mco_tight",
+      "silverstone_tight",
+      "budapest_tight"
+    ],
+    "max_steps": 2500,
+    "seed": 0,
+    "out": "results/retrain_nov2026/probe/robustness/holdout_model/e1_e2/_shards/g0.6",
+    "device": "cpu",
+    "tire_model": "friction_circle",
+    "grips": [
+      0.6
+    ],
+    "controllers": [
+      "oracle",
+      "phi",
+      "blind"
+    ]
+  },
+  "gaps": {
+    "phi_gap": {
+      "0.6": 0.0023297352912524105
+    },
+    "blind_gap": {
+      "0.6": 0.05666737047225234
+    },
+    "gap_closed": {
+      "0.6": 0.9588875348928854
+    }
+  },
+  "cross_grip_variance": {
+    "oracle": 0.0,
+    "phi": 0.0,
+    "blind": 0.0
+  },
+  "blind_over_phi_variance_ratio": NaN
+}

@@ -1,7 +1,7 @@
 # You Cannot See Grip Without Using It: Active Probing for Rapid Motor Adaptation in Autonomous Racing
 
 *Workshop-paper draft (rewrite of Nov 3, 2026), target IEEE IV 2027 Workshops (papers due Feb 1, 2027).*
-*All simulation numbers come from `results/retrain_nov2026/` (see `docs/RESULTS_NOV2026.md`); every prediction was registered first in `docs/PREREGISTRATION_NOV2026.md`. **[S2]** marks a number to fill in from training seed 2, **[CITE]** a reference still to find and verify, **[A7]** a result from the amendment-7 robustness runs. Citation keys refer to `references.bib`.*
+*All simulation numbers come from `results/retrain_nov2026/` (see `docs/RESULTS_NOV2026.md`); every prediction was registered first in `docs/PREREGISTRATION_NOV2026.md`. **[CITE]** marks a reference still to find and verify. Citation keys refer to `references.bib`.*
 
 **Nathan Chong** (University of Hawaiʻi at Mānoa; NSF REU at UNLV) and **Venkata Prashant Modekurthy** (UNLV)
 
@@ -85,7 +85,7 @@ Below the limit, grip barely changes the yaw response (steady cornering, μ 0.4 
 
 The probe adds speed on top of a cap, so the Blind cap is set to match φ's *measured* speed at μ = 1.0 (within 0.01–0.05 m/s). **Fixed-limit frontier** (seed 0): capped at 1.7 / 1.5 / 1.3 m/s, Blind drives 1.82 / 1.63 / 1.43 m/s at μ = 1.0 and crashes 0.12 / 0.07 / 0.07 at μ = 0.4. Matching φ's safety (0.07) with a fixed limit costs 0.4–0.6 m/s (19–29%) on high grip; matching its speed costs 5× the crashes.
 
-**The probe is necessary.** Evaluating the same seed-0 φ with the probe off, it falls back to a constant ~1.2 m/s (1.20 → 1.16 m/s) with grip R² 0.24, the P2 behaviour. **Detection speed:** after a grip step from 1.0 to 0.4, φ's decoded grip settles within ±0.1 in a median of 0.77 s (39/39 episodes). **Held-out tracks: [A7]**.
+**The probe is necessary.** Evaluating the same seed-0 φ with the probe off, it falls back to a constant ~1.2 m/s (1.20 → 1.16 m/s) with grip R² 0.24, the P2 behaviour. **Detection speed:** after a grip step from 1.0 to 0.4, φ's decoded grip settles within ±0.1 in a median of 0.77 s (39/39 episodes). **Held-out tracks:** a φ trained without three circuits closes 80% [73, 86] of the gap on them at μ = 0.4 (crash 0.03 vs Blind 0.56), vs 87% for the model that trained on them.
 
 **Cost of the probe.** Same base policies, seeds and starts, without → with the probe, three seeds: crash rates change by at most 0.02 for Blind and the Oracle at every grip (e.g. Blind at μ = 0.4: 0.44 → 0.46, 0.46 → 0.47, 0.41 → 0.43), and the pulses raise mean speed by 0.07–0.15 m/s. Tire wear, energy and smoothness are not measured.
 
