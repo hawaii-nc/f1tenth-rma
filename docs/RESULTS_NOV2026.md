@@ -145,6 +145,24 @@ E5 grip R²: φ_k200 **0.02** (φ_k50 0.26); history probe −0.07. E3: "settles
 
 With the longer window, φ learned essentially nothing about grip and fell back to one cautious speed (~1.16 m/s) everywhere. That is safe against Blind but no better than simply capping Blind's speed. The most likely reason is optimization: a 4× larger input (200 × 115) with the same data and gradient budget. Either way, a longer window by itself is not a fix.
 
-### R1 / R3
+### R1: replicate training seeds (P2 configuration)
 
-*Running: replicate training seeds 1 and 2 of the P2 configuration; held-out tracks.*
+Seeds 1 and 2 retrain everything from scratch (Phase 1 DAgger base policy, then φ with the oracle round plus 3 on-policy rounds), with the same E1/E2 (N = 100, random starts) and E5 (N = 200) protocol. Base-policy validation crash rate: seed 1 2.6%, seed 2 5.1% (seed 0 7.7%).
+
+| | seed 0 | seed 1 | seed 2 | mean ± SD |
+|---|---|---|---|---|
+| φ crash at μ = 0.4 | 0.07 | 0.05 | 0.01 | **0.04 ± 0.03** |
+| Blind crash at μ = 0.4 | 0.44 | 0.46 | 0.41 | 0.44 ± 0.03 |
+| McNemar p (Holm), μ = 0.4 | 6×10⁻¹¹ | 4×10⁻¹² | 7×10⁻¹² | |
+| Gap closed at μ = 0.4 | 85% | 76% | 89% | **83% ± 7** |
+| Gap closed at μ = 0.6 | 85% | 84% | 79% | 83% ± 3 |
+| Variance ratio Blind/φ | 14.7× | 11.2× | 22.7× | 16.2× ± 5.9 |
+| φ speed μ = 1.0 → 0.4 (m/s) | 1.28 → 1.14 | 1.48 → 1.29 | 1.29 → 1.14 | |
+| E5 φ grip R² | 0.26 | 0.34 | 0.24 | 0.28 ± 0.05 |
+| G1 / H2 / H3 | PASS ×3 | PASS ×3 | PASS ×3 | |
+
+**R1 (G1 and H2 hold for all three seeds): PASS.** The P2 effect against Blind is not a single-seed artifact, and the partial grip decoding (R² ≈ 0.28) replicates. Speeds differ between seeds: seed 1's φ is faster on good grip and slows more (0.19 m/s), while seeds 0 and 2 are slower and flatter. Whether any seed's φ beats a speed-matched Blind is tested by amendment 5 (below). Gap closed at μ = 0.8 is unstable across seeds (−21% to +53%), because the Blind–Oracle ρ gap there is small.
+
+### R3 / amendment 5
+
+*Running: held-out tracks (base-policy validation already in: 0/39 crashes at grip 1.0/0.6/0.4 on all 13 tracks, including the 3 unseen ones); then speed-matched Blind for seeds 1 and 2.*
