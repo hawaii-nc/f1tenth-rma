@@ -1,0 +1,76 @@
+{
+  "summary": [
+    {
+      "controller": "blind",
+      "grip": 0.4,
+      "n": 100,
+      "crash_rate": 0.41,
+      "completion_rate": 0.59,
+      "mean_speed": 1.918144030290041,
+      "mean_rho": 0.2412566898525355,
+      "rho_sem": 0.019848641743115687,
+      "mean_progress_m": 37.06532907666467
+    },
+    {
+      "controller": "oracle",
+      "grip": 0.4,
+      "n": 100,
+      "crash_rate": 0.06,
+      "completion_rate": 0.94,
+      "mean_speed": 1.1820687442999567,
+      "mean_rho": 0.07081788531976399,
+      "rho_sem": 0.005187285787827384,
+      "mean_progress_m": 28.19166480962833
+    },
+    {
+      "controller": "phi",
+      "grip": 0.4,
+      "n": 100,
+      "crash_rate": 0.01,
+      "completion_rate": 0.99,
+      "mean_speed": 1.1361655954199565,
+      "mean_rho": 0.08920890691328481,
+      "rho_sem": 0.008286853969462493,
+      "mean_progress_m": 27.574527298766455
+    }
+  ],
+  "args": {
+    "spawn": "random",
+    "speed_cap": null,
+    "phase1": "runs/phase1_fc_seed2/final.pt",
+    "phase2": "runs/phase2_fc_seed2/final.pt",
+    "config": "configs/retrain_phase2_fc_onpolicy.yaml",
+    "episodes": 100,
+    "tracks": null,
+    "max_steps": 2500,
+    "seed": 0,
+    "out": "results/retrain_nov2026/robustness_fc/seed2/e1_e2/_shards/g0.4",
+    "device": "cpu",
+    "tire_model": "friction_circle",
+    "grips": [
+      0.4
+    ],
+    "controllers": [
+      "oracle",
+      "phi",
+      "blind"
+    ]
+  },
+  "gaps": {
+    "phi_gap": {
+      "0.4": 0.018391021593520823
+    },
+    "blind_gap": {
+      "0.4": 0.17043880453277152
+    },
+    "gap_closed": {
+      "0.4": 0.8920960420724809
+    }
+  },
+  "cross_grip_variance": {
+    "oracle": 0.0,
+    "phi": 0.0,
+    "blind": 0.0
+  },
+  "blind_over_phi_variance_ratio": NaN
+}

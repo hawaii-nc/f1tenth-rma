@@ -1,0 +1,77 @@
+{
+  "summary": [
+    {
+      "controller": "blind",
+      "grip": 1.0,
+      "n": 100,
+      "crash_rate": 0.0,
+      "completion_rate": 1.0,
+      "mean_speed": 1.1582489705532621,
+      "mean_rho": 0.026150780588046815,
+      "rho_sem": 0.0019084583248749499,
+      "mean_progress_m": 28.711591916095976
+    },
+    {
+      "controller": "blind",
+      "grip": 0.8,
+      "n": 100,
+      "crash_rate": 0.0,
+      "completion_rate": 1.0,
+      "mean_speed": 1.1582666808202668,
+      "mean_rho": 0.03250314432249832,
+      "rho_sem": 0.0023846810875533487,
+      "mean_progress_m": 28.701519238740165
+    },
+    {
+      "controller": "blind",
+      "grip": 0.6,
+      "n": 100,
+      "crash_rate": 0.0,
+      "completion_rate": 1.0,
+      "mean_speed": 1.1583017040361063,
+      "mean_rho": 0.04321640058898711,
+      "rho_sem": 0.0031846718770593397,
+      "mean_progress_m": 28.68550265658152
+    },
+    {
+      "controller": "blind",
+      "grip": 0.4,
+      "n": 100,
+      "crash_rate": 0.05,
+      "completion_rate": 0.95,
+      "mean_speed": 1.1566440695784563,
+      "mean_rho": 0.06595183581898613,
+      "rho_sem": 0.005073147436406835,
+      "mean_progress_m": 27.87550242427015
+    }
+  ],
+  "args": {
+    "spawn": "random",
+    "speed_cap": 1.17,
+    "phase1": "runs/phase1_fc/final.pt",
+    "phase2": "runs/phase2_fc_k200/final.pt",
+    "config": "configs/retrain_phase2_fc_onpolicy_k200.yaml",
+    "episodes": 100,
+    "tracks": null,
+    "max_steps": 2500,
+    "seed": 0,
+    "out": "results/retrain_nov2026/window_k200/speed_matched_hi/e1_e2/_shards/g0.4",
+    "device": "cpu",
+    "tire_model": "friction_circle",
+    "grips": [
+      1.0,
+      0.8,
+      0.6,
+      0.4
+    ],
+    "controllers": [
+      "blind"
+    ],
+    "merged_from": [
+      "results/retrain_nov2026/window_k200/speed_matched_hi/e1_e2/_shards/g0.4",
+      "results/retrain_nov2026/window_k200/speed_matched_hi/e1_e2/_shards/g0.6",
+      "results/retrain_nov2026/window_k200/speed_matched_hi/e1_e2/_shards/g0.8",
+      "results/retrain_nov2026/window_k200/speed_matched_hi/e1_e2/_shards/g1.0"
+    ]
+  }
+}

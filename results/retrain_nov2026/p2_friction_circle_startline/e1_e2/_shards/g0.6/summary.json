@@ -1,0 +1,74 @@
+{
+  "summary": [
+    {
+      "controller": "blind",
+      "grip": 0.6,
+      "n": 100,
+      "crash_rate": 0.16,
+      "completion_rate": 0.84,
+      "mean_speed": 1.9797183365067375,
+      "mean_rho": 0.10825855458124799,
+      "rho_sem": 0.003928923559979579,
+      "mean_progress_m": 47.02328259564382
+    },
+    {
+      "controller": "oracle",
+      "grip": 0.6,
+      "n": 100,
+      "crash_rate": 0.08,
+      "completion_rate": 0.92,
+      "mean_speed": 1.5216440855629167,
+      "mean_rho": 0.05594091822279838,
+      "rho_sem": 0.0021025764334965348,
+      "mean_progress_m": 36.771179802094295
+    },
+    {
+      "controller": "phi",
+      "grip": 0.6,
+      "n": 100,
+      "crash_rate": 0.0,
+      "completion_rate": 1.0,
+      "mean_speed": 1.178679918738313,
+      "mean_rho": 0.05337331108551955,
+      "rho_sem": 0.0010036343412503338,
+      "mean_progress_m": 29.4477918503062
+    }
+  ],
+  "args": {
+    "phase1": "runs/phase1_fc/final.pt",
+    "phase2": "runs/phase2_fc/final.pt",
+    "config": "configs/retrain_phase2_fc_onpolicy.yaml",
+    "episodes": 100,
+    "tracks": null,
+    "max_steps": 2500,
+    "seed": 0,
+    "out": "results/retrain_nov2026/p2_friction_circle/e1_e2/_shards/g0.6",
+    "device": "cpu",
+    "tire_model": "friction_circle",
+    "grips": [
+      0.6
+    ],
+    "controllers": [
+      "oracle",
+      "phi",
+      "blind"
+    ]
+  },
+  "gaps": {
+    "phi_gap": {
+      "0.6": 0.0025676071372788337
+    },
+    "blind_gap": {
+      "0.6": 0.052317636358449604
+    },
+    "gap_closed": {
+      "0.6": 0.950922722890478
+    }
+  },
+  "cross_grip_variance": {
+    "oracle": 0.0,
+    "phi": 0.0,
+    "blind": 0.0
+  },
+  "blind_over_phi_variance_ratio": NaN
+}

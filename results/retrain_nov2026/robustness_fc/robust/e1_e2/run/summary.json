@@ -1,0 +1,77 @@
+{
+  "summary": [
+    {
+      "controller": "blind",
+      "grip": 1.0,
+      "n": 100,
+      "crash_rate": 0.01,
+      "completion_rate": 0.99,
+      "mean_speed": 1.597926887485141,
+      "mean_rho": 0.05406224680637187,
+      "rho_sem": 0.0037403362179947927,
+      "mean_progress_m": 39.08211348006475
+    },
+    {
+      "controller": "blind",
+      "grip": 0.8,
+      "n": 100,
+      "crash_rate": 0.01,
+      "completion_rate": 0.99,
+      "mean_speed": 1.5973997103521278,
+      "mean_rho": 0.06763522762462522,
+      "rho_sem": 0.004653058874202574,
+      "mean_progress_m": 39.03672020806437
+    },
+    {
+      "controller": "blind",
+      "grip": 0.6,
+      "n": 100,
+      "crash_rate": 0.05,
+      "completion_rate": 0.95,
+      "mean_speed": 1.5940671183926987,
+      "mean_rho": 0.09103943472898442,
+      "rho_sem": 0.006420733193490348,
+      "mean_progress_m": 38.15101803092933
+    },
+    {
+      "controller": "blind",
+      "grip": 0.4,
+      "n": 100,
+      "crash_rate": 0.16,
+      "completion_rate": 0.84,
+      "mean_speed": 1.5860505574048778,
+      "mean_rho": 0.14458144425479,
+      "rho_sem": 0.01027254414616562,
+      "mean_progress_m": 35.8701439061248
+    }
+  ],
+  "args": {
+    "spawn": "random",
+    "speed_cap": null,
+    "phase1": "runs/phase1_robust_fc/final.pt",
+    "phase2": "runs/phase2_fc/final.pt",
+    "config": "configs/retrain_phase2_fc_onpolicy.yaml",
+    "episodes": 100,
+    "tracks": null,
+    "max_steps": 2500,
+    "seed": 0,
+    "out": "results/retrain_nov2026/robustness_fc/robust/e1_e2/_shards/g0.4",
+    "device": "cpu",
+    "tire_model": "friction_circle",
+    "grips": [
+      1.0,
+      0.8,
+      0.6,
+      0.4
+    ],
+    "controllers": [
+      "blind"
+    ],
+    "merged_from": [
+      "results/retrain_nov2026/robustness_fc/robust/e1_e2/_shards/g0.4",
+      "results/retrain_nov2026/robustness_fc/robust/e1_e2/_shards/g0.6",
+      "results/retrain_nov2026/robustness_fc/robust/e1_e2/_shards/g0.8",
+      "results/retrain_nov2026/robustness_fc/robust/e1_e2/_shards/g1.0"
+    ]
+  }
+}

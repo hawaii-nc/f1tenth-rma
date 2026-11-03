@@ -5,7 +5,9 @@ build/
 install/
 log/
 logs/
-results/
+# Raw outputs are ignored, except the November 2026 results the write-up cites
+results/*
+!results/retrain_nov2026/
 runs/
 .pytest_cache/
 # Per-epoch checkpoints are huge (a 98-checkpoint push once timed out at 165 MB).
@@ -30,3 +32,4 @@ rma_data*.csv
 rma_trial_log*.csv
 session_events.log
 figures/
+!results/retrain_nov2026/**/figures/

@@ -1,0 +1,77 @@
+{
+  "summary": [
+    {
+      "controller": "blind",
+      "grip": 1.0,
+      "n": 100,
+      "crash_rate": 0.0,
+      "completion_rate": 1.0,
+      "mean_speed": 1.276702472571844,
+      "mean_rho": 0.03186360012486546,
+      "rho_sem": 0.0023276168863043344,
+      "mean_progress_m": 31.677321964468728
+    },
+    {
+      "controller": "blind",
+      "grip": 0.8,
+      "n": 100,
+      "crash_rate": 0.0,
+      "completion_rate": 1.0,
+      "mean_speed": 1.2767307420761704,
+      "mean_rho": 0.03969215669472209,
+      "rho_sem": 0.0028981505528803122,
+      "mean_progress_m": 31.662583918228165
+    },
+    {
+      "controller": "blind",
+      "grip": 0.6,
+      "n": 100,
+      "crash_rate": 0.01,
+      "completion_rate": 0.99,
+      "mean_speed": 1.2767571209285824,
+      "mean_rho": 0.05282765369517665,
+      "rho_sem": 0.0038542561391286395,
+      "mean_progress_m": 31.610746648305266
+    },
+    {
+      "controller": "blind",
+      "grip": 0.4,
+      "n": 100,
+      "crash_rate": 0.01,
+      "completion_rate": 0.99,
+      "mean_speed": 1.2757404215315225,
+      "mean_rho": 0.07938070259781779,
+      "rho_sem": 0.0057939900119472225,
+      "mean_progress_m": 31.551695701295657
+    }
+  ],
+  "args": {
+    "spawn": "random",
+    "speed_cap": 1.29,
+    "phase1": "runs/phase1_fc_seed2/final.pt",
+    "phase2": "runs/phase2_fc_seed2/final.pt",
+    "config": "configs/retrain_phase2_fc_onpolicy.yaml",
+    "episodes": 100,
+    "tracks": null,
+    "max_steps": 2500,
+    "seed": 0,
+    "out": "results/retrain_nov2026/robustness_fc/seed2/speed_matched/e1_e2/_shards/g0.4",
+    "device": "cpu",
+    "tire_model": "friction_circle",
+    "grips": [
+      1.0,
+      0.8,
+      0.6,
+      0.4
+    ],
+    "controllers": [
+      "blind"
+    ],
+    "merged_from": [
+      "results/retrain_nov2026/robustness_fc/seed2/speed_matched/e1_e2/_shards/g0.4",
+      "results/retrain_nov2026/robustness_fc/seed2/speed_matched/e1_e2/_shards/g0.6",
+      "results/retrain_nov2026/robustness_fc/seed2/speed_matched/e1_e2/_shards/g0.8",
+      "results/retrain_nov2026/robustness_fc/seed2/speed_matched/e1_e2/_shards/g1.0"
+    ]
+  }
+}

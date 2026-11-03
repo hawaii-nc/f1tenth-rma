@@ -1,0 +1,29 @@
+{
+  "summary": [],
+  "args": {
+    "spawn": "random",
+    "phase1": "runs/phase1_retrain/selected.pt",
+    "phase2": "runs/phase2_retrain/final.pt",
+    "config": "configs/retrain_phase2.yaml",
+    "episodes": 200,
+    "tracks": null,
+    "max_steps": 2500,
+    "seed": 0,
+    "out": "results/retrain_nov2026/linear/e5/run",
+    "device": "cpu",
+    "tire_model": "linear",
+    "grip_range": [
+      0.2,
+      1.0
+    ],
+    "stride": 10,
+    "randomize_others": false
+  },
+  "r2": {
+    "encoder": 0.9999219527104548,
+    "history": -0.019203001378444107,
+    "phi": -0.022485375599119006
+  },
+  "samples": 40598,
+  "H1_pass": false
+}
