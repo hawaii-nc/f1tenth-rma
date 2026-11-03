@@ -1,0 +1,45 @@
+{
+  "written": "2026-11-03T20:28:35Z",
+  "environment": {
+    "python": "3.13.18",
+    "platform": "Linux-6.18.44-fc-v230-x86_64-with-glibc2.39",
+    "repo_commit": "ae6acb72be39c1e5cc59977d1e43bbff6c41ea3d",
+    "repo_dirty": true,
+    "numpy": "2.5.3",
+    "torch": "2.15.0+cu132",
+    "scipy": "1.18.1",
+    "numba": "0.68.1",
+    "f110_gym_path": "/tmp/ext/f1tenth_gym",
+    "f110_gym_commit": "4fdb9c7e6fb7c701290f4dc18377d07c1681724f",
+    "tight_scale": {
+      "aut": 0.7,
+      "esp": 0.6,
+      "gbr": 0.6,
+      "mco": 0.65,
+      "spielberg": 0.55,
+      "silverstone": 0.45,
+      "monza": 0.6,
+      "sochi": 0.45,
+      "ims": 0.35,
+      "zandvoort": 0.35,
+      "sepang": 0.4,
+      "yasmarina": 0.55,
+      "budapest": 0.35,
+      "melbourne": 0.4
+    }
+  },
+  "files": {
+    "phase1": {
+      "path": "runs/phase1_fc_seed1/final.pt",
+      "sha256": "d8ddf04903046f9a67cf8e3bf8ac41fc73682780ed95696f7b212c4417e46ad9"
+    },
+    "phase2": {
+      "path": "runs/phase2_fc_probe_seed1/final.pt",
+      "sha256": "e125b04e207ee36bde61752d00951022be1474e2506f8c761334de4050bbdfae"
+    },
+    "config": {
+      "path": "configs/retrain_phase2_fc_probe.yaml",
+      "sha256": "296ab5ea25032a55f6005ccfcfd55747dcae1dd4e8a1e063b7f0cd46007a267c"
+    }
+  }
+}
