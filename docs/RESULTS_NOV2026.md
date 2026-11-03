@@ -292,7 +292,7 @@ Crash rates move by at most 0.02; the pulses add speed, and distance covered per
 |---|---|---|
 | A1: probe **off** at test time (seed-0 φ_Q, all controllers, E1/E2 N = 100, E5 N = 200) | φ_Q falls back to a constant ~1.2 m/s (1.20 → 1.16, a 0.04 m/s drop) and its grip R² falls to 0.24 (history probe 0.03). It stays safe (crash 0.00–0.07) by driving slowly, exactly like P2 | **PASS** (R² < 0.3, drop < 0.2 m/s): φ_Q's adaptation comes from the probe |
 | A3: E3 grip step 1.0 → 0.4 with the probe (seed 0, N = 40) | Decoded grip settles within ±0.1 in a median of **77 steps (0.77 s)**, 39/39 episodes | **PASS** (< 100 steps) |
-| A2: held-out tracks | *running* | |
+| A2: held-out tracks: φ_Q trained on the P2 held-out base policy without mco/silverstone/budapest, evaluated only on those 3 (E1/E2 N = 100, with the probe) | Crash at μ = 0.4: φ 0.03 vs Blind 0.56 vs Oracle 0.00 (Holm p < 10⁻¹⁴); speed 2.04 → 1.31 m/s; gap closed **80%** [73, 86] vs **87%** [82, 92] for the seed-0 main model, which trained on those tracks | **PASS** (92% of the main model's gap, ≥ 50%; speed drop 0.73 ≥ 0.40 m/s) |
 
 (A1 is also a clean replication of the diagnosis: same φ, same policy, and only the probe differs.)
 
