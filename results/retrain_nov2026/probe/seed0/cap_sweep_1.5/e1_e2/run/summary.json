@@ -1,0 +1,77 @@
+{
+  "summary": [
+    {
+      "controller": "blind",
+      "grip": 1.0,
+      "n": 100,
+      "crash_rate": 0.05,
+      "completion_rate": 0.95,
+      "mean_speed": 1.6283682394571202,
+      "mean_rho": 0.2912092918261689,
+      "rho_sem": 0.0013537225981615937,
+      "mean_progress_m": 39.2474757597143
+    },
+    {
+      "controller": "blind",
+      "grip": 0.8,
+      "n": 100,
+      "crash_rate": 0.08,
+      "completion_rate": 0.92,
+      "mean_speed": 1.625339302685883,
+      "mean_rho": 0.35640689855983676,
+      "rho_sem": 0.0015736927147315797,
+      "mean_progress_m": 38.6696535977226
+    },
+    {
+      "controller": "blind",
+      "grip": 0.6,
+      "n": 100,
+      "crash_rate": 0.08,
+      "completion_rate": 0.92,
+      "mean_speed": 1.598643781347648,
+      "mean_rho": 0.4003528937091489,
+      "rho_sem": 0.0012799196614812585,
+      "mean_progress_m": 38.001967694271855
+    },
+    {
+      "controller": "blind",
+      "grip": 0.4,
+      "n": 100,
+      "crash_rate": 0.07,
+      "completion_rate": 0.93,
+      "mean_speed": 1.5571389279206083,
+      "mean_rho": 0.4307739418073263,
+      "rho_sem": 0.003020631455819308,
+      "mean_progress_m": 36.970713201565076
+    }
+  ],
+  "args": {
+    "spawn": "random",
+    "speed_cap": 1.5,
+    "phase1": "runs/phase1_fc/final.pt",
+    "phase2": "runs/phase2_fc_probe_seed0/final.pt",
+    "config": "configs/retrain_phase2_fc_probe.yaml",
+    "episodes": 100,
+    "tracks": null,
+    "max_steps": 2500,
+    "seed": 0,
+    "out": "results/retrain_nov2026/probe/seed0/cap_sweep_1.5/e1_e2/_shards/g0.4",
+    "device": "cpu",
+    "tire_model": "friction_circle",
+    "grips": [
+      1.0,
+      0.8,
+      0.6,
+      0.4
+    ],
+    "controllers": [
+      "blind"
+    ],
+    "merged_from": [
+      "results/retrain_nov2026/probe/seed0/cap_sweep_1.5/e1_e2/_shards/g0.4",
+      "results/retrain_nov2026/probe/seed0/cap_sweep_1.5/e1_e2/_shards/g0.6",
+      "results/retrain_nov2026/probe/seed0/cap_sweep_1.5/e1_e2/_shards/g0.8",
+      "results/retrain_nov2026/probe/seed0/cap_sweep_1.5/e1_e2/_shards/g1.0"
+    ]
+  }
+}
