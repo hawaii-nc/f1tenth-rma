@@ -125,6 +125,18 @@ class F1TenthRMAEnv(gym.Env):
         # clips the commanded velocity; the observation still reports the policy's command.
         cap = self.config.get('speed_cap')
         self.speed_cap = float(cap) if cap is not None else None
+        # Optional active grip probe (amendment 6): every period_steps, for
+        # duration_steps, add `amplitude` m/s to the commanded velocity while the
+        # steering command is below max_steer (straights only). The requested
+        # acceleration (f110's speed controller: 4.755 m/s² per m/s of error)
+        # exceeds the traction limit μg at low grip, so the car's response
+        # reveals the grip. Applied after speed_cap, identically for every
+        # controller; the observation keeps reporting the policy's own command.
+        pr = self.config.get('probe') or {}
+        self.probe = None
+        if pr.get('enabled', bool(pr)):
+            self.probe = (int(pr.get('period_steps', 50)), int(pr.get('duration_steps', 10)),
+                          float(pr.get('amplitude', 2.0)), float(pr.get('max_steer', 0.15)))
         self.tire_model = str(self.config.get('tire_model', 'linear'))
         if self.tire_model not in TIRE_MODELS:
             # Checked here so a typo can never silently fall back to the mock env.
@@ -417,6 +429,12 @@ class F1TenthRMAEnv(gym.Env):
         velocity_cmd = self.throttle_to_velocity(throttle_cmd)
         if self.speed_cap is not None:
             velocity_cmd = min(velocity_cmd, self.speed_cap)
+        probing = False
+        if self.probe is not None:
+            period, dur, amp, max_steer = self.probe
+            if self.episode_step % period < dur and abs(steer_cmd) < max_steer:
+                velocity_cmd = velocity_cmd + amp
+                probing = True
         sim_action = np.array([steer_cmd, velocity_cmd], dtype=np.float32)
 
         # Step base environment
@@ -492,6 +510,7 @@ class F1TenthRMAEnv(gym.Env):
             'yaw_rate': current_yaw_rate,
             'accel_long': accel_long,
             'velocity_cmd': velocity_cmd,
+            'probing': probing,
             'disturbance_fired': disturbance_fired,
         }
         if raw_obs_dict is not None:

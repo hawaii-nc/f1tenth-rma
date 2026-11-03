@@ -565,7 +565,7 @@ def main():
     parser = argparse.ArgumentParser(description='Phase 1 Training: PPO + IL')
     parser.add_argument('--config', type=str, default='configs/rma_config.yaml',
                        help='Path to config YAML')
-    parser.add_argument('--tire_model', type=str, default=None, choices=['linear', 'friction_circle'],
+    parser.add_argument('--tire_model', type=str, default=None, choices=['linear', 'friction_circle', 'brush'],
                         help="override environment.tire_model in the config (default: config's, else linear)")
     parser.add_argument('--device', type=str, default='auto',
                        help='Device: cuda, cpu, or auto')

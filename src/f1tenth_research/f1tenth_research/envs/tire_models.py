@@ -30,6 +30,20 @@ The drive is treated as all-wheel (the Traxxas Slash 4×4), so F_x splits
 between the axles in proportion to F_z. Each axle then has the same usable
 lateral fraction, √(1 − (a/μg)²).
 
+``brush``            Fiala brush tire (amendment 6). Cornering stiffness is a
+                     property of the tire, fixed at its nominal-grip value
+                     C_α = μ_nom·C_S·F_z, and the force curve bends over
+                     smoothly towards the friction-circle capacity
+                     F_max = μF_z·√(1 − (a/μg)²):
+                         z = C_α|α| / (3F_max)
+                         F_y = C_α·α·(1 − z + z²/3)   for z < 1, else ±F_max
+                     So grip changes the car's response well *below* the
+                     limit (at half the capacity the force is ~19% under the
+                     linear value), as real tires do. In the friction_circle
+                     model the response is linear up to the limit, so grip is
+                     invisible until the car is already sliding (amendment 6
+                     diagnostic: R² ≈ 0 from grip-independent driving).
+
 Not modelled: a force peak followed by fall-off (Pacejka), load transfer
 between left and right wheels, and relaxation length. Gym-Khana's
 STP/PAC2002 models cover those (docs/SIM_FIDELITY.md).
@@ -45,7 +59,8 @@ except ImportError:  # pragma: no cover - exercised only without numba
         return lambda f: f
 
 G = 9.81
-TIRE_MODELS = ('linear', 'friction_circle')
+TIRE_MODELS = ('linear', 'friction_circle', 'brush')
+MU_NOMINAL = 1.0489  # f110_gym's default μ (grip factor 1.0)
 
 
 @njit(cache=True)
@@ -145,6 +160,68 @@ def vehicle_dynamics_st_friction_circle(x, u_init, mu, C_Sf, C_Sr, lf, lr, h, m,
     return f
 
 
+@njit(cache=True)
+def _fiala(c_alpha, alpha, f_max):
+    if f_max <= 0.:
+        return 0.
+    z = c_alpha * abs(alpha) / (3. * f_max)
+    if z >= 1.:
+        return f_max if alpha > 0 else -f_max
+    return c_alpha * alpha * (1. - z + z * z / 3.)
+
+
+@njit(cache=True)
+def vehicle_dynamics_st_brush(x, u_init, mu, C_Sf, C_Sr, lf, lr, h, m, I,
+                              s_min, s_max, sv_min, sv_max, v_switch, a_max,
+                              v_min, v_max):
+    """
+    Single-track dynamics with a Fiala brush tire (see module docstring).
+    Signature and state layout identical to f110_gym's vehicle_dynamics_st.
+    """
+    sv = _steering_constraint(x[2], u_init[0], s_min, s_max, sv_min, sv_max)
+    a = _accl_constraints(x[3], u_init[1], v_switch, a_max, v_min, v_max)
+    a_lim = mu * G
+    if a > a_lim:
+        a = a_lim
+    elif a < -a_lim:
+        a = -a_lim
+
+    lwb = lf + lr
+    f = np.zeros(7)
+    if abs(x[3]) < 0.5:
+        f[0] = x[3] * np.cos(x[4])
+        f[1] = x[3] * np.sin(x[4])
+        f[2] = sv
+        f[3] = a
+        f[4] = x[3] / lwb * np.tan(x[2])
+        f[5] = a / lwb * np.tan(x[2]) + x[3] / (lwb * np.cos(x[2]) ** 2) * sv
+        f[6] = 0.
+        return f
+
+    v = x[3]
+    Fzf = m * (G * lr - a * h) / lwb
+    Fzr = m * (G * lf + a * h) / lwb
+    if Fzf < 0.:
+        Fzf = 0.
+    if Fzr < 0.:
+        Fzr = 0.
+    alpha_f = x[2] - x[6] - lf * x[5] / v
+    alpha_r = -x[6] + lr * x[5] / v
+    r = a / a_lim if a_lim > 0. else 0.
+    lat_frac = np.sqrt(max(0., 1. - r * r))
+    Fyf = _fiala(MU_NOMINAL * C_Sf * Fzf, alpha_f, mu * Fzf * lat_frac)
+    Fyr = _fiala(MU_NOMINAL * C_Sr * Fzr, alpha_r, mu * Fzr * lat_frac)
+
+    f[0] = v * np.cos(x[6] + x[4])
+    f[1] = v * np.sin(x[6] + x[4])
+    f[2] = sv
+    f[3] = a
+    f[4] = x[5]
+    f[5] = (lf * Fyf - lr * Fyr) / I
+    f[6] = (Fyf + Fyr) / (m * v) - x[5]
+    return f
+
+
 def axle_utilization(x, a, mu, C_Sf, C_Sr, lf, lr, h, m, **_):
     """
     (front, rear) unsaturated lateral demand / friction-circle capacity for
@@ -179,5 +256,6 @@ def install(tire_model: str):
         raise ValueError(f"Unknown tire_model {tire_model!r}; choose from {TIRE_MODELS}")
     import f110_gym.envs.base_classes as bc
     import f110_gym.envs.dynamic_models as dm
-    bc.vehicle_dynamics_st = (dm.vehicle_dynamics_st if tire_model == 'linear'
-                              else vehicle_dynamics_st_friction_circle)
+    bc.vehicle_dynamics_st = {'linear': dm.vehicle_dynamics_st,
+                              'friction_circle': vehicle_dynamics_st_friction_circle,
+                              'brush': vehicle_dynamics_st_brush}[tire_model]
