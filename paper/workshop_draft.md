@@ -7,7 +7,7 @@
 
 ---
 
-**Abstract.** Tire–road friction sets a race car's safe operating envelope, changes with surface, wear and payload, and is not measured by any onboard sensor. Rapid Motor Adaptation (RMA) [kumar2021rma, zhang2025extreme] promises to infer such hidden conditions from the robot's recent motion. We apply it to grip on the F1TENTH platform [okelly2020f1tenth] and find that, done the standard way, it cannot work: with the car's actions decoupled from grip, its 0.5 s motion history carries no information about grip (R² −0.02), for three tire models, because the car is close to neutral steer and drives well inside the friction circle. An adaptation module trained the standard way instead reads grip off the expert's own driving (action leakage) and becomes *less* safe than not adapting at all; a module trained on its own rollouts is safe only because it drives uniformly slowly, and a speed-capped non-adaptive car matches it. We then add an **active probe**: a brief speed pulse on straights that asks the tires for more than low grip can give. With a proprioceptive adaptation module, grip becomes readable (R² 0.90–0.93 **[S2]**), the car drives within 0.1 m/s of an oracle's speed at every grip, and at μ = 0.4 it crashes in 0.02–0.07 of episodes vs 0.46–0.47 for a non-adaptive car capped at its top speed (p < 10⁻¹¹), across training seeds **[S2]**.
+**Abstract.** Tire–road friction sets a race car's safe operating envelope, changes with surface, wear and payload, and is not measured by any onboard sensor. Rapid Motor Adaptation (RMA) [kumar2021rma, zhang2025extreme] promises to infer such hidden conditions from the robot's recent motion. We apply it to grip on the F1TENTH platform [okelly2020f1tenth] and find that, done the standard way, it cannot work: with the car's actions decoupled from grip, its 0.5 s motion history carries no information about grip (R² −0.02), for three tire models, because the car is close to neutral steer and drives well inside the friction circle. An adaptation module trained the standard way instead reads grip off the expert's own driving (action leakage) and becomes *less* safe than not adapting at all; a module trained on its own rollouts is safe only because it drives uniformly slowly, and a speed-capped non-adaptive car matches it. We then add an **active probe**: a brief speed pulse on straights that asks the tires for more than low grip can give. With a proprioceptive adaptation module, grip becomes readable (R² 0.89–0.93), the car drives within 0.1 m/s of an oracle's speed at every grip, and at μ = 0.4 it crashes in 0.02–0.07 of episodes vs 0.33–0.47 for a non-adaptive car matched to its speed (p < 10⁻⁷), on all three training seeds, and no fixed speed limit matches it on both speed and safety.
 
 ## I. Introduction
 
@@ -76,18 +76,20 @@ Below the limit, grip barely changes the yaw response (steady cornering, μ 0.4 
 
 | | seed 0 | seed 1 | seed 2 |
 |---|---|---|---|
-| φ speed μ = 1.0 → 0.4 (m/s) | 2.02 → 1.28 | 2.06 → 1.29 | **[S2]** |
-| Oracle speed μ = 1.0 → 0.4 | 2.12 → 1.27 | 2.11 → 1.27 | **[S2]** |
-| crash at μ = 0.4: φ / Blind / Oracle | 0.07 / 0.46 / 0.06 | 0.02 / 0.47 / 0.00 | **[S2]** |
-| speed-matched Blind crash at μ = 0.4 (McNemar p) | 0.46 (4×10⁻¹²) | 0.47 (6×10⁻¹⁴) | **[S2]** |
-| E5 φ grip R² | 0.90 | 0.93 | **[S2]** |
-| ρ gap closed at μ = 0.4 | 87% | 82% | **[S2]** |
+| φ speed μ = 1.0 → 0.4 (m/s) | 2.02 → 1.28 | 2.06 → 1.29 | 2.00 → 1.28 |
+| Oracle speed μ = 1.0 → 0.4 | 2.12 → 1.27 | 2.11 → 1.27 | 2.11 → 1.26 |
+| crash at μ = 0.4: φ / Blind / Oracle | 0.07 / 0.46 / 0.06 | 0.02 / 0.47 / 0.00 | 0.08 / 0.43 / 0.06 |
+| Blind matched on measured speed: crash at μ = 0.4 (McNemar p) | 0.37 (2×10⁻⁹) | 0.47 (6×10⁻¹⁴) | 0.33 (6×10⁻⁸) |
+| E5 φ grip R² | 0.90 | 0.93 | 0.89 |
+| ρ gap closed at μ = 0.4 | 87% | 82% | 83% |
 
-Because the probe adds speed on top of the cap, the speed-matched Blind actually drives ~0.1 m/s *faster* than φ at μ = 1.0; a cap matched on measured speed and a cap sweep tracing the fixed-limit speed–safety frontier are in **[A7/6b]**. Probe ablation (probe off at test time), held-out tracks and the grip-step response: **[A7]**.
+The probe adds speed on top of a cap, so the Blind cap is set to match φ's *measured* speed at μ = 1.0 (within 0.01–0.05 m/s). **Fixed-limit frontier** (seed 0): capped at 1.7 / 1.5 / 1.3 m/s, Blind drives 1.82 / 1.63 / 1.43 m/s at μ = 1.0 and crashes 0.12 / 0.07 / 0.07 at μ = 0.4. Matching φ's safety (0.07) with a fixed limit costs 0.4–0.6 m/s (19–29%) on high grip; matching its speed costs 5× the crashes.
 
-**Cost of the probe.** Same base policies, seeds and starts, without → with the probe (seeds 0, 1 **[S2]**): crash rates change by at most 0.02 for Blind (μ = 1.0: 0.11 → 0.11, 0.09 → 0.10; μ = 0.4: 0.44 → 0.46, 0.46 → 0.47) and for the Oracle (μ = 0.4: 0.05 → 0.06, 0.00 → 0.00), and the pulses raise mean speed by 0.07–0.15 m/s.
+**The probe is necessary.** Evaluating the same seed-0 φ with the probe off, it falls back to a constant ~1.2 m/s (1.20 → 1.16 m/s) with grip R² 0.24, the P2 behaviour. **Detection speed:** after a grip step from 1.0 to 0.4, φ's decoded grip settles within ±0.1 in a median of 0.77 s (39/39 episodes). **Held-out tracks: [A7]**.
 
-**D. A pre-registered check that failed.** H3 (cross-grip variance of ρ, Blind/φ ≥ 10×) fails with the probe (3.7×, 3.3× **[S2]**), but the Oracle itself reaches only 5.4–5.6×: each pulse loads the tires near the limit at every grip, which changes what ρ measures. Without the probe the check passed (16×) for the wrong reason, a uniformly slow φ.
+**Cost of the probe.** Same base policies, seeds and starts, without → with the probe, three seeds: crash rates change by at most 0.02 for Blind and the Oracle at every grip (e.g. Blind at μ = 0.4: 0.44 → 0.46, 0.46 → 0.47, 0.41 → 0.43), and the pulses raise mean speed by 0.07–0.15 m/s. Tire wear, energy and smoothness are not measured.
+
+**D. A pre-registered check that failed.** H3 (cross-grip variance of ρ, Blind/φ ≥ 10×) fails with the probe (3.7×, 3.3×, 3.2×), but the Oracle itself reaches only 5.4–5.6×: each pulse loads the tires near the limit at every grip, which changes what ρ measures. Without the probe the check passed (16×) for the wrong reason, a uniformly slow φ.
 
 **E. Real-car pilot (July 2026, earlier pipeline).** A Traxxas Slash 4×4 F1TENTH build ran the July checkpoint (linear tire, no probe) through one 90° corner on polished concrete with four tire wraps, 81 trials:
 
@@ -104,6 +106,7 @@ Bare vs electrical tape: yaw p = 0.009, steering p = 0.0001 (Mann–Whitney U). 
 
 - **The probe changes the method.** The controller no longer adapts passively: it spends a small, fixed amount of driving on measuring grip. This is a design choice with a cost (speed fluctuations, tire wear, energy) that we fix rather than optimize; a learned, risk-aware probing policy is future work.
 - **Simulation idealizations.** φ receives the true vehicle speed. On the real car the speed estimate comes from wheel speed, which *rises* during wheelspin, so the probe's signal must come from the IMU's longitudinal acceleration or wheel-vs-IMU slip. The friction-circle tire caps acceleration cleanly; real tires spin up progressively. The real motor's current limit may cap acceleration before high grip does, so high grip levels may be indistinguishable.
+- **Control rate.** The real-car node runs at 50 Hz but training is at 100 Hz (bug C23); the July trials ran with this mismatch, and it must be fixed before probe trials.
 - **Regime.** Speeds ≤ 3 m/s on narrow (0.63–0.76 m) scaled tracks; our expert cannot lap them above ~3.5 m/s, so high-speed results are open.
 - **Uniform grip.** Grip is constant over the track (plus one drop); real surfaces vary patch to patch.
 - **Real car.** No probe trials and no measured μ per surface yet. The next experiment: probe pulses on 2–3 surfaces, logging wheel speed, IMU and commands, to test whether the achieved acceleration separates the surfaces as in simulation.
