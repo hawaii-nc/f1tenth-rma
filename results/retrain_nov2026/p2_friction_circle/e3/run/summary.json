@@ -1,0 +1,27 @@
+{
+  "summary": [],
+  "args": {
+    "spawn": "random",
+    "phase1": "runs/phase1_fc/final.pt",
+    "phase2": "runs/phase2_fc/final.pt",
+    "config": "configs/retrain_phase2_fc_onpolicy.yaml",
+    "episodes": 40,
+    "tracks": null,
+    "max_steps": 2500,
+    "seed": 0,
+    "out": "results/retrain_nov2026/p2_friction_circle/e3/run",
+    "device": "cpu",
+    "tire_model": "friction_circle",
+    "grip_before": 1.0,
+    "grip_after": 0.4,
+    "change_step": 500,
+    "calib_episodes": 10,
+    "band": 0.1,
+    "hold": 25
+  },
+  "episodes_reaching_change": 39,
+  "settled_fraction": 1.0,
+  "settle_steps_median": 38.0,
+  "settle_seconds_median": 0.76,
+  "phi_history_window": 50
+}

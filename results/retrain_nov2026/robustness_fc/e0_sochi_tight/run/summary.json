@@ -1,0 +1,82 @@
+{
+  "summary": [
+    {
+      "controller": "blind",
+      "grip": 1.0,
+      "n": 40,
+      "crash_rate": 0.0,
+      "completion_rate": 1.0,
+      "mean_speed": 1.9834615499617718,
+      "mean_rho": 0.06545588466791682,
+      "rho_sem": 0.002103748730870253,
+      "mean_progress_m": 49.87871161654384
+    },
+    {
+      "controller": "blind",
+      "grip": 0.8,
+      "n": 40,
+      "crash_rate": 0.0,
+      "completion_rate": 1.0,
+      "mean_speed": 1.9832676270292513,
+      "mean_rho": 0.08251344200354122,
+      "rho_sem": 0.002800865575271051,
+      "mean_progress_m": 49.807296906399344
+    },
+    {
+      "controller": "blind",
+      "grip": 0.6,
+      "n": 40,
+      "crash_rate": 0.0,
+      "completion_rate": 1.0,
+      "mean_speed": 1.981812069516014,
+      "mean_rho": 0.1105235898049703,
+      "rho_sem": 0.003850085026765459,
+      "mean_progress_m": 49.682321163646485
+    },
+    {
+      "controller": "blind",
+      "grip": 0.4,
+      "n": 40,
+      "crash_rate": 0.3,
+      "completion_rate": 0.7,
+      "mean_speed": 1.9468127769059105,
+      "mean_rho": 0.17480688380363324,
+      "rho_sem": 0.018608973405134805,
+      "mean_progress_m": 40.40733568363055
+    },
+    {
+      "controller": "blind",
+      "grip": 0.2,
+      "n": 40,
+      "crash_rate": 1.0,
+      "completion_rate": 0.0,
+      "mean_speed": 1.738166263846891,
+      "mean_rho": 0.4332066065730379,
+      "rho_sem": 0.03969135512429593,
+      "mean_progress_m": 12.19852517655611
+    }
+  ],
+  "pass": true,
+  "monotone": true,
+  "args": {
+    "spawn": "random",
+    "phase1": "runs/phase1_fc/final.pt",
+    "phase2": "runs/phase2_fc/final.pt",
+    "config": "configs/retrain_phase2_fc_onpolicy.yaml",
+    "episodes": 40,
+    "tracks": null,
+    "max_steps": 2500,
+    "seed": 0,
+    "out": "results/retrain_nov2026/robustness_fc/e0_sochi_tight/run",
+    "device": "cpu",
+    "tire_model": "friction_circle",
+    "grips": [
+      1.0,
+      0.8,
+      0.6,
+      0.4,
+      0.2
+    ],
+    "track": "sochi_tight"
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "summary": [
+    {
+      "controller": "blind",
+      "grip": 1.0,
+      "n": 40,
+      "crash_rate": 0.0,
+      "completion_rate": 1.0,
+      "mean_speed": 1.9784526732634273,
+      "mean_rho": 0.07579095649961416,
+      "rho_sem": 0.006476041264179495,
+      "mean_progress_m": 48.658042728849736
+    },
+    {
+      "controller": "blind",
+      "grip": 0.8,
+      "n": 40,
+      "crash_rate": 0.0,
+      "completion_rate": 1.0,
+      "mean_speed": 1.9782675664654477,
+      "mean_rho": 0.09467995147263039,
+      "rho_sem": 0.008127718712655751,
+      "mean_progress_m": 48.60969673751947
+    },
+    {
+      "controller": "blind",
+      "grip": 0.6,
+      "n": 40,
+      "crash_rate": 0.25,
+      "completion_rate": 0.75,
+      "mean_speed": 1.9738261493268432,
+      "mean_rho": 0.1233425211259821,
+      "rho_sem": 0.010983271978228655,
+      "mean_progress_m": 45.58147964419663
+    },
+    {
+      "controller": "blind",
+      "grip": 0.4,
+      "n": 40,
+      "crash_rate": 0.275,
+      "completion_rate": 0.725,
+      "mean_speed": 1.9504064968087582,
+      "mean_rho": 0.20298744317083503,
+      "rho_sem": 0.025018214759735643,
+      "mean_progress_m": 44.06956864259566
+    },
+    {
+      "controller": "blind",
+      "grip": 0.2,
+      "n": 40,
+      "crash_rate": 1.0,
+      "completion_rate": 0.0,
+      "mean_speed": 1.6831408753724524,
+      "mean_rho": 0.5387443962543135,
+      "rho_sem": 0.04402768126233094,
+      "mean_progress_m": 13.479741400901702
+    }
+  ],
+  "pass": true,
+  "monotone": true,
+  "args": {
+    "spawn": "random",
+    "phase1": "runs/phase1_fc/final.pt",
+    "phase2": "runs/phase2_fc/final.pt",
+    "config": "configs/retrain_phase2_fc_onpolicy.yaml",
+    "episodes": 40,
+    "tracks": null,
+    "max_steps": 2500,
+    "seed": 0,
+    "out": "results/retrain_nov2026/robustness_fc/e0_sepang_tight/run",
+    "device": "cpu",
+    "tire_model": "friction_circle",
+    "grips": [
+      1.0,
+      0.8,
+      0.6,
+      0.4,
+      0.2
+    ],
+    "track": "sepang_tight"
+  }
+}

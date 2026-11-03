@@ -1,0 +1,193 @@
+{
+  "summary": [
+    {
+      "controller": "blind",
+      "grip": 1.0,
+      "n": 100,
+      "crash_rate": 0.02,
+      "completion_rate": 0.98,
+      "mean_speed": 1.9687614596579326,
+      "mean_rho": 0.07645240496207888,
+      "rho_sem": 0.005379689246629222,
+      "mean_progress_m": 48.01228255260631
+    },
+    {
+      "controller": "blind",
+      "grip": 0.8,
+      "n": 100,
+      "crash_rate": 0.09,
+      "completion_rate": 0.91,
+      "mean_speed": 1.9653442256017204,
+      "mean_rho": 0.09720740068661345,
+      "rho_sem": 0.0070314724149482255,
+      "mean_progress_m": 46.093419349316974
+    },
+    {
+      "controller": "blind",
+      "grip": 0.6,
+      "n": 100,
+      "crash_rate": 0.09,
+      "completion_rate": 0.91,
+      "mean_speed": 1.9634642594096476,
+      "mean_rho": 0.1305026186165541,
+      "rho_sem": 0.009400724077113287,
+      "mean_progress_m": 45.97540336498068
+    },
+    {
+      "controller": "blind",
+      "grip": 0.4,
+      "n": 100,
+      "crash_rate": 0.41,
+      "completion_rate": 0.59,
+      "mean_speed": 1.918144030290041,
+      "mean_rho": 0.2412566898525355,
+      "rho_sem": 0.019848641743115687,
+      "mean_progress_m": 37.06532907666467
+    },
+    {
+      "controller": "oracle",
+      "grip": 1.0,
+      "n": 100,
+      "crash_rate": 0.02,
+      "completion_rate": 0.98,
+      "mean_speed": 1.9687614596579326,
+      "mean_rho": 0.07645240496207888,
+      "rho_sem": 0.005379689246629222,
+      "mean_progress_m": 48.01228255260631
+    },
+    {
+      "controller": "oracle",
+      "grip": 0.8,
+      "n": 100,
+      "crash_rate": 0.09,
+      "completion_rate": 0.91,
+      "mean_speed": 1.7695498940612489,
+      "mean_rho": 0.07928311842474281,
+      "rho_sem": 0.005743423531991679,
+      "mean_progress_m": 41.758023945870264
+    },
+    {
+      "controller": "oracle",
+      "grip": 0.6,
+      "n": 100,
+      "crash_rate": 0.08,
+      "completion_rate": 0.92,
+      "mean_speed": 1.5092388915220993,
+      "mean_rho": 0.0763865004200043,
+      "rho_sem": 0.005525091725797187,
+      "mean_progress_m": 35.608325881830545
+    },
+    {
+      "controller": "oracle",
+      "grip": 0.4,
+      "n": 100,
+      "crash_rate": 0.06,
+      "completion_rate": 0.94,
+      "mean_speed": 1.1820687442999567,
+      "mean_rho": 0.07081788531976399,
+      "rho_sem": 0.005187285787827384,
+      "mean_progress_m": 28.19166480962833
+    },
+    {
+      "controller": "phi",
+      "grip": 1.0,
+      "n": 100,
+      "crash_rate": 0.01,
+      "completion_rate": 0.99,
+      "mean_speed": 1.2870832420664435,
+      "mean_rho": 0.05570941226620811,
+      "rho_sem": 0.004103757670998102,
+      "mean_progress_m": 31.344175519884203
+    },
+    {
+      "controller": "phi",
+      "grip": 0.8,
+      "n": 100,
+      "crash_rate": 0.0,
+      "completion_rate": 1.0,
+      "mean_speed": 1.2161192061407535,
+      "mean_rho": 0.05767346827157751,
+      "rho_sem": 0.004333891500417565,
+      "mean_progress_m": 29.64328880055739
+    },
+    {
+      "controller": "phi",
+      "grip": 0.6,
+      "n": 100,
+      "crash_rate": 0.0,
+      "completion_rate": 1.0,
+      "mean_speed": 1.1709575296996568,
+      "mean_rho": 0.06506404089227397,
+      "rho_sem": 0.00581755180074286,
+      "mean_progress_m": 28.51182601223453
+    },
+    {
+      "controller": "phi",
+      "grip": 0.4,
+      "n": 100,
+      "crash_rate": 0.01,
+      "completion_rate": 0.99,
+      "mean_speed": 1.1361655954199565,
+      "mean_rho": 0.08920890691328481,
+      "rho_sem": 0.008286853969462493,
+      "mean_progress_m": 27.574527298766455
+    }
+  ],
+  "args": {
+    "spawn": "random",
+    "speed_cap": null,
+    "phase1": "runs/phase1_fc_seed2/final.pt",
+    "phase2": "runs/phase2_fc_seed2/final.pt",
+    "config": "configs/retrain_phase2_fc_onpolicy.yaml",
+    "episodes": 100,
+    "tracks": null,
+    "max_steps": 2500,
+    "seed": 0,
+    "out": "results/retrain_nov2026/robustness_fc/seed2/e1_e2/_shards/g0.4",
+    "device": "cpu",
+    "tire_model": "friction_circle",
+    "grips": [
+      1.0,
+      0.8,
+      0.6,
+      0.4
+    ],
+    "controllers": [
+      "oracle",
+      "phi",
+      "blind"
+    ],
+    "merged_from": [
+      "results/retrain_nov2026/robustness_fc/seed2/e1_e2/_shards/g0.4",
+      "results/retrain_nov2026/robustness_fc/seed2/e1_e2/_shards/g0.6",
+      "results/retrain_nov2026/robustness_fc/seed2/e1_e2/_shards/g0.8",
+      "results/retrain_nov2026/robustness_fc/seed2/e1_e2/_shards/g1.0"
+    ]
+  },
+  "gaps": {
+    "phi_gap": {
+      "1.0": 0.020742992695870766,
+      "0.8": 0.0216096501531653,
+      "0.6": 0.011322459527730339,
+      "0.4": 0.018391021593520823
+    },
+    "blind_gap": {
+      "1.0": 0.0,
+      "0.8": 0.017924282261870636,
+      "0.6": 0.054116118196549795,
+      "0.4": 0.17043880453277152
+    },
+    "gap_closed": {
+      "1.0": NaN,
+      "0.8": -0.20560755724843438,
+      "0.6": 0.7907747283977917,
+      "0.4": 0.8920960420724809
+    }
+  },
+  "cross_grip_variance": {
+    "oracle": 9.426570952352141e-06,
+    "phi": 0.00017785385896828735,
+    "blind": 0.004039867581464324
+  },
+  "blind_over_phi_variance_ratio": 22.714534308668906
+}

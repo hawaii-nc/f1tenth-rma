@@ -1,0 +1,26 @@
+{
+  "summary": [],
+  "args": {
+    "phase1": "runs/phase1_retrain/selected.pt",
+    "phase2": "runs/phase2_retrain/final.pt",
+    "config": "configs/retrain_phase2.yaml",
+    "episodes": 40,
+    "tracks": null,
+    "max_steps": 2500,
+    "seed": 0,
+    "out": "results/retrain_nov2026/linear/e3/run",
+    "device": "cpu",
+    "tire_model": "linear",
+    "grip_before": 1.0,
+    "grip_after": 0.4,
+    "change_step": 500,
+    "calib_episodes": 10,
+    "band": 0.1,
+    "hold": 25
+  },
+  "episodes_reaching_change": 40,
+  "settled_fraction": 1.0,
+  "settle_steps_median": 0.0,
+  "settle_seconds_median": 0.0,
+  "phi_history_window": 50
+}

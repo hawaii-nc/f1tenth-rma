@@ -1,0 +1,82 @@
+{
+  "summary": [
+    {
+      "controller": "blind",
+      "grip": 1.0,
+      "n": 40,
+      "crash_rate": 0.0,
+      "completion_rate": 1.0,
+      "mean_speed": 1.9828646459236925,
+      "mean_rho": 0.0361763723353309,
+      "rho_sem": 0.00015683094624709563,
+      "mean_progress_m": 49.57170755752833
+    },
+    {
+      "controller": "blind",
+      "grip": 0.8,
+      "n": 40,
+      "crash_rate": 0.0,
+      "completion_rate": 1.0,
+      "mean_speed": 1.9826883401801623,
+      "mean_rho": 0.04466420081179283,
+      "rho_sem": 0.00017821661863438393,
+      "mean_progress_m": 49.57170755752833
+    },
+    {
+      "controller": "blind",
+      "grip": 0.6,
+      "n": 40,
+      "crash_rate": 0.0,
+      "completion_rate": 1.0,
+      "mean_speed": 1.9812682376519775,
+      "mean_rho": 0.058656380935414365,
+      "rho_sem": 0.00026646997282945916,
+      "mean_progress_m": 49.57170755752833
+    },
+    {
+      "controller": "blind",
+      "grip": 0.4,
+      "n": 40,
+      "crash_rate": 0.0,
+      "completion_rate": 1.0,
+      "mean_speed": 1.9766507890983482,
+      "mean_rho": 0.08590876819063284,
+      "rho_sem": 0.0004438819270927137,
+      "mean_progress_m": 49.44427386200769
+    },
+    {
+      "controller": "blind",
+      "grip": 0.2,
+      "n": 40,
+      "crash_rate": 0.0,
+      "completion_rate": 1.0,
+      "mean_speed": 1.9593065244170838,
+      "mean_rho": 0.16539373201853155,
+      "rho_sem": 0.0010576847541006605,
+      "mean_progress_m": 48.934539079925145
+    }
+  ],
+  "pass": false,
+  "monotone": true,
+  "args": {
+    "spawn": "random",
+    "phase1": "runs/phase1_fc/final.pt",
+    "phase2": "runs/phase2_fc/final.pt",
+    "config": "configs/retrain_phase2_fc_onpolicy.yaml",
+    "episodes": 40,
+    "tracks": null,
+    "max_steps": 2500,
+    "seed": 0,
+    "out": "results/retrain_nov2026/robustness_fc/e0_ims_tight/run",
+    "device": "cpu",
+    "tire_model": "friction_circle",
+    "grips": [
+      1.0,
+      0.8,
+      0.6,
+      0.4,
+      0.2
+    ],
+    "track": "ims_tight"
+  }
+}
