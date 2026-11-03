@@ -15,6 +15,7 @@ All numbers come from the rebuilt, bug-fixed pipeline on the real f1tenth_gym (c
 | **P1** (linear tire, on-policy φ), post hoc | 0.07 (0.32 / 0.00) | 47% [40, 54] | 2.45× | **1.54 → 1.53** (constant) | 0.00 | PASS / FAIL / FAIL |
 | **P2** (friction-circle tire, on-policy φ), post hoc: 3 seeds | **0.04 ± 0.03** (0.44 / ~0.03) | **83% ± 7** | **16.2× ± 5.9** | ~1.35 → ~1.19 | **0.28 ± 0.05** | **PASS / PASS / PASS** (all seeds) |
 | P2, held-out tracks (never trained on) | 0.02 (0.49 / 0.00) | 89% [84, 93] | 15.9× | 1.28 → 1.18 | n/a | PASS / PASS / PASS |
+| **Q: P2 + active grip probe + proprioceptive φ** (amendment 6): 3 seeds | **0.06 ± 0.03** (0.45 / 0.04) | **84% ± 3** | 3.4× (Oracle 5.5×) | **~2.03 → 1.28** | **0.91 ± 0.02** | **PASS / PASS / FAIL** (all seeds); beats a speed-matched Blind on every seed (section 4) |
 | W: P2 with a 2 s window | 0.08 (0.44 / 0.05) | 65% [52, 80] | 3.4× | 1.17 → 1.15 (constant) | 0.02 | PASS / PASS / FAIL |
 | **Controls (P2 setup)** | | | | | | |
 | Robust baseline (no grip info) | 0.16 | n/a | n/a | 1.60 → 1.59 | n/a | φ safer, p = 0.012, but 25% slower |
