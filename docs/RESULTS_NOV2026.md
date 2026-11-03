@@ -163,6 +163,20 @@ Seeds 1 and 2 retrain everything from scratch (Phase 1 DAgger base policy, then 
 
 **R1 (G1 and H2 hold for all three seeds): PASS.** The P2 effect against Blind is not a single-seed artifact, and the partial grip decoding (R² ≈ 0.28) replicates. Speeds differ between seeds: seed 1's φ is faster on good grip and slows more (0.19 m/s), while seeds 0 and 2 are slower and flatter. Whether any seed's φ beats a speed-matched Blind is tested by amendment 5 (below). Gap closed at μ = 0.8 is unstable across seeds (−21% to +53%), because the Blind–Oracle ρ gap there is small.
 
-### R3 / amendment 5
+### R3: held-out tracks (G-hold)
 
-*Running: held-out tracks (base-policy validation already in: 0/39 crashes at grip 1.0/0.6/0.4 on all 13 tracks, including the 3 unseen ones); then speed-matched Blind for seeds 1 and 2.*
+Phase 1 and φ retrained without mco_tight, silverstone_tight and budapest_tight (10 training tracks), then evaluated only on those 3 tracks. The main model, which trained on them, is evaluated on the same episodes for comparison. Base-policy validation of the held-out model: **0/39 crashes** at grip 1.0/0.6/0.4 on all 13 tracks, including the 3 unseen ones.
+
+| μ = 0.4, 3 unseen tracks | held-out model | main model (trained on them) |
+|---|---|---|
+| crash φ / Blind / Oracle | **0.02** / 0.49 / 0.00 | 0.02 / 0.46 / 0.00 |
+| McNemar p (Holm) φ vs Blind | 6×10⁻¹⁴ | 5×10⁻¹³ |
+| gap closed [95% CI] | **89%** [84, 93] | 88% [81, 92] |
+| variance ratio Blind/φ | 15.9× | 11.4× |
+| φ speed μ = 1.0 → 0.4 | 1.28 → 1.18 | 1.25 → 1.14 |
+
+**G-hold: PASS.** The held-out model closes 101% as much of the gap on unseen tracks as the main model does on tracks it trained on (threshold ≥ 50%). The policy and φ use only LiDAR and motion, never the map, and they transfer to new circuits.
+
+### Amendment 5: speed-matched control for seeds 1 and 2
+
+*Running.*
