@@ -127,3 +127,29 @@ def test_speed_cap_clips_command():
         assert info['velocity_cmd'] == pytest.approx(1.2)
     finally:
         F1TenthRMAEnv.wrapper_factory = None
+
+
+def test_probe_pulses_on_straights_only():
+    """Amendment 6: the active grip probe adds `amplitude` to the command for
+    duration_steps every period_steps, only while |steer| < max_steer."""
+    from f1tenth_research.envs import F1TenthRMAEnv
+    from fake_sim import FakeSim
+    F1TenthRMAEnv.wrapper_factory = staticmethod(FakeSim)
+    try:
+        env = F1TenthRMAEnv(config={'environment': {
+            'max_velocity': 3.0, 'tracks': ['aut'], 'speed_cap': 1.0,
+            'probe': {'period_steps': 10, 'duration_steps': 3, 'amplitude': 2.0, 'max_steer': 0.15}}})
+        env.reset(options={'training': False, 'track': 'aut'})
+        cmds, flags = [], []
+        for t in range(20):
+            steer = 0.3 if t >= 10 else 0.0
+            _, _, _, _, info = env.step(np.array([steer, 1.0], dtype=np.float32))
+            cmds.append(info['velocity_cmd']); flags.append(info['probing'])
+        # episode_step = t + 1. Pulse when step % 10 < 3: steps 1, 2 (t = 0, 1) and
+        # 10 (t = 9, still straight); steps 11, 12 and 20 come with steer 0.3
+        assert flags[:3] == [True, True, False] and flags[9]
+        assert cmds[0] == pytest.approx(3.0)      # cap 1.0, plus the 2.0 pulse
+        assert not any(flags[10:])
+        assert all(c == pytest.approx(1.0) for c, f in zip(cmds, flags) if not f)
+    finally:
+        F1TenthRMAEnv.wrapper_factory = None

@@ -52,7 +52,7 @@ def base_parser(description: str, n_default: int = 100) -> argparse.ArgumentPars
     ap.add_argument('--seed', type=int, default=0, help='base seed; episode i uses seed+i for every controller')
     ap.add_argument('--out', default=None, help='output directory (default results/<exp>/<timestamp>)')
     ap.add_argument('--device', default='cpu')
-    ap.add_argument('--tire-model', default=None, choices=['linear', 'friction_circle'],
+    ap.add_argument('--tire-model', default=None, choices=['linear', 'friction_circle', 'brush'],
                     help='override environment.tire_model (default: the config\'s, else linear)')
     return ap
 

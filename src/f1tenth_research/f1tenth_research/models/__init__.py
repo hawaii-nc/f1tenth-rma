@@ -27,7 +27,7 @@ PPO trainer and supervised learning.
 import torch
 import torch.nn as nn
 import numpy as np
-from typing import Dict, Tuple, Optional
+from typing import Dict, List, Tuple, Optional
 
 
 class PolicyNetwork(nn.Module):
@@ -191,6 +191,8 @@ class AdaptationModule(nn.Module):
         state_action_dim: int = 7,  # obs_dim (5) + action_dim (2)
         history_window: int = 10,    # k steps of history (~0.2s at 50Hz)
         intrinsics_dim: int = 8,
+        input_channels: Optional[List[int]] = None,
+        stride: int = 1,
     ):
         """
         Initialize adaptation module.
@@ -202,9 +204,25 @@ class AdaptationModule(nn.Module):
         """
         super().__init__()
         
+        # history_window is the number of raw steps φ consumes (what callers
+        # keep in their history deque). Optional input selection (amendment 6):
+        # input_channels picks a subset of the state-action channels (e.g.
+        # proprioception only), stride subsamples the window in time. Both are
+        # stored as buffers so load_adaptation can rebuild the module.
         self.state_action_dim = state_action_dim
         self.history_window = history_window
         self.intrinsics_dim = intrinsics_dim
+        self.stride = int(stride)
+        self._steps = list(range((history_window - 1) % self.stride, history_window, self.stride))
+        n_in = state_action_dim
+        if input_channels is not None or self.stride != 1:
+            chans = list(input_channels) if input_channels is not None else list(range(state_action_dim))
+            self.register_buffer('channel_idx', torch.tensor(chans, dtype=torch.long))
+            self.register_buffer('input_spec', torch.tensor([state_action_dim, self.stride, history_window]))
+            n_in = len(chans)
+        else:
+            self.channel_idx = None
+        k_eff = len(self._steps)
         
         # 1D CNN layers
         # Input shape: (batch_size, state_action_dim, history_window)
@@ -213,7 +231,7 @@ class AdaptationModule(nn.Module):
         self.cnn_layers = nn.Sequential(
             # Conv1 output: (batch, 32, history_window - kernel + 1)
             nn.Conv1d(
-                in_channels=state_action_dim,
+                in_channels=n_in,
                 out_channels=32,
                 kernel_size=5,
                 stride=1,
@@ -244,7 +262,7 @@ class AdaptationModule(nn.Module):
         
         # Fully connected layers
         # After CNN: (batch, 8, history_window)
-        fc_input_dim = 8 * history_window
+        fc_input_dim = 8 * k_eff
         
         self.fc_layers = nn.Sequential(
             nn.Linear(fc_input_dim, 128),
@@ -282,6 +300,8 @@ class AdaptationModule(nn.Module):
         else:
             squeeze_output = False
         
+        if self.channel_idx is not None:
+            history = history[:, self._steps][:, :, self.channel_idx]
         # Transpose to (batch, state_action_dim, history_window) for Conv1d
         history = history.transpose(1, 2)
         
@@ -481,11 +501,17 @@ def load_adaptation(path: str, device='cpu') -> Tuple['AdaptationModule', Dict]:
     ckpt = _load_state(path, device)
     sd = ckpt['adaptation']
     conv_out = sd['cnn_layers.4.weight'].shape[0]
-    model = AdaptationModule(
-        state_action_dim=sd['cnn_layers.0.weight'].shape[1],
-        history_window=sd['fc_layers.0.weight'].shape[1] // conv_out,
-        intrinsics_dim=sd['fc_layers.2.weight'].shape[0],
-    ).to(device)
+    if 'input_spec' in sd:   # channel subset and/or time stride (amendment 6)
+        raw_dim, stride, window = (int(v) for v in sd['input_spec'])
+        model = AdaptationModule(state_action_dim=raw_dim, history_window=window,
+                                 intrinsics_dim=sd['fc_layers.2.weight'].shape[0],
+                                 input_channels=sd['channel_idx'].tolist(), stride=stride).to(device)
+    else:
+        model = AdaptationModule(
+            state_action_dim=sd['cnn_layers.0.weight'].shape[1],
+            history_window=sd['fc_layers.0.weight'].shape[1] // conv_out,
+            intrinsics_dim=sd['fc_layers.2.weight'].shape[0],
+        ).to(device)
     model.load_state_dict(sd)
     model.eval()
     return model, ckpt.get('config', {})

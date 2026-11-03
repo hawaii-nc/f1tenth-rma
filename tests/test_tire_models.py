@@ -165,3 +165,35 @@ def test_env_rejects_unknown_tire_model():
     from f1tenth_research.envs import F1TenthRMAEnv
     with pytest.raises(ValueError):
         F1TenthRMAEnv(config={'environment': {'tire_model': 'friction-circle'}})
+
+
+# ---------------------------------------------------------------- brush (Fiala) tire, amendment 6
+def test_fiala_limits():
+    c, fmax = 100.0, 5.0
+    # small slip: linear with the nominal stiffness
+    assert np.isclose(tm._fiala(c, 1e-5, fmax), c * 1e-5, rtol=1e-4)
+    # at and beyond z = 1: the capacity, with the sign of the slip
+    assert np.isclose(tm._fiala(c, 3 * fmax / c, fmax), fmax)
+    assert np.isclose(tm._fiala(c, -1.0, fmax), -fmax)
+    # monotone and below linear in between
+    al = np.linspace(1e-4, 3 * fmax / c, 50)
+    f = np.array([tm._fiala(c, a, fmax) for a in al])
+    assert np.all(np.diff(f) > 0) and np.all(f < c * al)
+
+
+def test_brush_matches_stock_at_small_slip_and_nominal_grip():
+    x = np.array([0., 0., 0.001, 2.0, 0., 0.01, 0.0005])
+    u = np.array([0., 0.])
+    f_b = tm.vehicle_dynamics_st_brush(x, u, *args())
+    f_s = stock_st(x, u, *args())
+    assert np.allclose(f_b, f_s, rtol=2e-2, atol=1e-6)
+
+
+def test_brush_grip_visible_below_limit():
+    """Same moderate cornering state: lower grip already gives less yaw
+    acceleration, while the friction-circle model is unchanged until the limit
+    (it keeps μ·C_S, so compare relative change against the stock μ scaling)."""
+    x = np.array([0., 0., 0.06, 2.0, 0., 0.0, 0.0])  # turn-in, 0.06 rad steer
+    u = np.array([0., 0.])
+    yaw_acc = {g: tm.vehicle_dynamics_st_brush(x, u, *args(mu=1.0489 * g))[5] for g in (1.0, 0.4)}
+    assert 0 < yaw_acc[0.4] < 0.9 * yaw_acc[1.0]

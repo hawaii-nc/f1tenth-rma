@@ -128,10 +128,16 @@ class Phase2Trainer:
         phase2_config = config.get('phase2_training', {})
         adaptation_config = config.get('networks', {}).get('adaptation', {})
         
+        sa_dim = adaptation_config.get('state_action_dim', 7)
+        chans = adaptation_config.get('input_channels')
+        if chans == 'proprio':   # v, steering, v_des, steering_des, yaw_rate + the 2 actions
+            chans = [0, 1, 2, 3, 4, sa_dim - 2, sa_dim - 1]
         self.adaptation = AdaptationModule(
-            state_action_dim=adaptation_config.get('state_action_dim', 7),
+            state_action_dim=sa_dim,
             history_window=adaptation_config.get('history_window', 10),
             intrinsics_dim=adaptation_config.get('intrinsics_dim', 8),
+            input_channels=chans,
+            stride=int(adaptation_config.get('stride', 1)),
         ).to(self.device)
         
         # Optional auxiliary head: predict the raw physics vector e from ẑ,
@@ -211,7 +217,12 @@ class Phase2Trainer:
 
         print(f"[Data Collection] Complete. Buffer has {len(self.buffer)} transitions")
 
-    def _collect_parallel(self, num_episodes: int, n: int, use_phi: bool = False, seed_offset: int = 0):
+    def _collect_parallel(self, num_episodes: int, n: int, use_phi: bool = False, seed_offset: int = 0,
+                          random_belief: bool = False):
+        """use_phi: act on φ's estimate (on-policy). random_belief: act on a grip
+        belief drawn uniformly from belief_range per episode, independent of the
+        true grip, so the actions carry no information about it (amendment 6).
+        Labels are always the true intrinsics."""
         from .env_pool import make_pool
         cfg = dict(self.config)
         cfg['phase1_training'] = dict(cfg.get('phase1_training', {}), il={'use_expert_actions': False})
@@ -224,11 +235,18 @@ class Phase2Trainer:
             torch.tensor([1, 1, 1, 1, 1, 0, 0], dtype=torch.float32, device=self.device))
         done_eps = 0
         report = max(1, num_episodes // 10)
+        brng = np.random.default_rng(int(self.config.get('phase2_training', {}).get('seed', 12345)) + seed_offset + 7)
+        lo, hi = self.config.get('phase2_training', {}).get('belief_range', [0.2, 1.0])
+        belief = brng.uniform(lo, hi, size=n)
         with torch.no_grad():
             while done_eps < num_episodes:
                 e = torch.from_numpy(np.stack([inf['physics_vector'] for inf in infos])).to(self.device)
                 z = self.actor_critic.get_intrinsics(e)          # label: the true intrinsics
                 z_act = z
+                if random_belief:
+                    eb = e.clone()
+                    eb[:, 0] = torch.as_tensor(belief, dtype=eb.dtype, device=self.device)
+                    z_act = self.actor_critic.get_intrinsics(eb)
                 if use_phi:
                     # On-policy (RMA): act on φ's own estimate, exactly as at deployment
                     # (eval/harness.py Phi: nominal until k steps of history exist).
@@ -249,6 +267,7 @@ class Phase2Trainer:
                 obs, _, dones, infos, _, _ = pool.step(act)
                 for i in np.where(dones > 0)[0]:
                     hist[i].clear()
+                    belief[i] = brng.uniform(lo, hi)
                     if done_eps < num_episodes:
                         self.buffer.add_episode(*seqs[i])
                         done_eps += 1
@@ -396,6 +415,11 @@ class Phase2Trainer:
         # Data collection
         num_eval_episodes = phase2_config.get('num_eval_episodes', 500)
         self.collect_data(num_eval_episodes)
+        n_belief = int(phase2_config.get('belief_episodes', 0))
+        if n_belief:
+            print(f"[Data Collection] {n_belief} random-belief episodes", flush=True)
+            self._collect_parallel(n_belief, int(phase2_config.get('num_envs', 1)), seed_offset=50_000,
+                                   random_belief=True)
         
         # Training
         num_epochs = phase2_config.get('num_epochs', 100)
@@ -462,7 +486,7 @@ def main():
                        help='Path to Phase 1 trained model')
     parser.add_argument('--config', type=str, default='configs/rma_config.yaml',
                        help='Path to config YAML')
-    parser.add_argument('--tire_model', type=str, default=None, choices=['linear', 'friction_circle'],
+    parser.add_argument('--tire_model', type=str, default=None, choices=['linear', 'friction_circle', 'brush'],
                         help="override environment.tire_model in the config (default: config's, else linear)")
     parser.add_argument('--device', type=str, default='auto',
                        help='Device: cuda, cpu, or auto')

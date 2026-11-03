@@ -123,3 +123,38 @@ Seen before writing this: seed 1's E1/E2 (φ crash 0.05 vs Blind 0.46 at μ = 0.
 **Run.** For each replicate seed s ∈ {1, 2}: that seed's base policy as Blind, capped at **φ_s's own mean speed at μ = 1.0** (the amendment-4 rule), same E1/E2 protocol, paired with φ_s's episodes.
 
 **Readout (as W3).** Adaptation beats speed for seed s if, at μ = 0.4, the capped Blind crashes ≥ 0.10 more than φ_s, McNemar p < 0.05. Reported per seed, alongside seed 0 (amendment 3: not met).
+
+---
+
+## Amendment 6, 2026-11-03 (before running): why φ cannot read grip, and the active-probe arm (Q)
+
+**Diagnostic (already run, reported here in full).** `tools/phi_diagnostic.py` rolls out the P2 base policy (friction-circle tire, true grip uniform 0.2–1.0, other physics from the training range) with three grip beliefs, 240 episodes each, same seeds: the true grip (oracle), φ's estimate, and a *random* grip independent of the true one (no action leakage). A ridge probe on physical features of each 0.5 s window (peak acceleration and braking, lateral acceleration, yaw rate vs the kinematic yaw rate, speed error), grouped CV by episode:
+
+| data | grip R² |
+|---|---|
+| random belief (actions carry no grip information) | **−0.02** |
+| oracle belief | 0.97 (action leakage: the oracle's own speed reveals the grip) |
+| φ's belief | 0.68 (φ's own speed choice, same leakage) |
+
+So with leakage removed, the motion history contains essentially **no** grip information. Why: (1) this car is close to neutral steer, so below the limit grip barely changes the yaw response (steady cornering, μ 0.4 vs 1.0: −3% at 1.5 m/s, −5% at 2 m/s for the linear and friction-circle models); (2) the policy drives well inside the friction circle (99th-percentile acceleration 3–3.7 m/s², lateral ~2 m/s², braking ~0.1 m/s², vs μg = 3.9 at μ = 0.4). A Fiala brush tire, where grip bends the force curve below the limit (added to `envs/tire_models.py` as `brush`), did **not** help (random-belief R² −0.03; steady-state yaw change ≤ 1% at 2 m/s), because the car is near neutral steer and the yaw response doesn't show it. The brush tire is not used further. This also explains P2's φ R² of 0.26–0.34 and amendment 4's failure: it is not a learning problem, the information is not there.
+
+**Fix tested in the diagnostic.** An *active probe*, as in traction-control friction estimation: every 0.5 s, on straights only (|steer| < 0.15 rad), add 2.0 m/s to the commanded speed for 0.1 s. f110's speed controller then asks for ~9.5 m/s², which the tire caps at μg. Random-belief data with the probe: peak acceleration 3.1 / 5.1 / 7.3 / 8.6 m/s² for grip bins 0.2–0.4 / … / 0.8–1.0, physical-feature R² **0.84** per 0.5 s window (0.997 per episode), episode lengths unchanged. φ's CNN trained on that data for 3000 steps reaches held-out R² **0.67** with proprioceptive inputs only (v, steering, v_des, steering_des, yaw rate, 2 actions), but 0.15 with all 115 channels (the 108 LiDAR channels swamp it). These numbers were seen before writing this amendment.
+
+**Run (Q).** For each training seed s ∈ {0, 1, 2}, all three run regardless of seed 0's outcome: P2's base policy for that seed (unchanged), φ_Q retrained exactly as in P2 (oracle round + 3 on-policy rounds, same budget) except:
+- `environment.probe` on (period 50 steps, 10 steps, +2.0 m/s, |steer| < 0.15), in φ training and in **every** evaluation, for every controller (Oracle, φ, Blind, capped Blind), so all controllers drive with the same probe;
+- `networks.adaptation.input_channels: proprio`, k = 50.
+
+Config `configs/retrain_phase2_fc_probe.yaml`, script `tools/probe_suite.sh`. Evaluation: E1/E2 (N = 100 per grip, random starts, paired seeds), E5 (N = 200, with the probe), and the speed-matched control: Blind (with the probe) capped at φ_Q's own mean speed at μ = 1.0 (amendment 4 rule), tested with `tools/speed_matched_test.py`.
+
+**Predictions and pass rules (per seed; the claim needs all three seeds).**
+
+| ID | Prediction | Pass if |
+|---|---|---|
+| Q1 | φ reads grip | E5 φ R² ≥ 0.5 (P2: 0.28 ± 0.05) |
+| Q2 | φ modulates speed like the Oracle | φ speed at μ = 1.0 minus at μ = 0.4 ≥ 0.40 m/s (Oracle ~0.8; P2 φ 0.10–0.19) |
+| Q3 | **Adaptation beats speed** (the key test, as W3 / amendment 5) | At μ = 0.4, Blind capped at φ_Q's μ = 1.0 speed crashes ≥ 0.10 more than φ_Q, exact McNemar p < 0.05 |
+| Q4 | Still safe vs Blind | G1, H2 and H3 (as fixed in the original plan) |
+
+Also reported, no threshold: the probe's cost (Oracle and Blind speed and crash rate with the probe vs P2's runs without it, same seeds and starts).
+
+**Expected.** Q1 and Q2 pass. Q3 is the open question: it passes only if φ_Q drives near the Oracle's speed on high grip while staying safe on low grip. If Q3 fails, the paper keeps the amendment-5 conclusion (safety comes from speed). Either way the diagnostic stands as a result: passive proprioceptive grip adaptation is not possible in this simulator below the limit; it needs excitation.
