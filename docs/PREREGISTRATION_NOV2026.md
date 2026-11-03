@@ -168,3 +168,15 @@ Also reported, no threshold: the probe's cost (Oracle and Blind speed and crash 
 **Readouts.**
 - Q3m (per seed, same rule as Q3): at μ = 0.4, Blind at cap_matched crashes ≥ 0.10 more than φ_Q, McNemar p < 0.05.
 - Frontier (seed 0, descriptive): for each cap, (speed at μ = 1.0, crash at μ = 0.4). φ_Q **dominates** a fixed limit if no cap achieves both speed at μ = 1.0 ≥ φ_Q's − 0.05 m/s and crash at μ = 0.4 ≤ φ_Q's + 0.05.
+
+## Amendment 7, 2026-11-03 (before running): robustness of the probe arm
+
+**Seen before writing this:** Q seeds 0 and 1 (E1/E2, E5, Q3); not seed 2, the cap sweep, or anything below. Script `tools/probe_robustness.sh`, run after the Q suite and the cap sweep.
+
+| ID | Run | Prediction | Pass if |
+|---|---|---|---|
+| A1 | **Probe off:** seed-0 φ_Q, all controllers evaluated *without* the probe (E1/E2 N = 100, E5 N = 200) | φ_Q's grip reading depends on the probe | E5 φ R² < 0.3 and φ's speed drop from μ = 1.0 to 0.4 < 0.2 m/s (with the probe: 0.90 and 0.74) |
+| A2 | **Held-out tracks:** φ_Q trained on the P2 held-out base policy (`runs/phase1_fc_holdout`) without mco/silverstone/budapest; E1/E2 on those 3 tracks with the probe; seed-0 main φ_Q on the same episodes | Transfers to unseen tracks | Held-out model's gap closed at μ = 0.4 ≥ 50% of the main model's (G-hold rule), and its speed drop ≥ 0.40 m/s (Q2 rule) |
+| A3 | **E3 transient** with the probe (seed 0, N = 40): grip 1.0 → 0.4 mid-episode | φ_Q detects the drop | Median settle time within ±0.1 < 100 steps (H-transient rule; P2: 38 steps, but with a weak estimate) |
+
+**Probe cost (descriptive, no threshold, no new runs):** Oracle and Blind mean speed, crash rate and progress with the probe (Q runs) vs without it (P2 runs), same base policies, seeds and starts, all three seeds.
