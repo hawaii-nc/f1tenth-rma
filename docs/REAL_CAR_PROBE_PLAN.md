@@ -39,6 +39,8 @@ Topic names differ between builds: check `ros2 topic list` on the car first.
 
 ## Stage 2: closed-loop (after Stage 1 passes)
 
+0. **Match the control rate (bug C23).** Training runs at 100 Hz (0.01 s per step), but `rma_deployment_node.py` defaults to 50 Hz. Run the node at 100 Hz if the LiDAR and odometry rates allow it, or retrain at 50 Hz. Otherwise φ's 50-step window spans 1 s instead of 0.5 s, and the probe's 50-step period and 10-step pulse double in length.
+
 1. **Fix the speed input.** In simulation φ sees the true vehicle speed. On the car, that should be an IMU-fused speed, not raw wheel speed (which jumps during slip). Retrain φ_Q in simulation with that observation model (wheel speed plus IMU acceleration, with noise) before deploying.
 2. Deploy π + φ_Q with the probe enabled in `rma_deployment_node.py` (to be added: the same `period_steps / duration_steps / amplitude / max_steer` logic as `envs/f1tenth_env.py`, after the speed command).
 3. Compare φ_Q vs Blind on the July corner setup across tire wraps: speed and pass rate, as in the July Table II.

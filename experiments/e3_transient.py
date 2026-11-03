@@ -3,7 +3,7 @@
 E3: Transient response: how fast does φ notice a sudden grip change?
 
 Each episode starts at grip_before and switches to grip_after at a fixed
-step (default step 500 = 10 s at 50 Hz): the simulator's μ really changes
+step (default step 500 = 5 s: the simulator steps 0.01 s per control step, 100 Hz): the simulator's μ really changes
 (the July pipeline only changed the label; see docs/BUGS_AND_LESSONS.md).
 
 A linear probe ẑ → grip is fit on separate steady-grip calibration
@@ -20,6 +20,7 @@ the repo). Target from the project record: ~50 steps (1 s).
 
     python experiments/e3_transient.py -n 40
 """
+CONTROL_DT = 0.01  # s per control step (envs/f1tenth_env.py: one 0.01 s f110 step); was /50 before C23
 import csv
 
 import numpy as np
@@ -99,7 +100,7 @@ def main():
         'episodes_reaching_change': len(decoded),
         'settled_fraction': len(valid) / len(settles) if settles else 0.0,
         'settle_steps_median': float(np.median(valid)) if valid else None,
-        'settle_seconds_median': float(np.median(valid)) / 50.0 if valid else None,
+        'settle_seconds_median': float(np.median(valid)) * CONTROL_DT if valid else None,
         'phi_history_window': phi.history_window,
     }
     write_outputs(out, results, [], extra)

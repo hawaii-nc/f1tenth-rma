@@ -48,7 +48,7 @@ def base_parser(description: str, n_default: int = 100) -> argparse.ArgumentPars
     ap.add_argument('--config', default=str(DEFAULT_CONFIG), help='YAML with an environment: block')
     ap.add_argument('-n', '--episodes', type=int, default=n_default, help='episodes per condition')
     ap.add_argument('--tracks', nargs='*', help='evaluation tracks (default: config environment.tracks)')
-    ap.add_argument('--max-steps', type=int, default=2500, help='episode step cap (50 Hz → 50 s)')
+    ap.add_argument('--max-steps', type=int, default=2500, help='episode step cap (100 Hz control: 2500 steps = 25 s)')
     ap.add_argument('--seed', type=int, default=0, help='base seed; episode i uses seed+i for every controller')
     ap.add_argument('--out', default=None, help='output directory (default results/<exp>/<timestamp>)')
     ap.add_argument('--device', default='cpu')
