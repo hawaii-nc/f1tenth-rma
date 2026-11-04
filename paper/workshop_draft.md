@@ -1,7 +1,7 @@
 # You Cannot See Grip Without Using It: Active Probing for Rapid Motor Adaptation in Autonomous Racing
 
 *Workshop-paper draft (rewrite of Nov 3, 2026), target IEEE IV 2027 Workshops (papers due Feb 1, 2027).*
-*All simulation numbers come from `results/retrain_nov2026/` (see `docs/RESULTS_NOV2026.md`); every prediction was registered first in `docs/PREREGISTRATION_NOV2026.md`. **[CITE]** marks a reference still to find and verify. Citation keys refer to `references.bib`.*
+*All simulation numbers come from `results/retrain_nov2026/` (see `docs/RESULTS_NOV2026.md`); every prediction was registered first in `docs/PREREGISTRATION_NOV2026.md`. Citation keys refer to `references.bib`.*
 
 **Nathan Chong** (University of Hawaiʻi at Mānoa; NSF REU at UNLV) and **Venkata Prashant Modekurthy** (UNLV)
 
@@ -13,7 +13,7 @@
 
 - Grip governs the limits of safe control, and it changes: rain, tire wear, dust, payload. A controller tuned for nominal grip is either conservative everywhere or unsafe when grip falls.
 - RMA [kumar2021rma] trains a base policy on privileged physics, then an adaptation module that recovers those physics from recent states and actions. It works for legged robots and quadcopters [zhang2025extreme], whose dynamics expose the hidden parameters all the time.
-- A car's grip is different: below the limit, the tires deliver whatever force is asked of them, at any grip. Grip shows only near the limit, which a cautious controller never visits. This is the familiar excitation requirement of tire–road friction estimation **[CITE: friction-estimation survey]**.
+- A car's grip is different: below the limit, the tires deliver whatever force is asked of them, at any grip. Grip shows only near the limit, which a cautious controller never visits. This is the familiar excitation requirement of tire–road friction estimation [acosta2017friction, khaleghian2017survey].
 - **Question.** Can an RMA controller on F1TENTH infer grip from its own motion, and does adapting to it beat simply driving slower?
 
 **Contributions:**
@@ -28,7 +28,8 @@
 - **RMA.** Base policy plus an adaptation module regressed on privileged encodings [kumar2021rma]; joint PPO+IL with a decaying imitation weight for quadcopters [zhang2025extreme]. RMA's adaptation module is trained on its own rollouts to avoid distribution shift; we show a second reason it matters, action leakage.
 - **Learning on F1TENTH.** LiDAR-only deep RL [hell2024lidar, evans2023trajectory], imitation-learning benchmarks [sun2023ilbenchmark], and the survey and benchmarks in [evans2024unifying]. None estimates vehicle physics online.
 - **Domain randomization** gives robustness [tobin2017dr]; RMA turns it into adaptation by conditioning on the sampled physics.
-- **Tire–road friction estimation** needs excitation: slip-based and force-based estimators work when the tires are loaded and fail in steady driving **[CITE]**. Active excitation for system identification and dual control **[CITE]**. We bring this to learned adaptation.
+- **Tire–road friction estimation** needs excitation: slip-based estimators need high tyre utilization (up to 80–90% on low-μ surfaces in the studies reviewed by [acosta2017friction]; 54–94% for a brush-model estimator in [prokes2016excitation]) and fail in steady driving [khaleghian2017survey]. We bring this requirement to learned adaptation and meet it with a deliberate excitation, the probe.
+- **Sim-to-real for F1TENTH racing.** RL racing policies have been deployed zero-shot on F1TENTH cars using domain randomization and actuator modeling [czechmanowski2025racing] and with disturbances and observation preprocessing [budai2025endtoend]. History-dependent policies provably help domain-randomized transfer [chen2022understanding], which supports RMA's history-based adaptation module.
 - **Friction circle / g-g diagram** [milliken1995rcvd].
 
 ## III. Method
