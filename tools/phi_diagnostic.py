@@ -41,6 +41,8 @@ def _collect_worker(args, wid, n, q):
     from f1tenth_research.envs.randomization import PhysicsRandomizer, PARAM_KEYS, NOMINAL_PARAMS
 
     cfg = load_config(args.config, args.tire_model)
+    if args.car_sensors:
+        cfg['environment']['sensors'] = {'model': 'car'}
     if args.probe:
         cfg['environment']['probe'] = {'period_steps': args.probe[0], 'duration_steps': args.probe[1],
                                        'amplitude': args.probe[2], 'max_steer': args.probe[3]}
@@ -138,7 +140,8 @@ def train(args):
     D = data[0][0][0].shape[1]
     variants = {'full_k50': (list(range(D)), 50, 1), 'proprio_k50': (PROPRIO + [D - 2, D - 1], 50, 1),
                 'proprio_k200s4': (PROPRIO + [D - 2, D - 1], 50, 4), 'full_k200': (list(range(D)), 200, 1),
-                'proprio_k200': (PROPRIO + [D - 2, D - 1], 200, 1)}
+                'proprio_k200': (PROPRIO + [D - 2, D - 1], 200, 1),
+                'proprio_front_k50': (PROPRIO + list(range(5 + 49, 5 + 59)) + [D - 2, D - 1], 50, 1)}
     if args.variants:
         variants = {k: variants[k] for k in args.variants}
     rng = np.random.default_rng(0)
@@ -182,6 +185,7 @@ def main():
     c.add_argument('--tire-model', default='friction_circle', choices=['linear', 'friction_circle', 'brush'])
     c.add_argument('--probe', type=float, nargs=4, metavar=('PERIOD', 'DURATION', 'AMP', 'MAX_STEER'),
                    help='active grip probe (environment.probe), e.g. 50 10 2.0 0.15')
+    c.add_argument('--car-sensors', action='store_true', help="environment.sensors.model = 'car' (amendment 8)")
     c.add_argument('--out', required=True)
     t = sub.add_parser('train')
     t.add_argument('data', nargs='+')

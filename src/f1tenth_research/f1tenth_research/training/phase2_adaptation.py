@@ -132,6 +132,10 @@ class Phase2Trainer:
         chans = adaptation_config.get('input_channels')
         if chans == 'proprio':   # v, steering, v_des, steering_des, yaw_rate + the 2 actions
             chans = [0, 1, 2, 3, 4, sa_dim - 2, sa_dim - 1]
+        elif chans == 'proprio_front':   # + the 10 LiDAR beams within ~±12° of straight ahead
+            # (amendment 8): on the car, odometry speed is wheel speed, so true motion
+            # during a probe pulse is visible only in the range to the wall ahead
+            chans = [0, 1, 2, 3, 4] + list(range(5 + 49, 5 + 59)) + [sa_dim - 2, sa_dim - 1]
         self.adaptation = AdaptationModule(
             state_action_dim=sa_dim,
             history_window=adaptation_config.get('history_window', 10),

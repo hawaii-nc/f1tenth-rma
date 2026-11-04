@@ -153,3 +153,33 @@ def test_probe_pulses_on_straights_only():
         assert all(c == pytest.approx(1.0) for c, f in zip(cmds, flags) if not f)
     finally:
         F1TenthRMAEnv.wrapper_factory = None
+
+
+def test_car_sensor_model():
+    """Amendment 8: sensors.model = car builds the observation like the car's node:
+    commanded steering, kinematic yaw rate from odometry speed, held LiDAR scans
+    (40 Hz at a 100 Hz control rate) with a 0.10 m footprint margin, 50 Hz odometry."""
+    from f1tenth_research.envs import F1TenthRMAEnv
+    from fake_sim import FakeSim
+    F1TenthRMAEnv.wrapper_factory = staticmethod(FakeSim)
+    try:
+        cfg = {'environment': {'max_velocity': 3.0, 'tracks': ['aut'], 'sensors': {'model': 'car', 'speed_noise': 0.0},
+                               'observation': {'include_lidar': True, 'lidar_beams': 108, 'lidar_max_range': 10.0}}}
+        env = F1TenthRMAEnv(config=cfg)
+        env.reset(seed=1, options={'training': False, 'track': 'aut'})
+        obs_seq, true_v = [], []
+        for t in range(12):
+            a = np.array([0.1, 0.0], dtype=np.float32)
+            obs, _, _, _, info = env.step(a)
+            obs_seq.append(obs); true_v.append(info['velocity'])
+        O = np.array(obs_seq)
+        assert np.allclose(O[:, 1], 0.1)                                   # steering = command
+        assert np.allclose(O[:, 4], O[:, 0] * np.tan(0.1) / 0.33, atol=1e-5)  # kinematic yaw
+        # 50 Hz odometry: updated on even sensor ticks (reset is tick 0, step k is tick k)
+        assert np.allclose(O[2::2, 0], O[1:-1:2, 0]) and not np.allclose(O[1::2, 0], O[0::2, 0])
+        lidar = O[:, 5:]
+        changes = int(np.sum(np.any(np.abs(np.diff(lidar, axis=0)) > 1e-7, axis=1)))
+        assert changes <= 5                                               # ≤ 40 Hz updates over 12 steps
+        assert lidar.max() <= (1.0 - 0.10) / 10.0 + 1e-6                   # fake walls at ≤1 m, minus margin
+    finally:
+        F1TenthRMAEnv.wrapper_factory = None
