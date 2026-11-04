@@ -1,6 +1,6 @@
 # Sim-to-real: what the training does to transfer to VADER, and what is still open
 
-Written Nov 4, 2026, with amendment 8 (`docs/PREREGISTRATION_NOV2026.md`). It covers what the July pipeline already did, the mismatches found since, what is now modeled, and what only the real car can settle.
+Written Nov 4, 2026, with amendments 8 and 8b. **Results: RESULTS_NOV2026.md section 6** (all pre-registered checks except H3 pass on 3 seeds). The probe for this configuration is a 0.1 s braking pulse of −1.0 m/s (8b), not the +2.0 m/s accelerating one (`docs/PREREGISTRATION_NOV2026.md`). It covers what the July pipeline already did, the mismatches found since, what is now modeled, and what only the real car can settle.
 
 ## 1. Already in the pipeline (July work, kept)
 
