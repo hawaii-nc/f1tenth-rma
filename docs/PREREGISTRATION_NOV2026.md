@@ -231,3 +231,18 @@ Prediction: both hold for every variant. Grip shows in odometry through slip (sp
 | A1-R | Probe off at test time (all controllers), E1/E2 all grips + E5 N = 200 | E5 φ R² < 0.4 (below R1's threshold): the grip reading needs the probe |
 | A2-R | Held-out tracks: Phase 1 and φ retrained under R without mco/silverstone/budapest (seed 0), E1/E2 on those 3 tracks; the main seed-0 R models on the same episodes | Held-out model's ρ gap closed at μ = 0.4 ≥ 50% of the main model's, and its H2 holds |
 | A3-R | E3 grip step 1.0 → 0.4 (N = 40) | Median settle < 100 steps |
+
+## Amendment 10, 2026-11-04 (before running): randomize the wheel-slip model
+
+**Seen before writing this:** amendment 9's S results for the seed-0 R models (μ = 0.6 / 0.4, φ vs Blind crash): slow spin-up 0.02/0.53, 0.59/0.86; fast 0.01/0.54, 0.43/0.86; long relaxation 0.04/0.56, 0.79/0.86; **no slip 0.52/0.56, 0.86/0.86**. S1 fails for 3 of 4 variants, S2 for no slip. The prediction (both hold everywhere) was wrong: φ_R reads grip from the specific wheel-slip pattern of the training model and is blind without it, although the true deceleration (odometry without slip) and the front LiDAR still carry the information. Not yet seen: amendment 9's A1-R, A2-R, A3-R.
+
+**Run (DR).** For seeds 0, 1, 2, all regardless of seed 0: the R base policy of that seed (unchanged), φ retrained exactly as R but with the slip model drawn per episode (`configs/real_phase2_probe_slipdr.yaml`): spin-up rate log-uniform 10–150 m/s², relaxation log-uniform 0.01–0.15 s, no slip in 25% of episodes. Evaluate E1/E2 (μ ∈ {0.6, 0.4}, N = 100, Oracle / φ / Blind) under the nominal slip model and the four amendment-9 variants, plus E5 under the nominal and no-slip models. Script `tools/slipdr_suite.sh`.
+
+| ID | Pass if (per seed; the claim needs all three) |
+|---|---|
+| D1 | Under **every** variant (nominal + 4), S1 and S2 hold for φ_DR: μ = 0.4 crash ≤ Blind − 0.30 and μ = 0.6 crash ≤ Blind − 0.20, McNemar p < 0.05 |
+| D2 | Under the nominal model, φ_DR's crash at μ = 0.4 ≤ φ_R's + 0.10 (robustness costs little) |
+
+Also reported: E5 R² under nominal and no slip.
+
+**Expected.** The no-slip variant is the hard case. D1 passes if φ learns to use the odometry deceleration and the front LiDAR when the slip signature is absent; it may fail at μ = 0.4, where the information arrives late.

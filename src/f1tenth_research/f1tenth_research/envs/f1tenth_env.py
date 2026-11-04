@@ -428,6 +428,16 @@ class F1TenthRMAEnv(gym.Env):
         self._v_odom = self._speed_gain * self._v_wheel
         self._scan_hold = None
         self._sensor_t = 0
+        # Per-episode wheel-slip model (amendment 10): sensors.slip_randomize =
+        # {wheel_spin_accel: [lo, hi], wheel_relax_s: [lo, hi], p_no_slip: p}
+        self._slip = {k: c[k] for k in ('wheel_spin_accel', 'wheel_relax_s', 'wheel_slip')}
+        sr = c.get('slip_randomize')
+        if sr:
+            lo, hi = sr.get('wheel_spin_accel', [c['wheel_spin_accel']] * 2)
+            self._slip['wheel_spin_accel'] = float(np.exp(self._srng.uniform(np.log(lo), np.log(hi))))
+            lo, hi = sr.get('wheel_relax_s', [c['wheel_relax_s']] * 2)
+            self._slip['wheel_relax_s'] = float(np.exp(self._srng.uniform(np.log(lo), np.log(hi))))
+            self._slip['wheel_slip'] = bool(self._srng.random() >= float(sr.get('p_no_slip', 0.0)))
 
     def _car_measurements(self, v_true, steer_cmd, raw_obs_dict):
         """Advance the sensor model one control step; return what the car's node would see."""
@@ -443,12 +453,12 @@ class F1TenthRMAEnv(gym.Env):
         a_lim = 1.0489 * grip * 9.81
         dv = v_cmd - v_true
         a_req = (4.755 if dv > 0 else 19.02) * dv
-        slipping = c['wheel_slip'] and self.tire_model != 'linear' and abs(a_req) > a_lim
+        slipping = self._slip['wheel_slip'] and self.tire_model != 'linear' and abs(a_req) > a_lim
         if slipping:
-            step = c['wheel_spin_accel'] * dt
+            step = self._slip['wheel_spin_accel'] * dt
             self._v_wheel += float(np.clip(v_cmd - self._v_wheel, -step, step))
         else:
-            self._v_wheel = v_true + (self._v_wheel - v_true) * np.exp(-dt / c['wheel_relax_s'])
+            self._v_wheel = v_true + (self._v_wheel - v_true) * np.exp(-dt / self._slip['wheel_relax_s'])
         # Odometry at odom_hz, with a per-episode ERPM calibration error and noise
         odom_every = max(1, int(round(1.0 / (c['odom_hz'] * dt))))
         if t % odom_every == 0:
