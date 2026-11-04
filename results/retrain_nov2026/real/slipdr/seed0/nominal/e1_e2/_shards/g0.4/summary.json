@@ -1,0 +1,76 @@
+{
+  "summary": [
+    {
+      "controller": "blind",
+      "grip": 0.4,
+      "n": 100,
+      "crash_rate": 0.86,
+      "completion_rate": 0.14,
+      "mean_speed": 2.3218442115043088,
+      "mean_rho": 0.6885583916997646,
+      "rho_sem": 0.01845440298508046,
+      "mean_progress_m": 21.216075449514506
+    },
+    {
+      "controller": "oracle",
+      "grip": 0.4,
+      "n": 100,
+      "crash_rate": 0.02,
+      "completion_rate": 0.98,
+      "mean_speed": 2.292944169743363,
+      "mean_rho": 0.4976333995431286,
+      "rho_sem": 0.0046698835937616,
+      "mean_progress_m": 56.43240346841431
+    },
+    {
+      "controller": "phi",
+      "grip": 0.4,
+      "n": 100,
+      "crash_rate": 0.41,
+      "completion_rate": 0.59,
+      "mean_speed": 2.36194976081035,
+      "mean_rho": 0.6024267842362938,
+      "rho_sem": 0.014655864574405953,
+      "mean_progress_m": 46.898206465452525
+    }
+  ],
+  "args": {
+    "spawn": "random",
+    "speed_cap": null,
+    "phase1": "runs/real_phase1_seed0/final.pt",
+    "phase2": "runs/real_phase2_slipdr_seed0/final.pt",
+    "config": "configs/real_phase2_probe.yaml",
+    "episodes": 100,
+    "tracks": null,
+    "max_steps": 2500,
+    "seed": 0,
+    "out": "results/retrain_nov2026/real/slipdr/seed0/nominal/e1_e2/_shards/g0.4",
+    "device": "cpu",
+    "tire_model": "friction_circle",
+    "grips": [
+      0.4
+    ],
+    "controllers": [
+      "oracle",
+      "phi",
+      "blind"
+    ]
+  },
+  "gaps": {
+    "phi_gap": {
+      "0.4": 0.10479338469316524
+    },
+    "blind_gap": {
+      "0.4": 0.19092499215663605
+    },
+    "gap_closed": {
+      "0.4": 0.45112798743921334
+    }
+  },
+  "cross_grip_variance": {
+    "oracle": 0.0,
+    "phi": 0.0,
+    "blind": 0.0
+  },
+  "blind_over_phi_variance_ratio": NaN
+}
