@@ -210,3 +210,24 @@ Also reported, no threshold: mean speeds vs Q (racing should be faster), the bas
 **Change.** Probe amplitude −1.0 m/s (a 0.1 s braking pulse every 0.5 s on straights; f110's speed controller then asks for ~19 m/s², above μg at every grip). Same period, duration and steering gate. Everything else in amendment 8 is unchanged, including φ inputs (proprio + front beams), the expert (0.6 / 0.5), predictions R1–R4 and their thresholds.
 
 **Seen before writing this:** leakage-free diagnostic with car sensors and the braking probe, φ architecture, held-out R² **0.73** (proprio) and **0.68** (proprio + front beams), vs 0.52 / 0.52 with the accelerating probe; physical-feature ridge 0.25 per window, 0.48 per episode.
+
+## Amendment 9, 2026-11-04 (before running): robustness of configuration R
+
+**Seen before writing this:** R E1/E2, E5 and speed-matched results for seeds 0–2 (section 6 of RESULTS). Nothing below. Script `tools/real_robustness.sh`; all evaluations use the seed-0 R models unless noted, N = 100 paired episodes per cell, Oracle / φ / Blind.
+
+**S: slip-model sensitivity (evaluation only, no retraining).** The R models were trained with one wheel-slip model (wheel spins up or locks towards the command at 40 m/s², relaxes back in 30 ms). The car's real behaviour is unknown. Re-evaluate at μ ∈ {0.6, 0.4} with four alternatives: spin-up 15 m/s² (slow), 120 m/s² (fast), relaxation 0.1 s, and no slip (odometry = true speed).
+
+| ID | Pass if (per variant) |
+|---|---|
+| S1 | At μ = 0.4, φ crash ≤ Blind − 0.30 (McNemar p < 0.05) |
+| S2 | At μ = 0.6, φ crash ≤ Blind − 0.20 (McNemar p < 0.05) |
+
+Prediction: both hold for every variant. Grip shows in odometry through slip (spin variants) or directly through the capped deceleration (no slip), and φ also sees the front LiDAR beams. The variant most likely to fail is slow spin-up, where the wheel signal is weakest.
+
+**A-R: robustness checks of amendment 7, repeated for R.**
+
+| ID | Run | Pass if |
+|---|---|---|
+| A1-R | Probe off at test time (all controllers), E1/E2 all grips + E5 N = 200 | E5 φ R² < 0.4 (below R1's threshold): the grip reading needs the probe |
+| A2-R | Held-out tracks: Phase 1 and φ retrained under R without mco/silverstone/budapest (seed 0), E1/E2 on those 3 tracks; the main seed-0 R models on the same episodes | Held-out model's ρ gap closed at μ = 0.4 ≥ 50% of the main model's, and its H2 holds |
+| A3-R | E3 grip step 1.0 → 0.4 (N = 40) | Median settle < 100 steps |

@@ -150,7 +150,8 @@ class F1TenthRMAEnv(gym.Env):
         self.car_sensors = sens.get('model') == 'car'
         self.sensor_cfg = {'odom_hz': 50.0, 'lidar_hz': 40.0, 'speed_noise': 0.03, 'speed_gain_err': 0.05,
                            'footprint_margin': 0.10, 'wheel_spin_accel': 40.0, 'wheel_relax_s': 0.03,
-                           'wheelbase': 0.33, **{k: v for k, v in sens.items() if k != 'model'}}
+                           'wheelbase': 0.33, 'wheel_slip': True,
+                           **{k: v for k, v in sens.items() if k != 'model'}}
         self.tire_model = str(self.config.get('tire_model', 'linear'))
         if self.tire_model not in TIRE_MODELS:
             # Checked here so a typo can never silently fall back to the mock env.
@@ -442,7 +443,7 @@ class F1TenthRMAEnv(gym.Env):
         a_lim = 1.0489 * grip * 9.81
         dv = v_cmd - v_true
         a_req = (4.755 if dv > 0 else 19.02) * dv
-        slipping = self.tire_model != 'linear' and abs(a_req) > a_lim
+        slipping = c['wheel_slip'] and self.tire_model != 'linear' and abs(a_req) > a_lim
         if slipping:
             step = c['wheel_spin_accel'] * dt
             self._v_wheel += float(np.clip(v_cmd - self._v_wheel, -step, step))
