@@ -180,3 +180,25 @@ Also reported, no threshold: the probe's cost (Oracle and Blind speed and crash 
 | A3 | **E3 transient** with the probe (seed 0, N = 40): grip 1.0 → 0.4 mid-episode | φ_Q detects the drop | Median settle time within ±0.1 < 100 steps (H-transient rule; P2: 38 steps, but with a weak estimate) |
 
 **Probe cost (descriptive, no threshold, no new runs):** Oracle and Blind mean speed, crash rate and progress with the probe (Q runs) vs without it (P2 runs), same base policies, seeds and starts, all three seeds.
+
+## Amendment 8, 2026-11-04 (before running): sim-to-real configuration R
+
+**Why.** Training did not match the car (docs/SIM_TO_REAL.md): control rate (C23), speed from wheel odometry rather than true speed, kinematic rather than measured yaw rate, commanded rather than applied steering, 40 Hz LiDAR with a 0.10 m margin, steering clip. And the expert drove 2.0 m/s × grip factor everywhere, which is not racing.
+
+**Seen before writing this:** the diagnostic below, and the racing-expert lap check. No R training has been run.
+
+- Racing expert (corner/braking speed profile, f = 0.6, a_b = 0.5·μ·g, top speed 3 m/s): 13 tracks × 2 starts, crashes 0/26 (grip 1.0, mean 2.91 m/s), 0/26 (0.6, 2.79), 2/26 (0.4, 2.61). f = 0.5 and 0.45 gave 4/26 and 2/26 at grip 0.4.
+- Leakage-free diagnostic (random belief, P2 base policy, car sensors), 240 episodes each: with the probe, φ's architecture reaches held-out grip R² 0.52 (proprio), 0.52 (proprio + 10 front beams), 0.29 (all 115 channels); physical features 0.39. Without the probe: R² ≈ 0 (−0.03 physical features).
+
+**Run (R), seeds 0, 1, 2, all regardless of seed 0's outcome.** `tools/real_suite.sh`: Phase 1 DAgger with `configs/real_phase1.yaml` (car sensors, probe on, racing expert; everything else as P2), then φ with `configs/real_phase2_probe.yaml` (as Q, but car sensors and `input_channels: proprio_front`), then E1/E2 (N = 100 per grip, all controllers with car sensors and the probe), E5 (N = 200), and the speed-matched Blind: capped at φ's μ = 1.0 speed, then rerun with the cap lowered by the measured excess (amendment 6b rule).
+
+| ID | Prediction | Pass if (per seed; the claim needs all three) |
+|---|---|---|
+| R1 | φ reads grip through realistic sensors | E5 φ R² ≥ 0.4 |
+| R2 | φ adapts speed like the Oracle | φ's speed drop μ 1.0 → 0.4 ≥ 50% of the Oracle's drop (the racing expert's own drop is smaller than before: ~0.3 m/s) |
+| R3 | Adaptation beats a speed limit | At μ = 0.4, Blind matched on measured μ = 1.0 speed crashes ≥ 0.10 more than φ, McNemar p < 0.05 |
+| R4 | Safe vs Blind | G1 and H2 as in the original plan |
+
+Also reported, no threshold: mean speeds vs Q (racing should be faster), the base policy's validation crash rate, H3.
+
+**Expected.** R1 passes but lower than Q (0.89–0.93), because the realistic sensors carry less information. R2 and R3 are uncertain: the racing expert slows down mostly in corners, so the speed gap between grips, and thus the room for adaptation, is smaller than in Q.
