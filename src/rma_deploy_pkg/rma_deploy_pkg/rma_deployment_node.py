@@ -47,6 +47,7 @@ OBS_DIM = 113          # 5 base signals + 108 LiDAR beams (matches v27+ training
 LIDAR_BEAMS = 108
 LIDAR_MAX_RANGE = 10.0
 ACTION_DIM = 2
+TRAIN_MAX_STEER = 0.4189  # envs/f1tenth_env.py MAX_STEER (action-space bound)
 MAX_VELOCITY = 3.0      # m/s -- matches tight-track training config
 NOMINAL_PHYSICS = [1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0]
 STATIONARY_VEL_THRESHOLD = 0.10
@@ -227,9 +228,13 @@ class RMADeploymentNode(Node):
         self.smoothed_action = alpha * raw_action + (1 - alpha) * self.smoothed_action
         action_np = self.smoothed_action.astype(np.float32)
 
+        # φ's history holds the raw policy action, as in training (phase2_adaptation,
+        # eval/harness); the next observation holds the action clipped to the env's
+        # action space, as F1TenthRMAEnv.step stores it (tests/test_node_sim_consistency.py)
         self.history.append(np.concatenate([obs, action_np]))
-        self.prev_action = action_np.copy()
-        self.current_steering = float(action_np[0])
+        clipped = np.clip(action_np, [-TRAIN_MAX_STEER, -1.0], [TRAIN_MAX_STEER, 1.0]).astype(np.float32)
+        self.prev_action = clipped
+        self.current_steering = float(clipped[0])
         # Pure RMA: policy output -> command, no hand-coded logic in between
         # (unless --shield, which can only lower the speed).
         steer_cmd = float(np.clip(action_np[0], -self.max_steer, self.max_steer))
