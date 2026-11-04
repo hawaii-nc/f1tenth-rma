@@ -1,0 +1,30 @@
+{
+  "summary": [],
+  "args": {
+    "spawn": "random",
+    "speed_cap": null,
+    "phase1": "runs/real_phase1_seed2/final.pt",
+    "phase2": "runs/real_phase2_seed2/final.pt",
+    "config": "configs/real_phase2_probe.yaml",
+    "episodes": 200,
+    "tracks": null,
+    "max_steps": 2500,
+    "seed": 0,
+    "out": "results/retrain_nov2026/real/seed2/e5/run",
+    "device": "cpu",
+    "tire_model": "friction_circle",
+    "grip_range": [
+      0.2,
+      1.0
+    ],
+    "stride": 10,
+    "randomize_others": false
+  },
+  "r2": {
+    "encoder": 0.9992018357643309,
+    "history": 0.33859553393953423,
+    "phi": 0.8691274771312224
+  },
+  "samples": 41183,
+  "H1_pass": true
+}

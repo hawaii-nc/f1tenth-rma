@@ -16,6 +16,7 @@ All numbers come from the rebuilt, bug-fixed pipeline on the real f1tenth_gym (c
 | **P2** (friction-circle tire, on-policy φ), post hoc: 3 seeds | **0.04 ± 0.03** (0.44 / ~0.03) | **83% ± 7** | **16.2× ± 5.9** | ~1.35 → ~1.19 | **0.28 ± 0.05** | **PASS / PASS / PASS** (all seeds) |
 | P2, held-out tracks (never trained on) | 0.02 (0.49 / 0.00) | 89% [84, 93] | 15.9× | 1.28 → 1.18 | n/a | PASS / PASS / PASS |
 | **Q: P2 + active grip probe + proprioceptive φ** (amendment 6): 3 seeds | **0.06 ± 0.03** (0.45 / 0.04) | **84% ± 3** | 3.4× (Oracle 5.5×) | **~2.03 → 1.28** | **0.91 ± 0.02** | **PASS / PASS / FAIL** (all seeds); beats a speed-matched Blind on every seed (section 4) |
+| **R: realistic car sensors + braking probe + racing expert** (amendment 8): 3 seeds, base policy retrained | **0.35 ± 0.06** (0.85 / 0.04) | **55% ± 5** | 2.0× | **2.55 → 2.38** (Oracle 2.56 → 2.40) | **0.86 ± 0.02** | **PASS / PASS / FAIL**; beats speed-matched Blind on every seed; at μ = 0.6: 0.02 vs 0.44 (section 6) |
 | W: P2 with a 2 s window | 0.08 (0.44 / 0.05) | 65% [52, 80] | 3.4× | 1.17 → 1.15 (constant) | 0.02 | PASS / PASS / FAIL |
 | **Controls (P2 setup)** | | | | | | |
 | Robust baseline (no grip info) | 0.16 | n/a | n/a | 1.60 → 1.59 | n/a | φ safer, p = 0.012, but 25% slower |
@@ -304,3 +305,44 @@ Claims 1–3 above stand. Claim 4 (the limitation) is resolved in simulation: **
 6. A brief speed pulse on straights makes grip observable (R² 0.89–0.93). φ_Q then drives within 0.1 m/s of the Oracle at every grip, beats a speed-matched fixed limit at μ = 0.4 (0.02–0.08 vs 0.33–0.47 crashes), and no fixed limit matches it on both speed and safety. Turning the probe off removes the adaptation.
 
 **Caveats.** The probe changes the method: the car spends some driving on measurement. φ sees the true vehicle speed; on the car, wheel speed rises during wheelspin, so the signal must come from the IMU or wheel-vs-IMU slip. The real-car node runs at 50 Hz while training is at 100 Hz (bug C23). See docs/REAL_CAR_PROBE_PLAN.md.
+
+## 6. Sim-to-real configuration R: realistic car sensors, braking probe, racing expert (amendments 8, 8b)
+
+Everything above uses the simulator's true speed and gyro yaw rate, and an expert that drives 2.0 m/s × grip factor. R makes training match the car (docs/SIM_TO_REAL.md): speed from VESC wheel odometry (wheel spin and lock when traction-limited, ERPM gain error, noise, 50 Hz), yaw rate computed from odometry and the steering command, commanded steering, 40 Hz LiDAR with the node's 0.10 m margin, a **braking** probe (−1.0 m/s for 0.1 s every 0.5 s on straights), and a racing expert (full 3 m/s on straights, corner speed √(0.6·μ·g·R), braking 0.5·μ·g). Phase 1 *and* φ retrained for seeds 0–2. Config `configs/real_phase{1,2_probe}.yaml`, script `tools/real_suite.sh`, results `results/retrain_nov2026/real/`. A first attempt with the accelerating probe was stopped in Phase 1 (amendment 8b).
+
+**Base policies** (validation, 13 tracks, true grip): crashes 0/39, 0/39, 2/39; speed at grip 1.0 / 0.6 / 0.4 ≈ 2.57 / 2.55 / 2.40–2.51 m/s (P2/Q base policies: 3/39 crashes at 1.98 / 1.52 / 1.20 m/s). **Faster and safer**, with noisier sensors.
+
+**E1/E2** (N = 100 paired episodes per cell; crash rate / mean speed in m/s):
+
+| seed | controller | μ = 1.0 | 0.8 | 0.6 | 0.4 |
+|---|---|---|---|---|---|
+| 0 | Oracle | 0.02 / 2.56 | 0.00 / 2.55 | 0.00 / 2.52 | 0.02 / 2.29 |
+| 0 | **φ_R** | 0.00 / 2.55 | 0.01 / 2.55 | **0.01** / 2.53 | **0.39** / 2.39 |
+| 0 | Blind | 0.02 / 2.56 | 0.01 / 2.58 | 0.56 / 2.56 | 0.86 / 2.32 |
+| 1 | Oracle | 0.00 / 2.56 | 0.00 / 2.55 | 0.00 / 2.51 | 0.00 / 2.43 |
+| 1 | **φ_R** | 0.00 / 2.55 | 0.01 / 2.55 | **0.05** / 2.54 | **0.28** / 2.40 |
+| 1 | Blind | 0.00 / 2.56 | 0.07 / 2.57 | 0.43 / 2.58 | 0.84 / 2.35 |
+| 2 | Oracle | 0.00 / 2.55 | 0.00 / 2.55 | 0.00 / 2.54 | 0.09 / 2.48 |
+| 2 | **φ_R** | 0.01 / 2.54 | 0.03 / 2.55 | **0.00** / 2.53 | **0.37** / 2.35 |
+| 2 | Blind | 0.00 / 2.55 | 0.01 / 2.56 | 0.33 / 2.58 | 0.86 / 2.33 |
+
+**Pre-registered readouts** (amendment 8; all three seeds needed):
+
+| | seed 0 | seed 1 | seed 2 | verdict |
+|---|---|---|---|---|
+| R1: E5 φ grip R² ≥ 0.4 | 0.86 | 0.84 | 0.87 | **PASS** |
+| R2: φ speed drop ≥ 50% of the Oracle's | 0.16 vs 0.27 (59%) | 0.15 vs 0.13 (115%) | 0.19 vs 0.07 (271%) | **PASS** |
+| R3: Blind matched on measured speed crashes ≥ 0.10 more at μ = 0.4, p < 0.05 | 0.85 vs 0.39, p = 3×10⁻¹⁴ | 0.84 vs 0.28, p = 3×10⁻¹⁷ | 0.86 vs 0.37, p = 4×10⁻¹⁵ | **PASS** |
+| R4: G1, ρ gap closed at μ = 0.4 [95% CI] | 49% [38, 60] | 57% [45, 68] | 58% [47, 70] | **PASS** |
+| R4: H2, φ ≤ Blind − 0.30 at μ = 0.4 (Holm p) | 0.39 vs 0.86 (4×10⁻¹⁴) | 0.28 vs 0.84 (10⁻¹⁶) | 0.37 vs 0.86 (10⁻¹⁴) | **PASS** |
+| H3 (variance ratio ≥ 10) | 1.9× | 2.0× | 2.0× | FAIL |
+
+Matched Blind's speed at μ = 1.0: 2.51 / 2.51 / 2.50 m/s vs φ 2.55 / 2.55 / 2.54 (within 0.05). Blind capped at φ's speed by the Q3 rule drives *slower* than φ (2.12–2.15 m/s, the cap only binds on straights) and still crashes 0.77–0.78 at μ = 0.4.
+
+**What R shows.**
+
+1. **Adaptation is where to slow, not how fast.** All three controllers drive at about the same average speed; the Oracle and φ slow in corners on low grip, which a speed cap cannot do. A speed limit 0.4 m/s *below* φ's speed crashes twice as often at μ = 0.4.
+2. **μ = 0.6 is solved** (φ 0.00–0.05 vs Blind 0.33–0.56, Oracle 0.00).
+3. **μ = 0.4 is half solved:** φ 0.28–0.39 vs Blind 0.84–0.86 vs Oracle 0.00–0.09, gap closed 49–58% (Q, ideal sensors: 82–87%). Grip reading (R² 0.84–0.87) is good, so the remaining gap is likely latency: φ's estimate needs a probe on a straight, and at 2.4–2.5 m/s the car reaches the next corner before the estimate has settled. Not tested; a faster probe schedule or longer history at corner entry are candidates.
+
+**Caveats.** The wheel-slip model (spin-up to the command at 40 m/s², 30 ms relaxation) is an assumption that decides how much the odometry reveals; Stage 1 of `docs/REAL_CAR_PROBE_PLAN.md` measures it. Seed 2's base policy crashed 2/13 validation tracks at grip 0.4 (seeds 0–1: 0/13). The Oracle's speed drop with grip is small here (0.07–0.27 m/s), so R2's percentage is noisy.
