@@ -1,0 +1,8 @@
+== seed 0: Phase 1 (00:20)
+Tire model: friction_circle
+Training on device: cpu
+[DAgger 0] beta=1.000 dataset=100000 bc_mse=0.0018 | episodes=48 crash_rate=0.73 mean_len=1932
+[DAgger 1] beta=0.500 dataset=200000 bc_mse=0.0018 | episodes=42 crash_rate=0.76 mean_len=2310
+[DAgger 2] beta=0.250 dataset=300000 bc_mse=0.0019 | episodes=54 crash_rate=0.81 mean_len=1957
+[DAgger 3] beta=0.125 dataset=400000 bc_mse=0.0023 | episodes=53 crash_rate=0.83 mean_len=1811
+[DAgger 4] beta=0.062 dataset=500000 bc_mse=0.0032 | episodes=40 crash_rate=0.60 mean_len=2529
