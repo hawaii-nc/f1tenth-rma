@@ -202,3 +202,11 @@ Also reported, no threshold: the probe's cost (Oracle and Blind speed and crash 
 Also reported, no threshold: mean speeds vs Q (racing should be faster), the base policy's validation crash rate, H3.
 
 **Expected.** R1 passes but lower than Q (0.89–0.93), because the realistic sensors carry less information. R2 and R3 are uncertain: the racing expert slows down mostly in corners, so the speed gap between grips, and thus the room for adaptation, is smaller than in Q.
+
+### Amendment 8b, 2026-11-04 (before rerunning): braking probe
+
+**What happened.** The first R run (log `runs/real_attempt1_accel_probe.log`) was stopped during seed 0's Phase 1, after DAgger rounds 0–4 showed training crash rates of 0.73, 0.76, 0.81, 0.83, 0.60. No checkpoint or result from it is used. **Cause:** the +2.0 m/s probe on top of the racing expert's 3 m/s straights asks for 5 m/s just before corners. Expert alone, 40 training-randomized episodes each (same seed): old 2 m/s expert 28% crashes (1.76 m/s); racing expert + accelerating probe 50% (2.77 m/s); racing, no probe 40% (2.65); **racing + braking probe (−1.0 m/s) 25% (2.36 m/s)**; with cornering at 0.45 instead of 0.6: 30% (2.40) with the braking probe, 33% (2.62) without.
+
+**Change.** Probe amplitude −1.0 m/s (a 0.1 s braking pulse every 0.5 s on straights; f110's speed controller then asks for ~19 m/s², above μg at every grip). Same period, duration and steering gate. Everything else in amendment 8 is unchanged, including φ inputs (proprio + front beams), the expert (0.6 / 0.5), predictions R1–R4 and their thresholds.
+
+**Seen before writing this:** leakage-free diagnostic with car sensors and the braking probe, φ architecture, held-out R² **0.73** (proprio) and **0.68** (proprio + front beams), vs 0.52 / 0.52 with the accelerating probe; physical-feature ridge 0.25 per window, 0.48 per episode.

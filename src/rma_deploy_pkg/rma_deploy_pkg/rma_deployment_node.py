@@ -238,7 +238,7 @@ class RMADeploymentNode(Node):
         if self.probe is not None:
             period, dur, amp, probe_max_steer = self.probe
             if self._ticks % period < dur and abs(steer_cmd) < probe_max_steer:
-                velocity_cmd += amp   # applied before the shield, so the shield still caps it
+                velocity_cmd = max(0.0, velocity_cmd + amp)   # amp < 0 = braking probe; before the shield
         if self.shield is not None and self.lidar_raw is not None:
             velocity_cmd, _ = self.shield(velocity_cmd, steer_cmd, self.lidar_raw, self.shield_mu)
 

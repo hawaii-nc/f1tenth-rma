@@ -498,7 +498,7 @@ class F1TenthRMAEnv(gym.Env):
         if self.probe is not None:
             period, dur, amp, max_steer = self.probe
             if self.episode_step % period < dur and abs(steer_cmd) < max_steer:
-                velocity_cmd = velocity_cmd + amp
+                velocity_cmd = max(0.0, velocity_cmd + amp)   # amp < 0: braking probe (amendment 8b)
                 probing = True
         sim_action = np.array([steer_cmd, velocity_cmd], dtype=np.float32)
 

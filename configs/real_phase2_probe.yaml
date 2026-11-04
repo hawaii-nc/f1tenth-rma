@@ -1,3 +1,4 @@
+# AMENDMENT 8b: braking probe (amplitude -1.0 m/s): an accelerating pulse at racing speed asked for 5 m/s before corners.
 # AMENDMENT 8 (sim-to-real, R): retrain_phase2_fc_probe.yaml plus environment.sensors.model: car,
 # the racing expert (used only by experiments that need it), and phi inputs proprio + 10 front LiDAR beams.
 environment:
@@ -67,7 +68,7 @@ environment:
   probe:
     period_steps: 50
     duration_steps: 10
-    amplitude: 2.0
+    amplitude: -1.0
     max_steer: 0.15
   sensors:
     model: car
