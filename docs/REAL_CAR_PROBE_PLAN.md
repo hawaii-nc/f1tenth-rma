@@ -1,41 +1,59 @@
 # Real-car test plan: does the grip probe work on the F1TENTH car?
 
-**Goal.** Check, on the real car, the simulation finding behind amendment 6: a short speed pulse asks the tires for more than low grip can give, so the car's achieved acceleration reveals the grip. This is the first step toward Dr. Modekurthy's "learn on the fly in the real world" suggestion (Oct 31 email). Stage 1 needs no learned policy and can be run in one lab session.
+**Goal.** Check, on the real car, the simulation finding behind amendment 6: a short braking pulse asks the tires for more than low grip can give, so the car's achieved deceleration reveals the grip. This is the first step toward Dr. Modekurthy's "learn on the fly in the real world" suggestion (Oct 31 email). Stage 1 needs no learned policy and can be run in one lab session.
 
-## Stage 1: open-loop probe on different surfaces (no learned policy)
+## Stage 1: open-loop braking probe on different surfaces (no learned policy)
 
-**Setup.** A straight of at least 4 m. Test 3 grip conditions, using the July tire wraps where possible, since those are known to change the car's behaviour:
+The probe used by the deployable models (configuration R, amendment 8b) is a **braking** pulse: the speed command drops by 1.0 m/s for 0.1 s. This replaces the accelerating pulse in earlier versions of this plan.
+
+**Setup.** A straight of at least 4 m, ending at a flat wall 2–8 m beyond where the pulse happens (the front LiDAR then measures true speed, independent of wheel slip). Test 3 grip conditions, using the July tire wraps where possible, since those are known to change the car's behaviour:
 
 1. bare tires on polished concrete (high grip)
-2. electrical-tape-wrapped tires on polished concrete (lowest grip in July)
-3. one more: duct-tape wraps, or bare tires on a dusty or low-grip surface
+2. duct-tape wraps
+3. electrical-tape wraps (lowest grip in July)
 
-**Maneuver.** A simple script publishes `AckermannDriveStamped` commands:
-- cruise straight at 1.5 m/s for 1 s;
-- **pulse**: command 1.5 + 2.0 = 3.5 m/s for 0.1 s (the simulation probe: +2.0 m/s for 10 steps at 100 Hz);
-- back to 1.5 m/s for 1 s;
-- stop.
+**Maneuver and logging: `tools/real_car/probe_maneuver_node.py`** (ROS 2; untested on hardware, check topics with `ros2 topic list` first). One run per trial:
+- cruise straight at 1.5 m/s for 1.5 s
+- **pulse**: 0.5 m/s for 0.1 s
+- back to 1.5 m/s for 1 s
+- stop
 
-Repeat 20 times per condition, alternating direction. The simulation also used pulse sizes of +1.0 and +3.0 m/s; trying them on a few runs shows whether the motor, rather than the tires, limits acceleration.
+It logs, at 100 Hz, to one CSV:
+- the commanded speed
+- odometry speed and yaw rate
+- front LiDAR range (median of ±5° straight ahead)
+- IMU longitudinal acceleration, if `--imu_topic` is given
+- VESC motor current, if `/sensors/core` is available
 
-**Log (rosbag, everything at full rate):**
-- the drive commands sent
-- odometry speed. On most F1TENTH builds this comes from VESC wheel speed (ERPM), which reads **high** during wheelspin
-- IMU linear acceleration (x) and yaw rate, from the VESC's IMU or a separate IMU, whichever the car has
-- VESC motor current and duty cycle, if published (`/sensors/core` on the standard stack)
+```
+python3 tools/real_car/probe_maneuver_node.py --surface bare --trial 1 --out ~/probe_trials.csv
+```
 
-Topic names differ between builds: check `ros2 topic list` on the car first.
+Do 20 trials per surface, alternating direction.
 
-**Analysis (one script, per pulse):**
-- peak IMU longitudinal acceleration during the pulse
-- wheel slip: wheel speed minus the IMU-integrated speed over the pulse
-- whether the motor hit its current limit
+**Analysis: `tools/real_car/analyze_probe_trials.py`**
+```
+python3 tools/real_car/analyze_probe_trials.py ~/probe_trials.csv --order bare duct electrical --out probe_report.md
+```
+It computes per trial:
+- **imu_decel:** peak IMU deceleration
+- **odom_drop:** the drop in odometry speed once the wheel rolls again after the pulse
+- **odom_drop_frac:** odom_drop normalized by the drop available
+- **lidar_drop:** the drop in speed from the front-range rate
 
-**Pass criterion (set before running).** Peak acceleration differs across the 3 conditions (Kruskal–Wallis p < 0.05), and is lower for tape than for bare tires (Mann–Whitney, one-sided). If the motor current limit is hit at every condition, the pulse is motor-limited: reduce the cruise speed or raise the current limit before concluding anything.
+**Pass criterion (set before running).** At least one metric differs across the 3 surfaces (Kruskal–Wallis p < 0.05) and is lower for electrical tape than for bare tires (one-sided Mann–Whitney p < 0.05). Also check `motor_current`: if the brake current saturates at every surface, the pulse is motor-limited rather than tire-limited.
 
-**Expected (from simulation).** Achieved acceleration roughly tracks μg until the motor limit (sim: 3–9 m/s² over grip 0.3–0.9). Wheel slip during the pulse should be the clearest real-car signal, and it does not exist in the simulator.
+**Prediction (simulation of the same test, `tools/real_car/simulate_probe_trials.py`; `results/retrain_nov2026/real/probe_test_sim/analysis.md`)**, 20 trials per grip:
 
-**Safety.** The pulse adds at most ~0.8 m/s in 0.1 s on a straight; braking back down at low grip takes ~0.3 s. Keep walls at least 1 m beyond the end of the straight, and keep the e-stop in hand.
+| metric | grip 1.0 | grip 0.7 | grip 0.4 | separates? |
+|---|---|---|---|---|
+| IMU peak deceleration (m/s²) | 9.5 | 7.2 | 4.2 | yes, p = 4×10⁻¹² |
+| odometry speed drop (m/s) | 0.66 | 0.57 | 0.45 | yes, p = 4×10⁻⁸ |
+| LiDAR speed drop | — | — | — | no: the simulated straight has no wall ahead |
+
+So **the probe should be detectable even without an IMU**, through wheel odometry alone, *if* the real wheel slips as the model assumes (spin-up or lock at 40 m/s² towards the command, 30 ms recovery). That assumption is exactly what this test checks; the slip-model sensitivity runs (amendment 9) show how much the trained controller depends on it.
+
+**Safety.** The pulse only slows the car (by at most 1 m/s). Keep walls at least 1 m beyond the end of the straight, and keep the e-stop in hand.
 
 ## Stage 2: closed-loop (after Stage 1 passes)
 
