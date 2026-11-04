@@ -346,3 +346,32 @@ Matched Blind's speed at μ = 1.0: 2.51 / 2.51 / 2.50 m/s vs φ 2.55 / 2.55 / 2.
 3. **μ = 0.4 is half solved:** φ 0.28–0.39 vs Blind 0.84–0.86 vs Oracle 0.00–0.09, gap closed 49–58% (Q, ideal sensors: 82–87%). Grip reading (R² 0.84–0.87) is good, so the remaining gap is likely latency: φ's estimate needs a probe on a straight, and at 2.4–2.5 m/s the car reaches the next corner before the estimate has settled. Not tested; a faster probe schedule or longer history at corner entry are candidates.
 
 **Caveats.** The wheel-slip model (spin-up to the command at 40 m/s², 30 ms relaxation) is an assumption that decides how much the odometry reveals; Stage 1 of `docs/REAL_CAR_PROBE_PLAN.md` measures it. Seed 2's base policy crashed 2/13 validation tracks at grip 0.4 (seeds 0–1: 0/13). The Oracle's speed drop with grip is small here (0.07–0.27 m/s), so R2's percentage is noisy.
+
+## 7. Robustness of configuration R (amendment 9) and the wheel-slip model
+
+All with the seed-0 R models, N = 100 paired episodes per cell, results in `results/retrain_nov2026/real/robustness/`.
+
+**S: the trained controller depends on the simulated wheel-slip model.** Evaluation only, four alternative slip models (crash φ / Blind / Oracle):
+
+| slip model at test time | μ = 0.6 | μ = 0.4 | S1 (μ 0.4: φ ≤ Blind − 0.30) | S2 (μ 0.6: φ ≤ Blind − 0.20) |
+|---|---|---|---|---|
+| training model (spin-up 40 m/s², 30 ms) | 0.01 / 0.56 / 0.00 | 0.39 / 0.86 / 0.02 | (pass, section 6) | (pass) |
+| slow spin-up, 15 m/s² | 0.02 / 0.53 / 0.00 | 0.59 / 0.86 / 0.02 | **FAIL** (−0.27) | PASS |
+| fast spin-up, 120 m/s² | 0.01 / 0.54 / 0.00 | 0.43 / 0.86 / 0.03 | PASS | PASS |
+| slow recovery, 0.1 s | 0.04 / 0.56 / 0.00 | 0.79 / 0.86 / 0.04 | **FAIL** | PASS |
+| **no slip** (odometry = true speed) | **0.52 / 0.56 / 0.00** | **0.86 / 0.86 / 0.00** | **FAIL** | **FAIL** |
+
+The prediction (both hold for every variant) was wrong. φ_R reads grip from the *specific* wheel-slip signature of its training model. Without slip it is blind, although the car's true deceleration (now in the odometry) and the front LiDAR still carry the information. On the real car, whose slip behaviour is unknown, this is the main risk. Amendment 10 retrains φ with the slip model randomized (section 8).
+
+**A1-R, probe off at test time:** E5 φ grip R² **−0.004** (0.86 with the probe). **PASS**: the grip reading needs the probe.
+
+**A3-R, grip step 1.0 → 0.4 mid-episode** (N = 40): decoded grip settles within ±0.1 in a median of **21.5 steps (0.22 s)**; 36/39 episodes settle. **PASS** (< 100 steps).
+
+**A2-R, held-out tracks** (Phase 1 and φ retrained under R without mco/silverstone/budapest; evaluated on those 3 tracks; the main seed-0 models on the same episodes):
+
+| μ | held-out model: crash φ / Blind / Oracle, gap closed | main model: crash φ / Blind / Oracle, gap closed |
+|---|---|---|
+| 0.6 | 0.09 / 0.82 / 0.13, 92% [83, 99] | 0.03 / 0.75 / 0.00, 92% [86, 96] |
+| 0.4 | 0.61 / 0.93 / 0.03, 41% [30, 52] | 0.60 / 0.94 / 0.00, 39% [30, 48] |
+
+**PASS** (105% of the main model's gap at μ = 0.4; H2 holds, p = 10⁻⁹). Held-out base-policy validation: 0/39 crashes. These three tracks are harder than average: Blind crashes 0.93–0.94 at μ = 0.4 (0.84–0.86 over all tracks).
