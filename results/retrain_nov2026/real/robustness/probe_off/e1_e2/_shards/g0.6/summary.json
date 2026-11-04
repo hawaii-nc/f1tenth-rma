@@ -1,0 +1,76 @@
+{
+  "summary": [
+    {
+      "controller": "blind",
+      "grip": 0.6,
+      "n": 100,
+      "crash_rate": 0.63,
+      "completion_rate": 0.37,
+      "mean_speed": 2.8182926312469068,
+      "mean_rho": 0.3193711816490203,
+      "rho_sem": 0.01713571503309482,
+      "mean_progress_m": 45.90325348325347
+    },
+    {
+      "controller": "oracle",
+      "grip": 0.6,
+      "n": 100,
+      "crash_rate": 0.0,
+      "completion_rate": 1.0,
+      "mean_speed": 2.7676107036334576,
+      "mean_rho": 0.22888753012401522,
+      "rho_sem": 0.008531925057822912,
+      "mean_progress_m": 68.09683850847132
+    },
+    {
+      "controller": "phi",
+      "grip": 0.6,
+      "n": 100,
+      "crash_rate": 0.66,
+      "completion_rate": 0.34,
+      "mean_speed": 2.7933710548937114,
+      "mean_rho": 0.3313858857190157,
+      "rho_sem": 0.016594030507073202,
+      "mean_progress_m": 45.733383892283264
+    }
+  ],
+  "args": {
+    "spawn": "random",
+    "speed_cap": null,
+    "phase1": "runs/real_phase1_seed0/final.pt",
+    "phase2": "runs/real_phase2_seed0/final.pt",
+    "config": "configs/real_eval_probe_off.yaml",
+    "episodes": 100,
+    "tracks": null,
+    "max_steps": 2500,
+    "seed": 0,
+    "out": "results/retrain_nov2026/real/robustness/probe_off/e1_e2/_shards/g0.6",
+    "device": "cpu",
+    "tire_model": "friction_circle",
+    "grips": [
+      0.6
+    ],
+    "controllers": [
+      "oracle",
+      "phi",
+      "blind"
+    ]
+  },
+  "gaps": {
+    "phi_gap": {
+      "0.6": 0.1024983555950005
+    },
+    "blind_gap": {
+      "0.6": 0.09048365152500507
+    },
+    "gap_closed": {
+      "0.6": -0.13278314775653355
+    }
+  },
+  "cross_grip_variance": {
+    "oracle": 0.0,
+    "phi": 0.0,
+    "blind": 0.0
+  },
+  "blind_over_phi_variance_ratio": NaN
+}
