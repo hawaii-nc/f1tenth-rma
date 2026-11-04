@@ -42,7 +42,7 @@ The base policy π is trained by **DAgger imitation** of a Pure Pursuit expert. 
 - **Budai et al., "End-to-end Reinforcement Learning for Autonomous Racing: Bridging the sim-to-real gap" (ACC 2025).** Domain randomization, training with disturbances, observation preprocessing; validated on an F1TENTH-type car.
 - **Evans et al., "High-speed Autonomous Racing using Trajectory-aided Deep Reinforcement Learning" (RA-L 2023, arXiv 2306.07003).** LiDAR-only agents in the F1TENTH simulator learn a feasible speed profile by following a reference trajectory; notes that the single-track linear tire model is only accurate for small slip angles.
 - **Chen et al., "Understanding Domain Randomization for Sim-to-real Transfer" (ICLR 2022).** Theory: with domain randomization, policies with memory (history) transfer better. Supports RMA's history-based φ.
-- **Friction estimation needs excitation:** Acosta et al., Applied Sciences 2017 (review): slip-based estimators need high excitation; Prokeš et al. (Chalmers): the brush model needs 54–94% friction utilization for an accurate estimate. This is the observability finding of amendment 6 and the reason for the probe.
+- **Friction estimation needs excitation:** Acosta et al., Applied Sciences 2017 (review): slip-based estimators need high excitation; Prokes, Albinsson, Laine (ITSC 2016): the brush-model estimator needs 54–94% friction utilization for an accurate estimate. This is the observability finding of amendment 6 and the reason for the probe.
 - **IMU + motor speed on F1TENTH** (arXiv 2408.15610): velocity estimation from IMU and motor speed with a learned model under large slip; relevant if VADER's VESC IMU can be used.
 
 ## 5. Still open (needs the car or a decision)
