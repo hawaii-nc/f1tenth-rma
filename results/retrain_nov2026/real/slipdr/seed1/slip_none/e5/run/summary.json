@@ -1,0 +1,30 @@
+{
+  "summary": [],
+  "args": {
+    "spawn": "random",
+    "speed_cap": null,
+    "phase1": "runs/real_phase1_seed1/final.pt",
+    "phase2": "runs/real_phase2_slipdr_seed1/final.pt",
+    "config": "configs/real_eval_slip_none.yaml",
+    "episodes": 200,
+    "tracks": null,
+    "max_steps": 2500,
+    "seed": 0,
+    "out": "results/retrain_nov2026/real/slipdr/seed1/slip_none/e5/run",
+    "device": "cpu",
+    "tire_model": "friction_circle",
+    "grip_range": [
+      0.2,
+      1.0
+    ],
+    "stride": 10,
+    "randomize_others": false
+  },
+  "r2": {
+    "encoder": 0.9995285182100216,
+    "history": 0.13945636687241325,
+    "phi": 0.6336314761939283
+  },
+  "samples": 41113,
+  "H1_pass": false
+}
