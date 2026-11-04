@@ -137,6 +137,20 @@ class F1TenthRMAEnv(gym.Env):
         if pr.get('enabled', bool(pr)):
             self.probe = (int(pr.get('period_steps', 50)), int(pr.get('duration_steps', 10)),
                           float(pr.get('amplitude', 2.0)), float(pr.get('max_steer', 0.15)))
+        # Optional real-car sensor model (amendment 8, docs/SIM_TO_REAL.md). With
+        # sensors.model = 'car' the observation is built the way the car's
+        # rma_deployment_node builds it from the standard F1TENTH stack:
+        #   speed     VESC wheel odometry: the wheel spins up / locks while the tire
+        #             is traction-limited, a per-episode ERPM gain error, noise, 50 Hz
+        #   steering  the last commanded steering (the node has no servo feedback)
+        #   yaw rate  kinematic, v_odom * tan(steer_cmd) / L, as vesc_to_odom computes it
+        #             (no gyro)
+        #   LiDAR     40 Hz scans (zero-order hold) and the node's 0.10 m footprint margin
+        sens = self.config.get('sensors') or {}
+        self.car_sensors = sens.get('model') == 'car'
+        self.sensor_cfg = {'odom_hz': 50.0, 'lidar_hz': 40.0, 'speed_noise': 0.03, 'speed_gain_err': 0.05,
+                           'footprint_margin': 0.10, 'wheel_spin_accel': 40.0, 'wheel_relax_s': 0.03,
+                           'wheelbase': 0.33, **{k: v for k, v in sens.items() if k != 'model'}}
         self.tire_model = str(self.config.get('tire_model', 'linear'))
         if self.tire_model not in TIRE_MODELS:
             # Checked here so a typo can never silently fall back to the mock env.
@@ -332,6 +346,8 @@ class F1TenthRMAEnv(gym.Env):
 
         # Reset episode state
         self.prev_action = np.zeros(2, dtype=np.float32)
+        if self.car_sensors:
+            self._sensor_reset(raw_obs_vec, seed)
         self.current_state = self._process_observation(raw_obs_vec, self.prev_action, raw_obs_dict)
         self.episode_step = 0
         self.total_episode_reward = 0.0
@@ -370,6 +386,8 @@ class F1TenthRMAEnv(gym.Env):
         v, steering, yaw_rate = float(raw_obs_vec[0]), float(raw_obs_vec[1]), float(raw_obs_vec[2])
         steering_des = float(last_action[0])
         v_des = self.throttle_to_velocity(last_action[1])
+        if self.car_sensors:
+            v, steering, yaw_rate, raw_obs_dict = self._car_measurements(v, steering_des, raw_obs_dict)
         base_obs = np.array([v, steering, v_des, steering_des, yaw_rate], dtype=np.float32)
 
         obs_config = self.config.get('observation', {})
@@ -383,6 +401,8 @@ class F1TenthRMAEnv(gym.Env):
             full_scan = np.asarray(raw_obs_dict['scans'][0], dtype=np.float32)
             indices = np.linspace(0, len(full_scan) - 1, num_beams).astype(int)
             lidar = full_scan[indices]
+            if self.car_sensors:
+                lidar = lidar - self.sensor_cfg['footprint_margin']
             lidar = np.clip(lidar, 0.0, max_range) / max_range
         else:
             lidar = np.zeros(num_beams, dtype=np.float32)
@@ -397,6 +417,51 @@ class F1TenthRMAEnv(gym.Env):
             lidar = np.clip(lidar, 0.0, 1.0)
 
         return np.concatenate([base_obs, lidar]).astype(np.float32)
+
+    # ------------------------------------------------------- real-car sensors
+    def _sensor_reset(self, raw_obs_vec, seed):
+        self._srng = np.random.default_rng(None if seed is None else [int(seed), 4242])
+        c = self.sensor_cfg
+        self._v_wheel = float(raw_obs_vec[0])
+        self._speed_gain = 1.0 + float(self._srng.uniform(-c['speed_gain_err'], c['speed_gain_err']))
+        self._v_odom = self._speed_gain * self._v_wheel
+        self._scan_hold = None
+        self._sensor_t = 0
+
+    def _car_measurements(self, v_true, steer_cmd, raw_obs_dict):
+        """Advance the sensor model one control step; return what the car's node would see."""
+        c = self.sensor_cfg
+        dt = self.base_env.timestep if self.base_env is not None else 0.01
+        t = self._sensor_t
+        # Wheel speed. The VESC drives the wheel towards the speed command; f110's speed
+        # controller requests a = 4.755*(v_cmd - v) (accelerating) or 19.02*(v_cmd - v)
+        # (braking). When that exceeds the traction limit mu*g, the wheel spins up / locks
+        # towards the command at wheel_spin_accel; otherwise it rolls at the car's speed.
+        v_cmd = float(getattr(self.base_env, 'last_vcmd', v_true)) if self.base_env is not None else v_true
+        grip = float(self.current_physics_params.get('grip_factor', 1.0))
+        a_lim = 1.0489 * grip * 9.81
+        dv = v_cmd - v_true
+        a_req = (4.755 if dv > 0 else 19.02) * dv
+        slipping = self.tire_model != 'linear' and abs(a_req) > a_lim
+        if slipping:
+            step = c['wheel_spin_accel'] * dt
+            self._v_wheel += float(np.clip(v_cmd - self._v_wheel, -step, step))
+        else:
+            self._v_wheel = v_true + (self._v_wheel - v_true) * np.exp(-dt / c['wheel_relax_s'])
+        # Odometry at odom_hz, with a per-episode ERPM calibration error and noise
+        odom_every = max(1, int(round(1.0 / (c['odom_hz'] * dt))))
+        if t % odom_every == 0:
+            self._v_odom = self._speed_gain * self._v_wheel + float(self._srng.normal(0.0, c['speed_noise']))
+        v_obs = self._v_odom
+        steer_clip = float(np.clip(steer_cmd, -0.4189, 0.4189))
+        yaw_obs = v_obs * np.tan(steer_clip) / c['wheelbase']
+        # LiDAR at lidar_hz: hold the last scan between updates
+        if raw_obs_dict is not None and 'scans' in raw_obs_dict:
+            if self._scan_hold is None or int(t * c['lidar_hz'] * dt) != int((t - 1) * c['lidar_hz'] * dt):
+                self._scan_hold = np.array(raw_obs_dict['scans'][0], dtype=np.float32)
+            raw_obs_dict = dict(raw_obs_dict, scans=[self._scan_hold])
+        self._sensor_t = t + 1
+        return v_obs, steer_cmd, yaw_obs, raw_obs_dict
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, bool, Dict]:
         """

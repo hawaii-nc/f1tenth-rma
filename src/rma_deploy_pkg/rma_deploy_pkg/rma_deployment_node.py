@@ -50,7 +50,7 @@ ACTION_DIM = 2
 MAX_VELOCITY = 3.0      # m/s -- matches tight-track training config
 NOMINAL_PHYSICS = [1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0]
 STATIONARY_VEL_THRESHOLD = 0.10
-STATIONARY_TIMEOUT_TICKS = 150  # 3s at 50Hz
+STATIONARY_TIMEOUT_S = 3.0
 
 
 def preprocess_scan(ranges, beams=LIDAR_BEAMS, max_range=LIDAR_MAX_RANGE, footprint_margin=0.10):
@@ -71,19 +71,30 @@ class RMADeploymentNode(Node):
         self,
         actor_critic_checkpoint: str,
         adaptation_checkpoint: Optional[str] = None,
-        control_freq: float = 50.0,
+        control_freq: float = 100.0,   # training runs at 100 Hz (bug C23)
         odom_topic: str = '/ego_racecar/odom',
         scan_topic: str = '/scan',
         drive_topic: str = '/drive',
         history_window: Optional[int] = None,
         log_path: str = '~/rma_data.csv',
-        max_steer: float = 0.436,
+        max_steer: float = 0.4189,     # training's steering limit (July trials used 0.436)
         footprint_margin: float = 0.10,
         shield: bool = False,
         shield_mu: float = 1.0,
+        probe: bool = False,
+        probe_period: int = 50,
+        probe_duration: int = 10,
+        probe_amplitude: float = 2.0,
+        probe_max_steer: float = 0.15,
     ):
         super().__init__('rma_deployment')
         self.control_freq = control_freq
+        self.stationary_timeout_ticks = int(STATIONARY_TIMEOUT_S * control_freq)
+        # Active grip probe (amendment 6): identical to envs/f1tenth_env.py. Counted in
+        # control ticks, so it assumes control_freq = 100 Hz like training.
+        self.probe = (probe_period, probe_duration, probe_amplitude, probe_max_steer) if probe else None
+        if probe and abs(control_freq - 100.0) > 1e-6:
+            self.get_logger().warn('--probe was tuned at 100 Hz; at %.0f Hz its period and pulse length change' % control_freq)
         self.max_steer = max_steer
         self.footprint_margin = footprint_margin
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -224,6 +235,10 @@ class RMADeploymentNode(Node):
         steer_cmd = float(np.clip(action_np[0], -self.max_steer, self.max_steer))
         throttle_cmd = float(np.clip(action_np[1], -1.0, 1.0))
         velocity_cmd = (throttle_cmd + 1.0) / 2.0 * MAX_VELOCITY
+        if self.probe is not None:
+            period, dur, amp, probe_max_steer = self.probe
+            if self._ticks % period < dur and abs(steer_cmd) < probe_max_steer:
+                velocity_cmd += amp   # applied before the shield, so the shield still caps it
         if self.shield is not None and self.lidar_raw is not None:
             velocity_cmd, _ = self.shield(velocity_cmd, steer_cmd, self.lidar_raw, self.shield_mu)
 
@@ -239,7 +254,7 @@ class RMADeploymentNode(Node):
             self._stationary_ticks += 1
         else:
             self._stationary_ticks = 0
-        if self._stationary_ticks < STATIONARY_TIMEOUT_TICKS:
+        if self._stationary_ticks < self.stationary_timeout_ticks:
             lidar_m = self.lidar_obs * LIDAR_MAX_RANGE
             self._csv.writerow(
                 [self._now(), True, self.current_velocity, self.current_yaw_rate,
@@ -268,18 +283,24 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--actor_critic', type=str, required=True)
     parser.add_argument('--adaptation', type=str, default='')
-    parser.add_argument('--control_freq', type=float, default=50.0)
+    parser.add_argument('--control_freq', type=float, default=100.0,
+                        help='100 Hz matches training; the July 2026 trials ran at 50 Hz (bug C23)')
     parser.add_argument('--odom_topic', type=str, default='/ego_racecar/odom')
     parser.add_argument('--scan_topic', type=str, default='/scan')
     parser.add_argument('--drive_topic', type=str, default='/drive')
     parser.add_argument('--history_window', type=int, default=0,
                         help='Ignored when it disagrees with the φ checkpoint (kept for old scripts)')
     parser.add_argument('--log_path', type=str, default='~/rma_data.csv')
-    parser.add_argument('--max_steer', type=float, default=0.436,
-                        help='0.436 rad was used in the July 2026 hardware trials; training clipped at 0.4189')
+    parser.add_argument('--max_steer', type=float, default=0.4189,
+                        help='training clips at 0.4189 rad; the July 2026 hardware trials used 0.436')
     parser.add_argument('--footprint_margin', type=float, default=0.10)
     parser.add_argument('--shield', action='store_true')
     parser.add_argument('--shield_mu', type=float, default=1.0)
+    parser.add_argument('--probe', type=int, default=0, help='1 = active grip probe (needed by probe-trained φ)')
+    parser.add_argument('--probe_period', type=int, default=50)
+    parser.add_argument('--probe_duration', type=int, default=10)
+    parser.add_argument('--probe_amplitude', type=float, default=2.0)
+    parser.add_argument('--probe_max_steer', type=float, default=0.15)
     args, _ = parser.parse_known_args()
 
     rclpy.init()
@@ -296,6 +317,11 @@ def main():
         footprint_margin=args.footprint_margin,
         shield=args.shield,
         shield_mu=args.shield_mu,
+        probe=bool(args.probe),
+        probe_period=args.probe_period,
+        probe_duration=args.probe_duration,
+        probe_amplitude=args.probe_amplitude,
+        probe_max_steer=args.probe_max_steer,
     )
     try:
         rclpy.spin(node)

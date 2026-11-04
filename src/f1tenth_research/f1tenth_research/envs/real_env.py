@@ -107,6 +107,7 @@ class RealF110Wrapper:
         self.vehicle_params = dict(NOMINAL_VEHICLE_PARAMS)
         self.last_steer = 0.0
         self.last_vel = 0.0
+        self.last_vcmd = 0.0
         self.steer_scale = 1.0
         self.drive_scale = 1.0
         self.steer_queue = deque([0.0])
@@ -176,6 +177,7 @@ class RealF110Wrapper:
         poses = np.array([[x, y, heading + heading_offset]])
         obs, _, _, _ = self.env.reset(poses)
         self.last_steer = 0.0
+        self.last_vcmd = 0.0
         self.last_vel = float(obs['linear_vels_x'][0])
         return self._to_vec(obs), obs
 
@@ -208,6 +210,7 @@ class RealF110Wrapper:
         self._activate_map()
         obs, _, done, info = self.env.step(ctrl)
         self.last_steer = delayed_steer
+        self.last_vcmd = delayed_velocity
         self.last_vel = float(obs['linear_vels_x'][0])
         done = bool(done) or bool(obs['collisions'][0])
         return self._to_vec(obs), obs, done, info
