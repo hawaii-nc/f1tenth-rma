@@ -1,0 +1,28 @@
+{
+  "summary": [],
+  "args": {
+    "spawn": "random",
+    "speed_cap": null,
+    "phase1": "runs/real_phase1_seed0/final.pt",
+    "phase2": "runs/real_phase2_slipdr_seed0/final.pt",
+    "config": "configs/real_phase2_probe_slipdr.yaml",
+    "episodes": 40,
+    "tracks": null,
+    "max_steps": 2500,
+    "seed": 0,
+    "out": "results/retrain_nov2026/real/amendment11/robustness/e3/run",
+    "device": "cpu",
+    "tire_model": "friction_circle",
+    "grip_before": 1.0,
+    "grip_after": 0.4,
+    "change_step": 500,
+    "calib_episodes": 10,
+    "band": 0.1,
+    "hold": 25
+  },
+  "episodes_reaching_change": 39,
+  "settled_fraction": 0.9487179487179487,
+  "settle_steps_median": 28.0,
+  "settle_seconds_median": 0.28,
+  "phi_history_window": 50
+}
