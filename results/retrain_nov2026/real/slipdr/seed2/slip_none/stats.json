@@ -1,0 +1,157 @@
+[
+  {
+    "run": "results/retrain_nov2026/real/slipdr/seed2/slip_none/e1_e2/run",
+    "cells": [
+      {
+        "controller": "blind",
+        "grip": 0.6,
+        "n": 100,
+        "n_distinct": 100,
+        "crash_rate": 0.3,
+        "crash_ci": [
+          0.21894753866228117,
+          0.39585038432811953
+        ],
+        "mean_speed": 2.588577848687225,
+        "mean_rho": 0.5182420150358682,
+        "rho_ci": [
+          0.5035392341737126,
+          0.5340518447603355
+        ]
+      },
+      {
+        "controller": "blind",
+        "grip": 0.4,
+        "n": 100,
+        "n_distinct": 100,
+        "crash_rate": 0.86,
+        "crash_ci": [
+          0.7786263961619276,
+          0.914737342455351
+        ],
+        "mean_speed": 2.375525499309963,
+        "mean_rho": 0.6690019834169173,
+        "rho_ci": [
+          0.6346651615859181,
+          0.704496162474798
+        ]
+      },
+      {
+        "controller": "oracle",
+        "grip": 0.6,
+        "n": 100,
+        "n_distinct": 100,
+        "crash_rate": 0.01,
+        "crash_ci": [
+          0.0017673865655472645,
+          0.0544875247609346
+        ],
+        "mean_speed": 2.5325583840236074,
+        "mean_rho": 0.4650326344191006,
+        "rho_ci": [
+          0.46009384261162584,
+          0.4702455077685126
+        ]
+      },
+      {
+        "controller": "oracle",
+        "grip": 0.4,
+        "n": 100,
+        "n_distinct": 100,
+        "crash_rate": 0.1,
+        "crash_ci": [
+          0.05522854161313613,
+          0.1743673043676654
+        ],
+        "mean_speed": 2.477944128252885,
+        "mean_rho": 0.5171759711882886,
+        "rho_ci": [
+          0.5095453199783064,
+          0.5252485395620063
+        ]
+      },
+      {
+        "controller": "phi",
+        "grip": 0.6,
+        "n": 100,
+        "n_distinct": 100,
+        "crash_rate": 0.04,
+        "crash_ci": [
+          0.015663050551848016,
+          0.09837217232607373
+        ],
+        "mean_speed": 2.5663915172506524,
+        "mean_rho": 0.4840465562086687,
+        "rho_ci": [
+          0.4758423253422644,
+          0.492967203954934
+        ]
+      },
+      {
+        "controller": "phi",
+        "grip": 0.4,
+        "n": 100,
+        "n_distinct": 100,
+        "crash_rate": 0.54,
+        "crash_ci": [
+          0.44264685393523856,
+          0.6343935614666815
+        ],
+        "mean_speed": 2.4134772669475812,
+        "mean_rho": 0.6174637725594971,
+        "rho_ci": [
+          0.5894461572224404,
+          0.647516013506389
+        ]
+      }
+    ],
+    "grips": {
+      "0.6": {
+        "n_paired": 100,
+        "gap_closed": 0.6426584641811004,
+        "gap_ci": [
+          0.5506950595858882,
+          0.7227905374272594
+        ],
+        "phi_crash": 0.04,
+        "blind_crash": 0.3,
+        "oracle_crash": 0.01,
+        "phi_speed": 2.5663915172506524,
+        "blind_speed": 2.588577848687225,
+        "oracle_speed": 2.5325583840236074,
+        "mcnemar_p": 2.1606683731079102e-07,
+        "mcnemar_p_holm": 2.1606683731079102e-07,
+        "wilcoxon_rho_p": 2.926041629852011e-16,
+        "wilcoxon_rho_p_holm": 5.852083259704022e-16
+      },
+      "0.4": {
+        "n_paired": 100,
+        "gap_closed": 0.3394557368720904,
+        "gap_ci": [
+          0.22195336896354528,
+          0.45702328006359266
+        ],
+        "phi_crash": 0.54,
+        "blind_crash": 0.86,
+        "oracle_crash": 0.1,
+        "phi_speed": 2.4134772669475812,
+        "blind_speed": 2.375525499309963,
+        "oracle_speed": 2.477944128252885,
+        "mcnemar_p": 4.656612873077393e-10,
+        "mcnemar_p_holm": 9.313225746154785e-10,
+        "wilcoxon_rho_p": 2.4557924093657907e-05,
+        "wilcoxon_rho_p_holm": 2.4557924093657907e-05
+      }
+    },
+    "variance_ratio_blind_over_phi": 1.2768748266444663,
+    "variance_ratio_ci": [
+      0.8948251419056377,
+      1.7873509904706801
+    ],
+    "hypotheses": {
+      "G1 (gap closed >= 30% at 0.4, CI excludes 0)": true,
+      "H2 (phi crash <= blind crash - 0.30 at 0.4, McNemar p < .05)": true,
+      "H3 (cross-grip variance ratio >= 10)": false
+    }
+  }
+]
