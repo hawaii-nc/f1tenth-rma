@@ -15,7 +15,9 @@ The full record follows; sections 4–8 hold the current results. In order of ev
 3. **It survives realistic car sensing at racing speed.** With wheel-odometry speed (with slip), kinematic yaw rate, commanded steering, 40 Hz LiDAR, a braking probe and a racing expert, φ reads grip at R² 0.84–0.87 and, at equal average speed, crashes 0.00–0.05 vs 0.33–0.56 (μ = 0.6) and 0.28–0.39 vs 0.84–0.86 (μ = 0.4), beating a speed-matched Blind on every seed (section 6).
 4. **It depends on the wheel-slip model, partly fixed.** Trained on one slip model, φ is blind without slip. With the slip model randomized in training, it beats Blind in all 30 slip-model × seed × grip comparisons, but misses the registered margin at μ = 0.4 on one seed for the two weakest-signal slip models (sections 7–8).
 
-**Failed or not supported:** H1 (R² ≥ 0.7) without the probe; H3 (cross-grip ρ variance ≥ 10×) with it, which even the Oracle fails; the original configuration's G1/H2/H3; the 2 s window (W); the high-speed test (infeasible); amendment 10's D1. All are reported below.
+5. **The μ = 0.4 gap is not a timing problem.** A 2 s memory changes nothing (0.41 vs 0.41) and a faster probe makes it worse (0.58). φ_DR's grip reading needs the probe (R² −0.02 without) and settles 0.28 s after a grip drop; on the three hardest, unseen tracks it transfers (gap closed 31% vs 27% for a model trained on them) but no longer clears the H2 margin at μ = 0.4 (section 9).
+
+**Failed or not supported:** H1 (R² ≥ 0.7) without the probe; H3 (cross-grip ρ variance ≥ 10×) with it, which even the Oracle fails; the original configuration's G1/H2/H3; the 2 s window (W); the high-speed test (infeasible); amendment 10's D1; amendment 11's arms M and F and A2-DR's H2. All are reported below.
 
 **Not shown:** anything on the real car with the probe. The deployable models and the one-session test are in docs/SIM_TO_REAL.md and docs/REAL_CAR_PROBE_PLAN.md.
 
@@ -415,3 +417,27 @@ All 30 φ_DR-vs-Blind comparisons are significant (McNemar, Holm p ≤ 0.034). E
 **What changed (seed 0, the only seed where φ_R was tested across slip models, section 7).** With no slip, φ_R was blind (μ 0.6: 0.52 vs Blind 0.56; μ 0.4: 0.86 vs 0.86); φ_DR crashes 0.07 and 0.64. At μ = 0.6, φ_DR now works under every slip model on every seed (crash ≤ 0.07 vs 0.29–0.56). At μ = 0.4 it beats Blind everywhere but, on seed 0, by less than the registered margin when the slip signal is weak or absent. Robustness costs nothing under the default model (D2).
 
 **Use φ_DR for the car.** The real car's wheel slip is unknown; φ_DR keeps the default-model performance and degrades gracefully without the slip signature, where φ_R fails completely.
+
+## 9. The μ = 0.4 gap, and robustness of φ_DR (amendment 11)
+
+Seed 0 throughout; N = 100 paired episodes per cell. Results `results/retrain_nov2026/real/amendment11/`.
+
+**Gap hypotheses: both fail.** φ_DR crashes 0.41 at μ = 0.4 (Oracle 0.02). The registered hypothesis was that φ's 0.5 s memory forgets the last probe (only possible on a straight) before the next corner.
+
+| arm | change | crash at μ = 0.4 (φ / Blind / Oracle) | μ = 0.6 | speed at μ = 1.0 (φ) | no slip, μ = 0.4 | verdict (≤ 0.31, p < 0.05) |
+|---|---|---|---|---|---|---|
+| φ_DR (reference) | — | 0.41 / 0.86 / 0.02 | 0.01 | 2.55 | 0.64 | — |
+| M | 2 s memory (197 steps, every 4th) | 0.41 / 0.86 / 0.01 | 0.04 | 2.55 | **0.34** | **FAIL** (paired p = 1.0) |
+| F | probe every 0.25 s | 0.58 / 0.85 / 0.03 | 0.04 | 2.28 | 0.82 | **FAIL** (worse) |
+
+A longer memory does not help under the default slip model, so forgetting is not the cause. It does halve the no-slip crash rate (0.64 → 0.34), an unregistered observation. Probing twice as often costs every controller ~0.25 m/s and hurts φ, plausibly because the base policy was trained with the 0.5 s probe. The cause of the μ = 0.4 gap remains open; the base policy itself (even the Oracle drops to ~2.2–2.3 m/s there, leaving little margin for an imperfect estimate) is the untested candidate.
+
+**Robustness of φ_DR (the deployable model).**
+
+| ID | Result | Verdict |
+|---|---|---|
+| A1-DR, probe off | E5 φ grip R² −0.02 (0.84 with the probe) | **PASS** |
+| A3-DR, grip step 1.0 → 0.4 | median settle 28 steps (0.28 s), 37/39 episodes | **PASS** |
+| A2-DR, held-out tracks (mco, silverstone, budapest) | Held-out model: μ 0.6 crash 0.23 / 0.83 / 0.14 (φ / Blind / Oracle), μ 0.4 0.74 / 0.92 / 0.02, gap closed 31% [21, 40]. Main model on the same episodes: 0.06 / 0.71 / 0.00 and 0.69 / 0.94 / 0.00, 27% [17, 36] | **FAIL**: transfer holds (115% of the main model's gap) but H2 fails (−0.18 vs the required −0.30); the main model also fails H2 on these tracks |
+
+These three tracks are the hardest (Blind 0.92–0.94 at μ = 0.4). φ_R did better on them than φ_DR (μ 0.4: 0.60 vs 0.69; section 7), so slip randomization costs some low-grip performance on hard tracks, a trade-off against its slip robustness (section 8).

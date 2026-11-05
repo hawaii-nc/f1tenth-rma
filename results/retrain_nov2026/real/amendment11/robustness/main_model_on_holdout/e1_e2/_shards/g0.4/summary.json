@@ -1,0 +1,95 @@
+{
+  "summary": [
+    {
+      "controller": "blind",
+      "grip": 0.4,
+      "n": 100,
+      "crash_rate": 0.94,
+      "completion_rate": 0.06,
+      "mean_speed": 2.279723315528959,
+      "mean_rho": 0.742706681796308,
+      "rho_sem": 0.017423759522333212,
+      "mean_progress_m": 16.498912334790607
+    },
+    {
+      "controller": "oracle",
+      "grip": 0.4,
+      "n": 100,
+      "crash_rate": 0.0,
+      "completion_rate": 1.0,
+      "mean_speed": 2.2857212625566756,
+      "mean_rho": 0.5207675533786332,
+      "rho_sem": 0.002342382020774957,
+      "mean_progress_m": 56.35961018966958
+    },
+    {
+      "controller": "phi",
+      "grip": 0.4,
+      "n": 100,
+      "crash_rate": 0.69,
+      "completion_rate": 0.31,
+      "mean_speed": 2.297323496857306,
+      "mean_rho": 0.682441361850932,
+      "rho_sem": 0.014831541613718247,
+      "mean_progress_m": 32.91862205348272
+    }
+  ],
+  "args": {
+    "spawn": "random",
+    "speed_cap": null,
+    "phase1": "runs/real_phase1_seed0/final.pt",
+    "phase2": "runs/real_phase2_slipdr_seed0/final.pt",
+    "config": "configs/real_phase2_probe_slipdr.yaml",
+    "episodes": 100,
+    "tracks": [
+      "mco_tight",
+      "silverstone_tight",
+      "budapest_tight"
+    ],
+    "max_steps": 2500,
+    "seed": 0,
+    "out": "results/retrain_nov2026/real/amendment11/robustness/main_model_on_holdout/e1_e2/_shards/g0.4",
+    "device": "cpu",
+    "tire_model": "friction_circle",
+    "grips": [
+      0.4
+    ],
+    "controllers": [
+      "oracle",
+      "phi",
+      "blind"
+    ],
+    "n_boot": 2000
+  },
+  "gaps": {
+    "phi_gap": {
+      "0.4": 0.16167380847229873
+    },
+    "blind_gap": {
+      "0.4": 0.22193912841767482
+    },
+    "gap_closed": {
+      "0.4": 0.2715398603889294
+    }
+  },
+  "cross_grip_variance": {
+    "oracle": 0.0,
+    "phi": 0.0,
+    "blind": 0.0
+  },
+  "blind_over_phi_variance_ratio": NaN,
+  "bootstrap": {
+    "gap_closed": {
+      "0.4": [
+        0.1759809949471779,
+        0.3592417282435085
+      ]
+    },
+    "blind_over_phi_variance_ratio": [
+      NaN,
+      NaN
+    ],
+    "n_boot": 2000,
+    "ci": 0.95
+  }
+}

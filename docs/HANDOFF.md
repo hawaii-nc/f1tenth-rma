@@ -28,7 +28,7 @@ All work since October is on branch `retrain-fixed-and-tire-model` (not yet merg
 | 2 | Check whether VADER's VESC publishes IMU data (`ros2 topic list`) | An IMU acceleration channel would measure the probe directly (simulated: 9.5 / 7.2 / 4.2 m/s² at grip 1.0 / 0.7 / 0.4) |
 | 3 | Re-center the slip randomization on what Stage 1 measures, retrain φ (`tools/slipdr_suite.sh`, ~1.5 h per seed on 4 CPU cores) | φ is strongest when the training slip model matches the car |
 | 4 | Closed-loop car trials: π + φ with the probe vs Blind, same tire wraps as July | The paper's missing real-car result |
-| 5 | Close the μ = 0.4 gap (amendment 11 tests a longer memory and a faster probe) | φ closes ~50% of the Oracle gap there with realistic sensing |
+| 5 | Close the μ = 0.4 gap | Not timing (amendment 11: longer memory and faster probe both fail). Untested candidate: the base policy itself at low grip |
 | 6 | Choose the workshop; advisor review | |
 
 ## Not in this repo (ask Nathan)

@@ -111,7 +111,7 @@ Configuration R builds the observation the way the car's node builds it from the
 \label{fig:slip}
 \end{figure}
 
-The wheel-slip model is an assumption. Evaluated under four alternatives, \phiA{} degraded and, with no slip at all, was blind (Fig.~\ref{fig:slip}; $\mu\!=\!0.4$: 0.86 vs 0.86 for Blind), although the true deceleration and the front LiDAR still carry the information. Retraining \phiA{} with the slip model randomized per episode costs nothing under the default model and beats Blind in all 30 slip-model $\times$ seed $\times$ grip comparisons ($\mu\!=\!0.6$: $\le$0.07 vs 0.29--0.56); with no slip it reads grip at $R^2$ 0.59--0.63 (Fig.~\ref{fig:readability}). The pre-registered margin at $\mu\!=\!0.4$ (0.30) is missed on one seed for the two weakest-signal models (0.19, 0.22).
+The wheel-slip model is an assumption. Evaluated under four alternatives, \phiA{} degraded and, with no slip at all, was blind (Fig.~\ref{fig:slip}; $\mu\!=\!0.4$: 0.86 vs 0.86 for Blind), although the true deceleration and the front LiDAR still carry the information. Retraining \phiA{} with the slip model randomized per episode costs nothing under the default model and beats Blind in all 30 slip-model $\times$ seed $\times$ grip comparisons ($\mu\!=\!0.6$: $\le$0.07 vs 0.29--0.56); with no slip it reads grip at $R^2$ 0.59--0.63 (Fig.~\ref{fig:readability}). The pre-registered margin at $\mu\!=\!0.4$ (0.30) is missed on one seed for the two weakest-signal models (0.19, 0.22). Its estimate still depends on the probe ($R^2$ $-0.02$ without it) and settles 0.28\,s after a grip drop; on the three hardest held-out tracks it transfers (31\% of the gap closed vs 27\% for a model trained on them) but misses the H2 margin there (0.74 vs 0.92).
 
 \begin{figure}[t]
 \centering
@@ -126,7 +126,7 @@ In July, an F1TENTH car (Traxxas Slash 4$\times$4) ran an earlier checkpoint (li
 \section{Discussion and Limitations}
 \textbf{The probe changes the method:} the controller spends a small, fixed amount of driving on measurement; a learned, risk-aware probing policy is future work.
 \textbf{The wheel-slip model is assumed}, and the controller is strongest when its signature is present. A one-session test measures it: braking pulses on three surfaces, logging odometry, IMU and front-LiDAR range; a simulated version of the test predicts that odometry alone separates grip 1.0/0.7/0.4 ($p<10^{-7}$).
-\textbf{At $\mu\!=\!0.4$ a gap remains} under realistic sensing (49--58\% of the Oracle gap closed vs 82--87\% with ideal sensors), plausibly because the estimate depends on probes on straights.
+\textbf{At $\mu\!=\!0.4$ a gap remains} under realistic sensing (49--58\% of the Oracle gap closed vs 82--87\% with ideal sensors). It is not a timing problem: a 2\,s memory leaves it unchanged (0.41 vs 0.41) and probing twice as often makes it worse (0.58).
 \textbf{Regime:} speeds $\le$3\,m/s on narrow scaled tracks, uniform grip, simulation only for every probe result.
 
 \section{Conclusion}
