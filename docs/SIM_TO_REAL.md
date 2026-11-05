@@ -26,6 +26,8 @@ Written Nov 4, 2026, with amendments 8 and 8b. **Results: RESULTS_NOV2026.md sec
 | 7 | Probe in sim only | — | **Fixed:** node `--probe 1` (same logic, after the speed command, before the shield) |
 | 8 | Expert drives 2.0 m/s × grip factor everywhere (not a racing line speed) | — | **Changed:** physics-based corner/braking speed profile up to 3 m/s (section 3) |
 
+**Deployable model: `runs/real_phase1_seedN/final.pt` + `runs/real_phase2_slipdr_seedN/final.pt`** (amendment 10, slip model randomized during training; RESULTS section 8). The non-randomized φ (`real_phase2_seedN`) is blind if the real wheels do not slip like the default model.
+
 Assumption to check on the car: the wheel-slip model. When f110's speed controller requests more than μg, the model lets the wheel spin up or lock towards the command at 40 m/s² and then roll back to the car's speed with a 30 ms time constant. Real VESC current limits and wheel inertia decide the true shape. Stage 1 of `docs/REAL_CAR_PROBE_PLAN.md` measures exactly this.
 
 ## 3. Driving fast but safe: what the policy is actually trained on

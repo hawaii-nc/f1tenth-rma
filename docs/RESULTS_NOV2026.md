@@ -375,3 +375,30 @@ The prediction (both hold for every variant) was wrong. φ_R reads grip from the
 | 0.4 | 0.61 / 0.93 / 0.03, 41% [30, 52] | 0.60 / 0.94 / 0.00, 39% [30, 48] |
 
 **PASS** (105% of the main model's gap at μ = 0.4; H2 holds, p = 10⁻⁹). Held-out base-policy validation: 0/39 crashes. These three tracks are harder than average: Blind crashes 0.93–0.94 at μ = 0.4 (0.84–0.86 over all tracks).
+
+## 8. Randomizing the wheel-slip model (amendment 10)
+
+φ retrained for each seed with the slip model drawn per episode (spin-up 10–150 m/s², relaxation 0.01–0.15 s, log-uniform; no slip in 25% of episodes); base policies unchanged. Evaluated under the training-default slip model and the four amendment-9 variants, N = 100 paired episodes per cell. Results `results/retrain_nov2026/real/slipdr/`, checkpoints `runs/real_phase2_slipdr_seed{0,1,2}/final.pt`.
+
+**Crash rate, φ_DR / Blind** (Oracle 0.00–0.10 throughout):
+
+| slip model at test time | seed 0, μ 0.6 | seed 0, μ 0.4 | seed 1, μ 0.6 | seed 1, μ 0.4 | seed 2, μ 0.6 | seed 2, μ 0.4 |
+|---|---|---|---|---|---|---|
+| default (40 m/s², 30 ms) | 0.01 / 0.56 | 0.41 / 0.86 | 0.00 / 0.43 | 0.25 / 0.84 | 0.00 / 0.33 | 0.33 / 0.86 |
+| slow spin-up | 0.01 / 0.53 | 0.48 / 0.86 | 0.00 / 0.45 | 0.28 / 0.84 | 0.00 / 0.29 | 0.37 / 0.86 |
+| fast spin-up | 0.01 / 0.54 | 0.36 / 0.86 | 0.00 / 0.44 | 0.21 / 0.84 | 0.00 / 0.33 | 0.35 / 0.85 |
+| slow recovery | 0.02 / 0.56 | **0.67** / 0.86 | 0.03 / 0.44 | 0.50 / 0.84 | 0.02 / 0.31 | 0.52 / 0.86 |
+| **no slip** | 0.07 / 0.56 | **0.64** / 0.86 | 0.03 / 0.41 | 0.38 / 0.84 | 0.04 / 0.30 | 0.54 / 0.86 |
+
+All 30 φ_DR-vs-Blind comparisons are significant (McNemar, Holm p ≤ 0.034). E5 grip R², default / no slip: 0.84 / 0.63, 0.79 / 0.63, 0.82 / 0.59.
+
+**Pre-registered readouts.**
+
+| | seed 0 | seed 1 | seed 2 | verdict |
+|---|---|---|---|---|
+| D1: under every slip model, μ = 0.4 crash ≤ Blind − 0.30 and μ = 0.6 ≤ Blind − 0.20 | FAIL (μ 0.4: slow recovery −0.19, no slip −0.22) | PASS | PASS | **FAIL** (needs all three seeds) |
+| D2: default slip model, φ_DR crash at μ = 0.4 ≤ φ_R's + 0.10 | 0.41 vs 0.39 | 0.25 vs 0.28 | 0.33 vs 0.37 | **PASS** |
+
+**What changed (seed 0, the only seed where φ_R was tested across slip models, section 7).** With no slip, φ_R was blind (μ 0.6: 0.52 vs Blind 0.56; μ 0.4: 0.86 vs 0.86); φ_DR crashes 0.07 and 0.64. At μ = 0.6, φ_DR now works under every slip model on every seed (crash ≤ 0.07 vs 0.29–0.56). At μ = 0.4 it beats Blind everywhere but, on seed 0, by less than the registered margin when the slip signal is weak or absent. Robustness costs nothing under the default model (D2).
+
+**Use φ_DR for the car.** The real car's wheel slip is unknown; φ_DR keeps the default-model performance and degrades gracefully without the slip signature, where φ_R fails completely.
