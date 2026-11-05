@@ -1,0 +1,156 @@
+{
+  "summary": [
+    {
+      "controller": "blind",
+      "grip": 1.0,
+      "n": 100,
+      "crash_rate": 0.02,
+      "completion_rate": 0.98,
+      "mean_speed": 2.3083509017177373,
+      "mean_rho": 0.40038832040627953,
+      "rho_sem": 0.001919524824426493,
+      "mean_progress_m": 56.453608144969465
+    },
+    {
+      "controller": "blind",
+      "grip": 0.6,
+      "n": 100,
+      "crash_rate": 0.29,
+      "completion_rate": 0.71,
+      "mean_speed": 2.3203568988893717,
+      "mean_rho": 0.6729916517168837,
+      "rho_sem": 0.005408421672803996,
+      "mean_progress_m": 49.802091757927585
+    },
+    {
+      "controller": "blind",
+      "grip": 0.4,
+      "n": 100,
+      "crash_rate": 0.85,
+      "completion_rate": 0.15,
+      "mean_speed": 2.1543466903585182,
+      "mean_rho": 0.8828786578222774,
+      "rho_sem": 0.0065516318888475585,
+      "mean_progress_m": 21.06191498810167
+    },
+    {
+      "controller": "oracle",
+      "grip": 1.0,
+      "n": 100,
+      "crash_rate": 0.02,
+      "completion_rate": 0.98,
+      "mean_speed": 2.3083509017177373,
+      "mean_rho": 0.40038832040627953,
+      "rho_sem": 0.001919524824426493,
+      "mean_progress_m": 56.453608144969465
+    },
+    {
+      "controller": "oracle",
+      "grip": 0.6,
+      "n": 100,
+      "crash_rate": 0.0,
+      "completion_rate": 1.0,
+      "mean_speed": 2.2506181068117224,
+      "mean_rho": 0.6150479035359893,
+      "rho_sem": 0.0011599390553101246,
+      "mean_progress_m": 55.38163465430537
+    },
+    {
+      "controller": "oracle",
+      "grip": 0.4,
+      "n": 100,
+      "crash_rate": 0.03,
+      "completion_rate": 0.97,
+      "mean_speed": 1.9867537930007555,
+      "mean_rho": 0.7265356386123908,
+      "rho_sem": 0.0062698134989573415,
+      "mean_progress_m": 48.5103505325755
+    },
+    {
+      "controller": "phi",
+      "grip": 1.0,
+      "n": 100,
+      "crash_rate": 0.02,
+      "completion_rate": 0.98,
+      "mean_speed": 2.275653618222876,
+      "mean_rho": 0.39164664516914066,
+      "rho_sem": 0.0012403782001473049,
+      "mean_progress_m": 55.85040460992302
+    },
+    {
+      "controller": "phi",
+      "grip": 0.6,
+      "n": 100,
+      "crash_rate": 0.04,
+      "completion_rate": 0.96,
+      "mean_speed": 2.2817776997067476,
+      "mean_rho": 0.6313020243256022,
+      "rho_sem": 0.002544547098488509,
+      "mean_progress_m": 55.23095511906678
+    },
+    {
+      "controller": "phi",
+      "grip": 0.4,
+      "n": 100,
+      "crash_rate": 0.58,
+      "completion_rate": 0.42,
+      "mean_speed": 2.185953221270601,
+      "mean_rho": 0.8247218109526535,
+      "rho_sem": 0.005266918863157671,
+      "mean_progress_m": 35.94166556860804
+    }
+  ],
+  "args": {
+    "spawn": "random",
+    "speed_cap": null,
+    "phase1": "runs/real_phase1_seed0/final.pt",
+    "phase2": "runs/real_phase2_slipdr_probe25_seed0/final.pt",
+    "config": "configs/real_phase2_slipdr_probe25.yaml",
+    "episodes": 100,
+    "tracks": null,
+    "max_steps": 2500,
+    "seed": 0,
+    "out": "results/retrain_nov2026/real/amendment11/probe25/default/e1_e2/_shards/g0.4",
+    "device": "cpu",
+    "tire_model": "friction_circle",
+    "grips": [
+      1.0,
+      0.6,
+      0.4
+    ],
+    "controllers": [
+      "oracle",
+      "phi",
+      "blind"
+    ],
+    "n_boot": 2000,
+    "merged_from": [
+      "results/retrain_nov2026/real/amendment11/probe25/default/e1_e2/_shards/g0.4",
+      "results/retrain_nov2026/real/amendment11/probe25/default/e1_e2/_shards/g0.6",
+      "results/retrain_nov2026/real/amendment11/probe25/default/e1_e2/_shards/g1.0"
+    ]
+  },
+  "gaps": {
+    "phi_gap": {
+      "1.0": 0.008741675237138868,
+      "0.6": 0.01625412078961297,
+      "0.4": 0.09818617234026272
+    },
+    "blind_gap": {
+      "1.0": 0.0,
+      "0.6": 0.05794374818089443,
+      "0.4": 0.15634301920988658
+    },
+    "gap_closed": {
+      "1.0": NaN,
+      "0.6": 0.7194844776201001,
+      "0.4": 0.3719823703260441
+    }
+  },
+  "cross_grip_variance": {
+    "oracle": 0.018320036097213895,
+    "phi": 0.03137777931509984,
+    "blind": 0.03901800636370311
+  },
+  "blind_over_phi_variance_ratio": 1.2434916433020673
+}

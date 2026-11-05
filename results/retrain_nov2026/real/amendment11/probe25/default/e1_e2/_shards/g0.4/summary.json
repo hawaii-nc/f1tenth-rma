@@ -1,0 +1,91 @@
+{
+  "summary": [
+    {
+      "controller": "blind",
+      "grip": 0.4,
+      "n": 100,
+      "crash_rate": 0.85,
+      "completion_rate": 0.15,
+      "mean_speed": 2.1543466903585182,
+      "mean_rho": 0.8828786578222774,
+      "rho_sem": 0.0065516318888475585,
+      "mean_progress_m": 21.06191498810167
+    },
+    {
+      "controller": "oracle",
+      "grip": 0.4,
+      "n": 100,
+      "crash_rate": 0.03,
+      "completion_rate": 0.97,
+      "mean_speed": 1.9867537930007555,
+      "mean_rho": 0.7265356386123908,
+      "rho_sem": 0.0062698134989573415,
+      "mean_progress_m": 48.5103505325755
+    },
+    {
+      "controller": "phi",
+      "grip": 0.4,
+      "n": 100,
+      "crash_rate": 0.58,
+      "completion_rate": 0.42,
+      "mean_speed": 2.185953221270601,
+      "mean_rho": 0.8247218109526535,
+      "rho_sem": 0.005266918863157671,
+      "mean_progress_m": 35.94166556860804
+    }
+  ],
+  "args": {
+    "spawn": "random",
+    "speed_cap": null,
+    "phase1": "runs/real_phase1_seed0/final.pt",
+    "phase2": "runs/real_phase2_slipdr_probe25_seed0/final.pt",
+    "config": "configs/real_phase2_slipdr_probe25.yaml",
+    "episodes": 100,
+    "tracks": null,
+    "max_steps": 2500,
+    "seed": 0,
+    "out": "results/retrain_nov2026/real/amendment11/probe25/default/e1_e2/_shards/g0.4",
+    "device": "cpu",
+    "tire_model": "friction_circle",
+    "grips": [
+      0.4
+    ],
+    "controllers": [
+      "oracle",
+      "phi",
+      "blind"
+    ],
+    "n_boot": 2000
+  },
+  "gaps": {
+    "phi_gap": {
+      "0.4": 0.09818617234026272
+    },
+    "blind_gap": {
+      "0.4": 0.15634301920988658
+    },
+    "gap_closed": {
+      "0.4": 0.3719823703260441
+    }
+  },
+  "cross_grip_variance": {
+    "oracle": 0.0,
+    "phi": 0.0,
+    "blind": 0.0
+  },
+  "blind_over_phi_variance_ratio": NaN,
+  "bootstrap": {
+    "gap_closed": {
+      "0.4": [
+        0.3016391951517854,
+        0.44106761843810055
+      ]
+    },
+    "blind_over_phi_variance_ratio": [
+      NaN,
+      NaN
+    ],
+    "n_boot": 2000,
+    "ci": 0.95
+  }
+}
