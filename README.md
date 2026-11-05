@@ -19,20 +19,18 @@ The policy only sees 5 motion signals and 108 LiDAR ranges (113 numbers). It get
 
 The safety question: when grip drops, does the car keep a steady safety margin instead of a steady speed? I measure that with friction-circle utilization, ρ = √(a_lat² + a_long²) / (μg), the fraction of the available grip the car is using.
 
-## Results so far
+## Results (November 2026, branch `retrain-fixed-and-tire-model`)
 
-| Question | Answer | Evidence |
+| Question | Answer | Where |
 |---|---|---|
-| Does grip limit the car? | Yes. Crashes go up as grip goes down | E0, sim, N = 40 |
-| Does adapting help? | Partly. φ closes 44% of the gap between the grip-blind and oracle controllers at μ = 0.4 | E1/E2, sim, N = 100 |
-| Is the margin steadier? | 1.25–1.27× lower cross-grip ρ variance than the blind controller. The target I set beforehand was 10×, so this is a partial result | E2, N = 20/40/100 |
-| Is the behaviour caused by the grip estimate? | Partly. Restoring φ moves behaviour 25% of the way back toward the safe side | E4, sim |
-| Does it carry over to the real car? | Changing the tires changes the policy's steering (p = 0.0001) and yaw rate (p = 0.009), bare vs electrical tape, 81 trials | Real car |
-| Can you read grip directly out of ẑ? | Only weakly (R² ≈ 0.08) | E5, needs a re-run |
+| Can the car read grip from normal driving? | **No**, not in this simulator: with its actions independent of grip, its motion history carries no grip information (R² ≈ 0, three tire models). July's weak estimate was leakage from the expert's own driving | RESULTS_NOV2026 §4 |
+| What fixes it? | A short **active probe** (speed or braking pulse on straights) that asks the tires for more than low grip can give. Grip R² 0.89–0.93 | §4 |
+| Does adapting beat driving slower? | **Yes, with the probe.** At grip 0.4: 2–8% crashes vs 33–47% for a non-adaptive car matched to the same speed, 3 seeds; no fixed speed limit matches both its speed and safety | §4, Fig. 2 |
+| With the car's real sensors and racing speeds? | Grip R² 0.84–0.87; at equal speed, 0–5% vs 33–56% crashes at grip 0.6 and 28–39% vs 84–86% at grip 0.4 | §6 |
+| Robust to the unknown wheel slip? | With slip randomized in training: beats the non-adaptive car in all 30 conditions; misses the pre-registered margin on one seed in the two hardest | §7–8 |
+| Real car? | July pilot only (earlier pipeline). The one-session probe test is ready: `tools/real_car/`, docs/REAL_CAR_PROBE_PLAN.md | |
 
-Details and caveats are in [docs/RESULTS.md](docs/RESULTS.md).
-
-The simulation numbers above came from the lab code in July. While putting this repo together I found bugs in that pipeline, most importantly that the mid-episode grip drop never reached the simulator's physics. I also found that f110_gym's tire model never saturates. Both are fixed or documented in [docs/BUGS_AND_LESSONS.md](docs/BUGS_AND_LESSONS.md) and [docs/SIM_FIDELITY.md](docs/SIM_FIDELITY.md), and the sim experiments need to be re-run with this code before the numbers go in a paper: `bash tools/retrain_fixed.sh` does the retraining and the re-runs in one go. A saturating (friction-circle) tire model is now available with `--tire-model friction_circle`.
+Paper: `paper/latex/main.pdf`. Everything was pre-registered first: docs/PREREGISTRATION_NOV2026.md. The July numbers (44% gap closure etc., [docs/RESULTS.md](docs/RESULTS.md)) came from a pipeline with bugs and are superseded.
 
 ## Layout
 
