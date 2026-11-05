@@ -1,5 +1,7 @@
 # Results
 
+> **Superseded by [RESULTS_NOV2026.md](RESULTS_NOV2026.md).** These are the July pilot numbers. Every July Phase 1 checkpoint was trained with the encoder μ frozen at its random init (C21), so July's "Oracle" and "φ-RMA" mean a policy conditioned on a random 8-D projection of e. No plateau-triggered IL rescue fired in v27–v42 (C25). The real-car p-values below are **uncorrected**: `analysis/real_car/tire_stats.py` runs 9 tests (3 wraps × yaw, steering, φ activity) and now reports Holm-adjusted p-values and effect sizes. At Bonferroni strength (0.05/9 ≈ 0.0056) steering (p = 0.0001) survives and yaw (p = 0.009) does not. The effect sizes are small: bare vs electrical tape is −3.8% in steering and −2.5% in yaw rate.
+
 Every number below says where it came from. **Trust levels:**
 
 - **Measured.** Produced by a run with a stored artifact or log in this repo.

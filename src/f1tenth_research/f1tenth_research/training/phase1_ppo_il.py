@@ -397,13 +397,19 @@ class Phase1Trainer:
 
         expert_actions_tensor = None
         expert_mask_tensor = None
-        if il_config.get('enabled', False) and len(rollout_data['expert_actions']) == len(rollout_data['obs']):
+        if il_config.get('enabled', False) and len(rollout_data['expert_actions']) != len(rollout_data['obs']):
+            raise RuntimeError(f"IL is enabled but there are {len(rollout_data['expert_actions'])} expert-action "
+                               f"rows for {len(rollout_data['obs'])} transitions (a silent IL switch-off, C20)")
+        if il_config.get('enabled', False):
             expert_actions_tensor = torch.from_numpy(np.array(rollout_data['expert_actions'])).float().to(self.device)
             mask = rollout_data.get('expert_mask')
             mask = np.ones(len(rollout_data['obs']), bool) if mask is None else np.asarray(mask, bool)
             if not mask.any():
                 raise RuntimeError('IL is enabled but no transition has an expert action '
                                    '(lesson: a missing imitation signal must be loud)')
+            if mask.mean() < 0.99:
+                warnings.warn(f'IL: only {mask.mean():.1%} of transitions have an expert action; '
+                              'the IL loss averages over those only')
             expert_mask_tensor = torch.from_numpy(mask.astype(np.float32)).to(self.device)
         self._last_il_weight = il_weight
         
@@ -498,9 +504,11 @@ class Phase1Trainer:
             self.update(rollout_data, epoch)
             t2 = time.time()
 
+            # Every epoch, not only on log epochs: the IL rescue's plateau_window counts
+            # epochs (bug C25; with log_interval 10-100 the rescue could never fire)
+            avg_reward = float(np.mean(rollout_data['rewards'])) if len(rollout_data['rewards']) else 0.0
+            self._reward_history.append(avg_reward)
             if epoch % log_interval == 0:
-                avg_reward = float(np.mean(rollout_data['rewards'])) if len(rollout_data['rewards']) else 0.0
-                self._reward_history.append(avg_reward)  # track for adaptive IL rescue
                 eps, self.episode_stats = self.episode_stats, []
                 if eps:
                     crash = np.mean([e['crash'] for e in eps])

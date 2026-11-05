@@ -43,7 +43,7 @@ A car's grip is different. Below the limit the tires deliver whatever force is a
 
 \section{Related Work}
 \textbf{RMA} regresses an adaptation module onto privileged encodings and trains it on its own rollouts~\cite{kumar2021rma}; the quadcopter variant adds joint PPO and imitation~\cite{zhang2025extreme}. We show a second reason on-policy training matters: action leakage.
-\textbf{Learning on F1TENTH} includes LiDAR-only deep RL~\cite{hell2024lidar,evans2023trajectory}, imitation benchmarks~\cite{sun2023ilbenchmark} and a survey~\cite{evans2024unifying}; none estimates physics online. RL racing policies have been deployed zero-shot on F1TENTH cars with domain randomization and actuator modeling~\cite{czechmanowski2025racing} and with disturbances and observation preprocessing~\cite{budai2025endtoend}. History-dependent policies help domain-randomized transfer~\cite{chen2022understanding,tobin2017dr}.
+\textbf{Learning on F1TENTH} includes LiDAR-only deep RL~\cite{hell2024lidar,evans2023trajectory}, imitation benchmarks~\cite{sun2023ilbenchmark} and a survey~\cite{evans2024unifying}; none estimates physics online. RL racing policies have been deployed zero-shot on F1TENTH cars with domain randomization and actuator modeling~\cite{czechmanowski2025racing} and with disturbances and observation preprocessing~\cite{budai2025endtoend}. History-dependent policies help domain-randomized transfer~\cite{chen2022understanding,tobin2017dr}. The same group estimates velocity on F1TENTH with a learned dynamics model and an online friction estimate~\cite{wegrzynowski2024velocity}, and proposes long-horizon memory beyond RMA's short reactive window~\cite{czechmanowski_beyond}.
 \textbf{Friction estimation} needs excitation: slip-based estimators need high tire utilization (up to 80--90\% on low-$\mu$ surfaces~\cite{acosta2017friction}; 54--94\% for a brush-model estimator~\cite{prokes2016excitation}) and fail in steady driving~\cite{khaleghian2017survey}. We bring this requirement to learned adaptation and meet it with a deliberate excitation.
 
 \section{Method}
@@ -121,7 +121,7 @@ The wheel-slip model is an assumption. Evaluated under four alternatives, \phiA{
 \end{figure}
 
 \subsection{Real-car pilot}
-In July, an F1TENTH car (Traxxas Slash 4$\times$4) ran an earlier checkpoint (linear tire, no probe, and a 50\,Hz node against 100\,Hz training) through one 90$^\circ$ corner with four tire wraps (81 trials); its steering and yaw rate differed between bare and electrical-tape tires ($p\!=\!0.0001$, $0.009$). This shows the policy responds to a real tire change, not that the probe works on the car.
+In July, an F1TENTH car (Traxxas Slash 4$\times$4) ran an earlier checkpoint (linear tire, no probe, and a 50\,Hz node against 100\,Hz training) through one 90$^\circ$ corner with four tire wraps (81 trials); its steering and yaw rate differed between bare and electrical-tape tires (uncorrected $p\!=\!0.0001$ and $0.009$; over the nine comparisons the analysis runs, steering survives a Bonferroni--Holm correction and yaw does not; effects of $-3.8\%$ and $-2.5\%$). This shows the policy responds to a real tire change, not that the probe works on the car.
 
 \section{Discussion and Limitations}
 \textbf{The probe changes the method:} the controller spends a small, fixed amount of driving on measurement; a learned, risk-aware probing policy is future work.
