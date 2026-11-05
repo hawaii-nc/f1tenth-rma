@@ -14,6 +14,7 @@ Derived:
   gap closed at μ   1 − |ρ_φ − ρ_oracle| / |ρ_blind − ρ_oracle|
   cross-grip swing  variance of a controller's mean ρ across grip levels
                     (φ vs Blind ratio; lower = steadier margin)
+  95% CIs           paired bootstrap over episodes for both (--n-boot)
 
 July 2026 result (N=100, μ ∈ {1.0, 0.8, 0.6, 0.4}):
   ρ at μ=0.4: Oracle 0.185, φ 0.215, Blind 0.239 → 44% of the gap closed;
@@ -27,13 +28,16 @@ from _common import base_parser, eval_tracks, load_config, out_dir, track_for
 from f1tenth_research.eval.harness import (
     load_policy_pair, make_controllers, make_env, markdown_table, run_episode, summarize, write_outputs,
 )
-from f1tenth_research.metrics import calibration_gaps, cross_grip_swing
+import numpy as np
+
+from f1tenth_research.metrics import bootstrap_calibration, calibration_gaps, cross_grip_swing
 
 
 def main():
     ap = base_parser(__doc__)
     ap.add_argument('--grips', type=float, nargs='*', default=[1.0, 0.8, 0.6, 0.4])
     ap.add_argument('--controllers', nargs='*', default=['oracle', 'phi', 'blind'])
+    ap.add_argument('--n-boot', type=int, default=2000, help='bootstrap resamples for the CIs (0 = skip)')
     args = ap.parse_args()
 
     cfg = load_config(args.config, args.tire_model)
@@ -65,6 +69,16 @@ def main():
         })
         print('gap closed by φ:', {g: f'{v:.0%}' for g, v in gaps['gap_closed'].items()})
         print(f"cross-grip ρ variance, Blind/φ = {extra['blind_over_phi_variance_ratio']:.2f}×")
+        if args.n_boot > 0:
+            eps = {c: {g: np.array([r.mean_rho for r in sorted(results, key=lambda r: r.seed)
+                                    if r.controller == c and r.grip == g])
+                       for g in args.grips} for c in ('oracle', 'phi', 'blind')}
+            boot = bootstrap_calibration(eps, args.grips, n_boot=args.n_boot, seed=args.seed)
+            extra['bootstrap'] = boot
+            for g, (lo, hi) in boot['gap_closed'].items():
+                print(f'  gap closed at μ={g}: 95% CI [{lo:.0%}, {hi:.0%}]')
+            lo, hi = boot['blind_over_phi_variance_ratio']
+            print(f'  Blind/φ variance ratio: 95% CI [{lo:.2f}×, {hi:.2f}×]')
 
     out = out_dir(args, 'e1_e2')
     write_outputs(out, results, summary, extra)
