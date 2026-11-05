@@ -69,3 +69,53 @@ def calibration_gaps(rho_by_grip: Dict[str, Dict[float, float]]) -> Dict[str, Di
 def cross_grip_swing(rho_by_grip: Dict[float, float], grips: Iterable[float]) -> float:
     """Variance of a controller's mean ρ across grip levels (lower = steadier margin)."""
     return float(np.var([rho_by_grip[g] for g in grips]))
+
+
+def bootstrap_calibration(rho_episodes: Dict[str, Dict[float, np.ndarray]], grips: Iterable[float],
+                          n_boot: int = 2000, ci: float = 0.95, seed: int = 0) -> Dict:
+    """
+    Paired bootstrap CIs for the E1/E2 headline numbers.
+
+    rho_episodes: {'oracle'|'phi'|'blind': {μ: per-episode mean ρ, ordered by seed}}.
+    Episode i used the same seed (start pose, track, physics draw) for every
+    controller and grip, so one resampled set of episode indices is applied to
+    all cells. That keeps the pairing, which is what makes the CIs tight.
+
+    Returns {'gap_closed': {μ: (lo, hi)}, 'blind_over_phi_variance_ratio': (lo, hi),
+             'n_boot': n_boot, 'ci': ci}. A CI is (nan, nan) where the statistic
+    is undefined in most resamples (e.g. μ = 1.0, where Blind equals Oracle).
+    """
+    grips = list(grips)
+    ctrls = ('oracle', 'phi', 'blind')
+    arr = {c: {g: np.asarray(rho_episodes[c][g], dtype=np.float64) for g in grips} for c in ctrls}
+    n = {len(arr[c][g]) for c in ctrls for g in grips}
+    if len(n) != 1:
+        raise ValueError(f'paired bootstrap needs the same episode count in every cell, got {sorted(n)}')
+    n = n.pop()
+    rng = np.random.default_rng(seed)
+    gap = {g: np.empty(n_boot) for g in grips}
+    ratio = np.empty(n_boot)
+    with np.errstate(invalid='ignore', divide='ignore'):
+        for b in range(n_boot):
+            idx = rng.integers(0, n, size=n)
+            means = {c: {g: np.nanmean(arr[c][g][idx]) for g in grips} for c in ctrls}
+            for g in grips:
+                blind_gap = abs(means['blind'][g] - means['oracle'][g])
+                phi_gap = abs(means['phi'][g] - means['oracle'][g])
+                gap[g][b] = 1.0 - phi_gap / blind_gap if blind_gap > 1e-12 else np.nan
+            v_phi = cross_grip_swing(means['phi'], grips)
+            v_blind = cross_grip_swing(means['blind'], grips)
+            ratio[b] = v_blind / v_phi if v_phi > 0 else np.nan
+
+    q = [100 * (1 - ci) / 2, 100 * (1 + ci) / 2]
+
+    def interval(x):
+        x = x[np.isfinite(x)]
+        if x.size < 0.5 * n_boot:
+            return (float('nan'), float('nan'))
+        lo, hi = np.percentile(x, q)
+        return (float(lo), float(hi))
+
+    return {'gap_closed': {g: interval(gap[g]) for g in grips},
+            'blind_over_phi_variance_ratio': interval(ratio),
+            'n_boot': n_boot, 'ci': ci}
