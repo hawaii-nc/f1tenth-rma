@@ -1,0 +1,91 @@
+{
+  "summary": [
+    {
+      "controller": "blind",
+      "grip": 0.6,
+      "n": 100,
+      "crash_rate": 0.56,
+      "completion_rate": 0.44,
+      "mean_speed": 2.564543195491469,
+      "mean_rho": 0.5472667782295038,
+      "rho_sem": 0.010440708782726052,
+      "mean_progress_m": 44.42606588449448
+    },
+    {
+      "controller": "oracle",
+      "grip": 0.6,
+      "n": 100,
+      "crash_rate": 0.0,
+      "completion_rate": 1.0,
+      "mean_speed": 2.5257751956741545,
+      "mean_rho": 0.46674246464601643,
+      "rho_sem": 0.002912778827345988,
+      "mean_progress_m": 62.16066227520531
+    },
+    {
+      "controller": "phi",
+      "grip": 0.6,
+      "n": 100,
+      "crash_rate": 0.04,
+      "completion_rate": 0.96,
+      "mean_speed": 2.5136140584328572,
+      "mean_rho": 0.4788613323680704,
+      "rho_sem": 0.008692747979398254,
+      "mean_progress_m": 60.54429080372206
+    }
+  ],
+  "args": {
+    "spawn": "random",
+    "speed_cap": null,
+    "phase1": "runs/real_phase1_seed0/final.pt",
+    "phase2": "runs/real_phase2_slipdr_mem2s_seed0/final.pt",
+    "config": "configs/real_phase2_slipdr_mem2s.yaml",
+    "episodes": 100,
+    "tracks": null,
+    "max_steps": 2500,
+    "seed": 0,
+    "out": "results/retrain_nov2026/real/amendment11/mem2s/default/e1_e2/_shards/g0.6",
+    "device": "cpu",
+    "tire_model": "friction_circle",
+    "grips": [
+      0.6
+    ],
+    "controllers": [
+      "oracle",
+      "phi",
+      "blind"
+    ],
+    "n_boot": 2000
+  },
+  "gaps": {
+    "phi_gap": {
+      "0.6": 0.01211886772205395
+    },
+    "blind_gap": {
+      "0.6": 0.08052431358348733
+    },
+    "gap_closed": {
+      "0.6": 0.8495005150278102
+    }
+  },
+  "cross_grip_variance": {
+    "oracle": 0.0,
+    "phi": 0.0,
+    "blind": 0.0
+  },
+  "blind_over_phi_variance_ratio": NaN,
+  "bootstrap": {
+    "gap_closed": {
+      "0.6": [
+        0.6856667930398289,
+        0.9840188183984657
+      ]
+    },
+    "blind_over_phi_variance_ratio": [
+      NaN,
+      NaN
+    ],
+    "n_boot": 2000,
+    "ci": 0.95
+  }
+}
