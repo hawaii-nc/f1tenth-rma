@@ -174,3 +174,27 @@ def test_phase2_on_policy_round_runs(tmp_path):
     tr.train()
     assert (tmp_path / 'onpolicy_round1.pt').exists()
     assert len(tr.buffer.episodes) == 4 and tr.global_step == 10
+
+
+def test_reward_history_every_epoch(tmp_path):
+    """Bug C25: the IL rescue's reward history must grow every epoch, not only on log epochs."""
+    from f1tenth_research.training.phase1_ppo_il import Phase1Trainer
+    c = cfg(2)
+    c['phase1_training'].update(log_interval=100, rollout_steps=40, total_timesteps=200)
+    c['phase1_training'].pop('dagger', None)
+    tr = Phase1Trainer(c, device='cpu', log_dir=str(tmp_path), checkpoint_dir=str(tmp_path))
+    tr.train()
+    assert len(tr._reward_history) == tr.epoch >= 2
+
+
+def test_partial_expert_coverage_warns(tmp_path):
+    """C20 follow-up: partial expert coverage is masked and announced, not silent."""
+    import numpy as np
+    import pytest
+    from f1tenth_research.training.phase1_ppo_il import Phase1Trainer
+    tr = Phase1Trainer(cfg(2), device='cpu', log_dir=str(tmp_path), checkpoint_dir=str(tmp_path))
+    data = tr.rollout(80)
+    data['expert_mask'] = np.asarray(data['expert_mask']).copy()
+    data['expert_mask'][::3] = False
+    with pytest.warns(UserWarning, match='expert action'):
+        tr.update(data, epoch=0)

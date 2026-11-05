@@ -33,7 +33,7 @@ grep "Avg Reward" ../../runs/phase1.log       # monitor
 tensorboard --logdir ../../runs/phase1 --port 6007 --host 0.0.0.0
 ```
 
-Final config: 16M steps, 34,000-step rollouts, PPO (clip 0.2, γ 0.99, λ 0.95, lr 3e-4), and IL weight from 1.0 decaying at 0.0035 toward 0.01, with up to 8 plateau rescues. The v42 run took 16.0M steps.
+Final config: 16M steps, 34,000-step rollouts, PPO (clip 0.2, γ 0.99, λ 0.95, lr 3e-4), and IL weight from 1.0 decaying at 0.0035 toward 0.01, with up to 8 plateau rescues (none fired in v42, see C25). The v42 run took 16.0M steps. The encoder μ was not trained in v42 (C21); this code trains it.
 
 **Before any long run:** run `--debug` (100k steps). Check that the per-step reward breakdown has sensible signs (`[REWARD DEBUG]` lines), and that expert actions are produced (`tests/test_training_smoke.py::test_phase1_runs_and_expert_is_active`).
 

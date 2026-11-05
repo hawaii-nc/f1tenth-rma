@@ -10,7 +10,7 @@ The final training code ran in the lab training container and was never pushed. 
 
 | Component | Status | Confidence | Notes |
 |---|---|---|---|
-| Networks π, V, μ, φ (`models/`) | Original | High | All 8 checkpoints load unchanged |
+| Networks π, V, μ, φ (`models/`) | Original | High | All 8 checkpoints load unchanged. μ is untrained (random init) in every July Phase 1 checkpoint, and the June `research_ws` code has the same no-gradient path (C21) |
 | Final hyperparameters (`configs/final_*.yaml`) | Original | High | Exported verbatim from the checkpoints. `tests/test_checkpoints.py` checks they match |
 | Deployed observation (`rma_deploy_pkg`) | Original, with bug fixes | High | Behaviour at default flags is unchanged (C12–C14 aside) |
 | Env observation (113-D, max_velocity, LiDAR clip and normalise) | Updated | High | Matches the deployment node exactly. Test: `test_scan_preprocessing_matches_training` |

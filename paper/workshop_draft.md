@@ -29,7 +29,7 @@
 - **Learning on F1TENTH.** LiDAR-only deep RL [hell2024lidar, evans2023trajectory], imitation-learning benchmarks [sun2023ilbenchmark], and the survey and benchmarks in [evans2024unifying]. None estimates vehicle physics online.
 - **Domain randomization** gives robustness [tobin2017dr]; RMA turns it into adaptation by conditioning on the sampled physics.
 - **Tire–road friction estimation** needs excitation: slip-based estimators need high tyre utilization (up to 80–90% on low-μ surfaces in the studies reviewed by [acosta2017friction]; 54–94% for a brush-model estimator in [prokes2016excitation]) and fail in steady driving [khaleghian2017survey]. We bring this requirement to learned adaptation and meet it with a deliberate excitation, the probe.
-- **Sim-to-real for F1TENTH racing.** RL racing policies have been deployed zero-shot on F1TENTH cars using domain randomization and actuator modeling [czechmanowski2025racing] and with disturbances and observation preprocessing [budai2025endtoend]. History-dependent policies provably help domain-randomized transfer [chen2022understanding], which supports RMA's history-based adaptation module.
+- **Sim-to-real for F1TENTH racing.** RL racing policies have been deployed zero-shot on F1TENTH cars using domain randomization and actuator modeling [czechmanowski2025racing] and with disturbances and observation preprocessing [budai2025endtoend]. History-dependent policies provably help domain-randomized transfer [chen2022understanding], which supports RMA's history-based adaptation module. The same group estimates velocity on F1TENTH with a learned dynamics model and online friction estimate [wegrzynowski2024velocity] and proposes long-horizon memory beyond RMA's short window [czechmanowski_beyond, extended abstract].
 - **Friction circle / g-g diagram** [milliken1995rcvd].
 
 ## III. Method
@@ -115,7 +115,7 @@ All pre-registered checks except H3 pass on every seed. Here adaptation is *wher
 | duct | 21 | 21 | 0.663 | 0.129 |
 | electrical | 19 | 18 | 0.661 | 0.128 |
 
-Bare vs electrical tape: yaw p = 0.009, steering p = 0.0001 (Mann–Whitney U). This shows that the policy's commands respond to a real tire change; it does not test the probe or the retrained pipeline.
+Bare vs electrical tape: yaw p = 0.009, steering p = 0.0001 (Mann–Whitney U, uncorrected). Over the nine comparisons `tire_stats.py` runs, steering survives a Bonferroni–Holm correction and yaw does not; the effects are small (−3.8% steering, −2.5% yaw rate). This shows that the policy's commands respond to a real tire change; it does not test the probe or the retrained pipeline.
 
 ## VI. Discussion and limitations
 

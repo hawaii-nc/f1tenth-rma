@@ -127,8 +127,17 @@ def main() -> None:
     print("=" * 70)
 
     before = trainer.actor_critic.policy.network[0].weight.detach().clone()
+    enc_before = trainer.actor_critic.encoder.network[0].weight.detach().clone()
     trainer.update(rollout_data, epoch=0)
     after = trainer.actor_critic.policy.network[0].weight.detach().clone()
+    enc_after = trainer.actor_critic.encoder.network[0].weight.detach().clone()
+    # The encoder mu must train too (bug C21: it never did in any July run)
+    enc_change = (enc_after - enc_before).abs().mean().item()
+    print(f"Mean abs weight change in encoder mu's first layer: {enc_change:.8f}")
+    if enc_change < 1e-10:
+        print("  !! WARNING: encoder mu did not update. See C21 in docs/BUGS_AND_LESSONS.md.")
+    else:
+        print("  OK: encoder updated.")
 
     weight_change = (after - before).abs().mean().item()
     print(f"Mean abs weight change in policy's first layer: {weight_change:.8f}")
