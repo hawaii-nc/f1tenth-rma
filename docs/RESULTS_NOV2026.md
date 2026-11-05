@@ -6,6 +6,19 @@ All numbers come from the rebuilt, bug-fixed pipeline on the real f1tenth_gym (c
 
 **Not comparable one-to-one with the July poster**: different tracks (drivable scale), base-policy training (DAgger), checkpoints, evaluation protocol, and seven pipeline bugs fixed (C16–C22).
 
+## Read this first: final claims (Nov 5, 2026)
+
+The full record follows; sections 4–8 hold the current results. In order of evidence:
+
+1. **Passive grip adaptation cannot work in this simulator.** With the car's actions independent of grip, its motion history carries no grip information (R² ≈ 0) for the linear, friction-circle and Fiala brush tires (section 4). Earlier "successes" were action leakage (φ reading the oracle's own driving) or uniform slowness: a speed-capped non-adaptive car matched them on every seed (section 3).
+2. **An active probe makes grip observable.** A 0.1 s speed pulse on straights gives grip R² 0.89–0.93. φ then drives within 0.1 m/s of the Oracle at every grip and, at μ = 0.4, crashes 0.02–0.08 vs 0.33–0.47 for Blind matched to its measured speed (p ≤ 6×10⁻⁸, all 3 seeds). No fixed speed limit matches it on both speed and safety. Turning the probe off removes the adaptation, the result holds on unseen tracks, and the probe costs ≤ 0.02 in crash rate (sections 4–5).
+3. **It survives realistic car sensing at racing speed.** With wheel-odometry speed (with slip), kinematic yaw rate, commanded steering, 40 Hz LiDAR, a braking probe and a racing expert, φ reads grip at R² 0.84–0.87 and, at equal average speed, crashes 0.00–0.05 vs 0.33–0.56 (μ = 0.6) and 0.28–0.39 vs 0.84–0.86 (μ = 0.4), beating a speed-matched Blind on every seed (section 6).
+4. **It depends on the wheel-slip model, partly fixed.** Trained on one slip model, φ is blind without slip. With the slip model randomized in training, it beats Blind in all 30 slip-model × seed × grip comparisons, but misses the registered margin at μ = 0.4 on one seed for the two weakest-signal slip models (sections 7–8).
+
+**Failed or not supported:** H1 (R² ≥ 0.7) without the probe; H3 (cross-grip ρ variance ≥ 10×) with it, which even the Oracle fails; the original configuration's G1/H2/H3; the 2 s window (W); the high-speed test (infeasible); amendment 10's D1. All are reported below.
+
+**Not shown:** anything on the real car with the probe. The deployable models and the one-session test are in docs/SIM_TO_REAL.md and docs/REAL_CAR_PROBE_PLAN.md.
+
 ## Summary
 
 | Configuration | φ crash at μ = 0.4 (Blind / Oracle) | ρ gap closed at μ = 0.4 | Variance ratio Blind/φ | φ speed μ = 1.0 → 0.4 (Oracle 1.98 → 1.19) | φ grip R² (E5) | G1 / H2 / H3 |
