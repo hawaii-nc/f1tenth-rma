@@ -17,6 +17,11 @@ Per trial, over samples with |v| > --min-speed:
     phi_sd     within-trial sd of φ's ẑ, averaged over the 8 dims ("φ activity")
 
 Then each condition is compared with the control by two-sided Mann–Whitney U.
+All comparisons (every condition × every metric) are one family, so the script
+also reports Holm-adjusted p-values (p_holm) over that whole family. Quote
+p_holm in the paper, and report every comparison, not just the strongest pair.
+Effect sizes: rel_diff = (condition mean − control mean) / control mean, and
+the rank-biserial correlation r_rb = 1 − 2U / (n_control · n_condition).
 
 Poster values (bare vs electrical tape): yaw p = 0.009, steering p = 0.0001;
 φ activity 12× higher on tape than bare rubber. The exact aggregation used
@@ -74,6 +79,19 @@ def trial_stats(data, trial, min_speed):
     }
 
 
+def holm(pvalues):
+    """Holm–Bonferroni adjusted p-values, in the input order."""
+    p = np.asarray(pvalues, dtype=float)
+    m = len(p)
+    order = np.argsort(p)
+    adj = np.empty(m)
+    running = 0.0
+    for rank, i in enumerate(order):
+        running = max(running, min(1.0, (m - rank) * p[i]))
+        adj[i] = running
+    return adj.tolist()
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('--data-dir', type=Path, required=True)
@@ -112,9 +130,22 @@ def main():
             b = [s[metric] for s in stats if np.isfinite(s[metric])]
             if len(a) > 1 and len(b) > 1:
                 res = mannwhitneyu(a, b, alternative='two-sided')
-                tests[metric] = {'U': float(res.statistic), 'p': float(res.pvalue)}
+                tests[metric] = {
+                    'U': float(res.statistic), 'p': float(res.pvalue),
+                    'rel_diff': float((np.mean(b) - np.mean(a)) / np.mean(a)) if np.mean(a) else float('nan'),
+                    'r_rb': float(1.0 - 2.0 * res.statistic / (len(a) * len(b))),
+                }
         report['tests'][f'{args.control}_vs_{name}'] = tests
-        print(f"{args.control} vs {name}: " + ', '.join(f"{m} p={t['p']:.4g}" for m, t in tests.items()))
+
+    # One family: every condition x every metric
+    family = [(c, m) for c, ts in report['tests'].items() for m in ts]
+    for (c, m), p_adj in zip(family, holm([report['tests'][c][m]['p'] for c, m in family])):
+        report['tests'][c][m]['p_holm'] = p_adj
+    report['n_tests'] = len(family)
+    print(f'Mann–Whitney U, Holm-adjusted over all {len(family)} comparisons:')
+    for c, ts in report['tests'].items():
+        print(f'  {c}: ' + ', '.join(
+            f"{m} p={t['p']:.4g} (Holm {t['p_holm']:.4g}, {t['rel_diff']:+.1%})" for m, t in ts.items()))
 
     args.out.mkdir(parents=True, exist_ok=True)
     (args.out / 'tire_stats.json').write_text(json.dumps({'args': {k: str(v) for k, v in vars(args).items()},
