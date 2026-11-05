@@ -1,0 +1,854 @@
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+[REWARD DEBUG] progress=0.0000, smooth=-0.0012, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0037, speed_limit=-0.0000 [curv=0.273, safe=7.52m/s, actual=1.46m/s], total=0.0028
+[PROGRESS DEBUG] prev_idx=0, idx=0, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0109, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0001, speed_limit=-0.0000 [curv=1.060, safe=3.87m/s, actual=1.34m/s], total=-0.0110
+[REWARD DEBUG] progress=0.6519, smooth=-0.0006, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0020, speed_limit=-0.0000 [curv=0.435, safe=6.00m/s, actual=2.36m/s], total=0.6483
+[REWARD DEBUG] progress=0.0000, smooth=-0.0003, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0060, close_wall=-0.0029, speed_limit=-0.0000 [curv=1.078, safe=3.83m/s, actual=1.83m/s], total=-0.0206
+[PROGRESS DEBUG] prev_idx=229, idx=229, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=1080, idx=1080, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0292, speed_limit=-0.0000 [curv=0.143, safe=8.00m/s, actual=2.54m/s], total=-0.0279
+[REWARD DEBUG] progress=0.0000, smooth=-0.0004, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0342, speed_limit=-0.0000 [curv=0.309, safe=7.08m/s, actual=2.69m/s], total=-0.0435
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0279, speed_limit=-0.0000 [curv=0.015, safe=8.00m/s, actual=2.91m/s], total=-0.0236
+[PROGRESS DEBUG] prev_idx=152, idx=152, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=176, idx=176, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=225, idx=226, delta_idx=1, progress_m=0.17493
+[PROGRESS DEBUG] prev_idx=235, idx=235, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=237, idx=237, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=1080, idx=1080, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=1080, idx=1080, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=417, idx=417, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=550, idx=550, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=419, idx=419, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=562, idx=562, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=390, idx=390, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0016, speed_limit=-0.0000 [curv=0.311, safe=7.06m/s, actual=2.03m/s], total=-0.0012
+[REWARD DEBUG] progress=0.6519, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0109, close_wall=-0.0080, speed_limit=-0.0000 [curv=1.609, safe=3.14m/s, actual=1.87m/s], total=0.6317
+[REWARD DEBUG] progress=0.0000, smooth=-0.0014, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0153, close_wall=-0.0172, speed_limit=-0.0000 [curv=1.849, safe=2.93m/s, actual=1.63m/s], total=-0.0405
+[PROGRESS DEBUG] prev_idx=582, idx=583, delta_idx=1, progress_m=0.13037
+[PROGRESS DEBUG] prev_idx=707, idx=707, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0307, speed_limit=-0.0000 [curv=0.001, safe=8.00m/s, actual=2.62m/s], total=-0.0324
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0259, speed_limit=-0.0000 [curv=0.003, safe=8.00m/s, actual=2.56m/s], total=-0.0263
+[PROGRESS DEBUG] prev_idx=379, idx=379, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.8746, smooth=-0.0024, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0307, speed_limit=-0.0000 [curv=0.309, safe=7.08m/s, actual=1.89m/s], total=0.8371
+[REWARD DEBUG] progress=0.8746, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0266, speed_limit=-0.0000 [curv=0.005, safe=8.00m/s, actual=2.81m/s], total=0.8442
+[PROGRESS DEBUG] prev_idx=574, idx=574, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0307, speed_limit=-0.0000 [curv=0.001, safe=8.00m/s, actual=2.62m/s], total=-0.0323
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0282, speed_limit=-0.0000 [curv=0.003, safe=8.00m/s, actual=2.56m/s], total=-0.0292
+[PROGRESS DEBUG] prev_idx=379, idx=379, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0037, close_wall=-0.0345, speed_limit=-0.0000 [curv=0.309, safe=7.08m/s, actual=2.92m/s], total=-0.0379
+[REWARD DEBUG] progress=0.0000, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0307, speed_limit=-0.0000 [curv=0.001, safe=8.00m/s, actual=2.62m/s], total=-0.0323
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0274, speed_limit=-0.0000 [curv=0.003, safe=8.00m/s, actual=2.56m/s], total=-0.0283
+[PROGRESS DEBUG] prev_idx=379, idx=379, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0044, close_wall=-0.0393, speed_limit=-0.0000 [curv=0.309, safe=7.08m/s, actual=2.95m/s], total=-0.0478
+[PROGRESS DEBUG] prev_idx=599, idx=600, delta_idx=1, progress_m=0.16085
+[PROGRESS DEBUG] prev_idx=755, idx=756, delta_idx=1, progress_m=0.16085
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0324, speed_limit=-0.0000 [curv=0.001, safe=8.00m/s, actual=2.54m/s], total=-0.0381
+[PROGRESS DEBUG] prev_idx=43, idx=43, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=601, idx=601, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=601, idx=601, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0016, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0017, speed_limit=-0.0000 [curv=0.268, safe=7.58m/s, actual=1.98m/s], total=-0.0024
+[PROGRESS DEBUG] prev_idx=686, idx=687, delta_idx=1, progress_m=0.13037
+[PROGRESS DEBUG] prev_idx=706, idx=706, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0003, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0035, speed_limit=-0.0000 [curv=0.273, safe=7.52m/s, actual=1.66m/s], total=-0.0003
+[REWARD DEBUG] progress=0.0000, smooth=-0.0005, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0083, close_wall=-0.0162, speed_limit=-0.0000 [curv=0.978, safe=4.03m/s, actual=1.91m/s], total=-0.0265
+[PROGRESS DEBUG] prev_idx=707, idx=707, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=737, idx=737, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0006, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0222, close_wall=-0.0241, speed_limit=-0.0000 [curv=0.828, safe=4.37m/s, actual=2.82m/s], total=-0.0629
+[PROGRESS DEBUG] prev_idx=718, idx=718, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=749, idx=749, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=931, idx=931, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=933, idx=934, delta_idx=1, progress_m=0.17493
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0265, speed_limit=-0.0000 [curv=0.000, safe=8.00m/s, actual=2.77m/s], total=-0.0265
+[PROGRESS DEBUG] prev_idx=62, idx=63, delta_idx=1, progress_m=0.17493
+[PROGRESS DEBUG] prev_idx=931, idx=931, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=933, idx=934, delta_idx=1, progress_m=0.17493
+[PROGRESS DEBUG] prev_idx=931, idx=931, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=933, idx=934, delta_idx=1, progress_m=0.17493
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0315, speed_limit=-0.0000 [curv=0.002, safe=8.00m/s, actual=1.99m/s], total=-0.0256
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0321, speed_limit=-0.0000 [curv=0.003, safe=8.00m/s, actual=2.81m/s], total=-0.0291
+[REWARD DEBUG] progress=0.0000, smooth=-0.0004, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0040, close_wall=-0.0419, speed_limit=-0.0000 [curv=0.487, safe=5.67m/s, actual=2.57m/s], total=-0.0477
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0334, speed_limit=-0.0000 [curv=0.002, safe=8.00m/s, actual=1.99m/s], total=-0.0275
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0344, speed_limit=-0.0000 [curv=0.003, safe=8.00m/s, actual=2.81m/s], total=-0.0317
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0334, speed_limit=-0.0000 [curv=0.002, safe=8.00m/s, actual=1.99m/s], total=-0.0275
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0313, speed_limit=-0.0000 [curv=0.003, safe=8.00m/s, actual=2.81m/s], total=-0.0281
+[REWARD DEBUG] progress=0.0000, smooth=-0.0004, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0082, close_wall=-0.0073, speed_limit=-0.0000 [curv=1.599, safe=3.15m/s, actual=1.88m/s], total=-0.0140
+[PROGRESS DEBUG] prev_idx=761, idx=761, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=802, idx=802, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0184, speed_limit=-0.0000 [curv=0.266, safe=7.62m/s, actual=2.90m/s], total=-0.0320
+[PROGRESS DEBUG] prev_idx=779, idx=779, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=830, idx=830, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.6519, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0199, speed_limit=-0.0000 [curv=0.256, safe=7.75m/s, actual=2.90m/s], total=0.6144
+[PROGRESS DEBUG] prev_idx=790, idx=790, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0302, speed_limit=-0.0000 [curv=0.056, safe=8.00m/s, actual=2.69m/s], total=-0.0232
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0274, speed_limit=-0.0000 [curv=0.054, safe=8.00m/s, actual=2.69m/s], total=-0.0334
+[REWARD DEBUG] progress=0.8746, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0274, speed_limit=-0.0000 [curv=0.049, safe=8.00m/s, actual=2.69m/s], total=0.8440
+[PROGRESS DEBUG] prev_idx=434, idx=434, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0174, close_wall=-0.0455, speed_limit=-0.0000 [curv=1.213, safe=3.62m/s, actual=1.79m/s], total=-0.0697
+[PROGRESS DEBUG] prev_idx=494, idx=494, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=512, idx=512, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=574, idx=574, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.6519, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0090, speed_limit=-0.0000 [curv=0.197, safe=8.00m/s, actual=2.69m/s], total=0.6370
+[REWARD DEBUG] progress=0.0000, smooth=-0.0015, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0042, speed_limit=-0.0000 [curv=0.477, safe=5.73m/s, actual=2.46m/s], total=-0.0017
+[PROGRESS DEBUG] prev_idx=353, idx=353, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0007, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0169, close_wall=-0.0031, speed_limit=-0.0000 [curv=1.240, safe=3.58m/s, actual=1.59m/s], total=-0.0153
+[REWARD DEBUG] progress=0.0000, smooth=-0.0117, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0087, close_wall=-0.0189, speed_limit=-0.0000 [curv=1.008, safe=3.97m/s, actual=1.52m/s], total=-0.0447
+[REWARD DEBUG] progress=0.0000, smooth=-0.0114, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0065, speed_limit=-0.0000 [curv=0.253, safe=7.80m/s, actual=1.35m/s], total=-0.0192
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0043, speed_limit=-0.0000 [curv=0.345, safe=6.71m/s, actual=2.72m/s], total=-0.0020
+[REWARD DEBUG] progress=0.0000, smooth=-0.0052, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0067, close_wall=-0.0081, speed_limit=-0.0000 [curv=0.921, safe=4.14m/s, actual=2.06m/s], total=-0.0302
+[PROGRESS DEBUG] prev_idx=372, idx=372, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0108, speed_limit=-0.0000 [curv=0.345, safe=6.71m/s, actual=2.72m/s], total=-0.0093
+[PROGRESS DEBUG] prev_idx=1075, idx=1075, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0221, close_wall=-0.0501, speed_limit=-0.0000 [curv=2.315, safe=2.62m/s, actual=1.45m/s], total=-0.0894
+[PROGRESS DEBUG] prev_idx=1075, idx=1075, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=1075, idx=1075, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=645, idx=645, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=719, idx=719, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0344, speed_limit=-0.0000 [curv=0.158, safe=8.00m/s, actual=2.39m/s], total=-0.0304
+[REWARD DEBUG] progress=0.8043, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0343, speed_limit=-0.0000 [curv=0.002, safe=8.00m/s, actual=2.89m/s], total=0.7669
+[PROGRESS DEBUG] prev_idx=647, idx=647, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=721, idx=721, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0447, speed_limit=-0.0000 [curv=0.040, safe=8.00m/s, actual=2.78m/s], total=-0.0479
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0306, speed_limit=-0.0000 [curv=0.000, safe=8.00m/s, actual=2.89m/s], total=-0.0236
+[PROGRESS DEBUG] prev_idx=647, idx=647, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0049, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0019, speed_limit=-0.0000 [curv=0.397, safe=6.27m/s, actual=1.67m/s], total=-0.0049
+[PROGRESS DEBUG] prev_idx=528, idx=528, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=103, idx=103, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=251, idx=251, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0008, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0332, speed_limit=-0.0000 [curv=0.067, safe=8.00m/s, actual=2.50m/s], total=-0.0315
+[PROGRESS DEBUG] prev_idx=103, idx=103, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=103, idx=103, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0003, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0309, speed_limit=-0.0000 [curv=0.321, safe=6.95m/s, actual=2.51m/s], total=-0.0262
+[REWARD DEBUG] progress=0.0000, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0056, close_wall=-0.0434, speed_limit=-0.0000 [curv=0.604, safe=5.11m/s, actual=2.55m/s], total=-0.0514
+[REWARD DEBUG] progress=0.0000, smooth=-0.0003, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0045, close_wall=-0.0416, speed_limit=-0.0000 [curv=0.607, safe=5.09m/s, actual=2.63m/s], total=-0.0479
+[PROGRESS DEBUG] prev_idx=502, idx=502, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=574, idx=574, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0009, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0379, speed_limit=-0.0000 [curv=0.271, safe=7.54m/s, actual=2.14m/s], total=-0.0356
+[REWARD DEBUG] progress=0.0000, smooth=-0.0047, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0055, close_wall=-0.0327, speed_limit=-0.0000 [curv=0.775, safe=4.52m/s, actual=2.55m/s], total=-0.0369
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0046, close_wall=-0.0495, speed_limit=-0.0000 [curv=0.565, safe=5.27m/s, actual=2.93m/s], total=-0.0689
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0622, speed_limit=-0.0000 [curv=0.143, safe=8.00m/s, actual=2.98m/s], total=-0.0824
+[PROGRESS DEBUG] prev_idx=752, idx=752, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=1, idx=1, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=120, idx=120, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=765, idx=765, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=58, idx=58, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=234, idx=234, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0372, speed_limit=-0.0000 [curv=0.007, safe=8.00m/s, actual=2.85m/s], total=-0.0450
+[REWARD DEBUG] progress=0.8746, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0294, speed_limit=-0.0000 [curv=0.001, safe=8.00m/s, actual=2.82m/s], total=0.8381
+[PROGRESS DEBUG] prev_idx=434, idx=434, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0058, close_wall=-0.0382, speed_limit=-0.0000 [curv=0.645, safe=4.94m/s, actual=2.02m/s], total=-0.0411
+[REWARD DEBUG] progress=0.0000, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0315, speed_limit=-0.0000 [curv=0.008, safe=8.00m/s, actual=2.51m/s], total=-0.0258
+[REWARD DEBUG] progress=0.0000, smooth=-0.0004, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0322, speed_limit=-0.0000 [curv=0.017, safe=8.00m/s, actual=2.72m/s], total=-0.0282
+[PROGRESS DEBUG] prev_idx=807, idx=807, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0039, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0224, close_wall=-0.0032, speed_limit=-0.0000 [curv=2.258, safe=2.66m/s, actual=1.53m/s], total=-0.0342
+[PROGRESS DEBUG] prev_idx=461, idx=461, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=475, idx=475, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=585, idx=585, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0049, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0023, close_wall=-0.0042, speed_limit=-0.0000 [curv=1.924, safe=2.88m/s, actual=1.60m/s], total=-0.0107
+[REWARD DEBUG] progress=0.0000, smooth=-0.0189, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0018, close_wall=-0.0319, speed_limit=-0.0000 [curv=0.870, safe=4.26m/s, actual=0.19m/s], total=-0.0435
+[REWARD DEBUG] progress=0.0000, smooth=-0.0112, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0580, speed_limit=-0.0000 [curv=2.188, safe=2.70m/s, actual=1.97m/s], total=-0.0890
+[REWARD DEBUG] progress=0.0000, smooth=-0.0033, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0086, close_wall=-0.0320, speed_limit=-0.0000 [curv=0.140, safe=8.00m/s, actual=1.70m/s], total=-0.0426
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0392, speed_limit=-0.0000 [curv=0.168, safe=8.00m/s, actual=2.62m/s], total=-0.0386
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0314, speed_limit=-0.0000 [curv=0.008, safe=8.00m/s, actual=2.52m/s], total=-0.0356
+[REWARD DEBUG] progress=0.0000, smooth=-0.0025, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0327, speed_limit=-0.0000 [curv=0.382, safe=6.39m/s, actual=1.74m/s], total=-0.0271
+[PROGRESS DEBUG] prev_idx=611, idx=611, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0024, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0339, speed_limit=-0.0000 [curv=0.213, safe=8.00m/s, actual=2.69m/s], total=-0.0338
+[REWARD DEBUG] progress=0.0000, smooth=-0.0004, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0528, speed_limit=-0.0000 [curv=0.096, safe=8.00m/s, actual=2.68m/s], total=-0.0653
+[PROGRESS DEBUG] prev_idx=648, idx=648, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=675, idx=675, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=702, idx=703, delta_idx=1, progress_m=0.16085
+[REWARD DEBUG] progress=0.0000, smooth=-0.0044, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0023, close_wall=-0.0319, speed_limit=-0.0000 [curv=0.870, safe=4.26m/s, actual=0.19m/s], total=-0.0295
+[REWARD DEBUG] progress=0.0000, smooth=-0.0044, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0023, close_wall=-0.0319, speed_limit=-0.0000 [curv=0.870, safe=4.26m/s, actual=0.19m/s], total=-0.0295
+[REWARD DEBUG] progress=0.0000, smooth=-0.0023, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0029, speed_limit=-0.0000 [curv=0.047, safe=8.00m/s, actual=2.28m/s], total=0.0011
+[PROGRESS DEBUG] prev_idx=625, idx=625, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0016, speed_limit=-0.0000 [curv=0.477, safe=5.73m/s, actual=2.77m/s], total=0.0071
+[PROGRESS DEBUG] prev_idx=702, idx=702, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0013, speed_limit=-0.0000 [curv=0.477, safe=5.73m/s, actual=2.86m/s], total=0.0058
+[PROGRESS DEBUG] prev_idx=468, idx=469, delta_idx=1, progress_m=0.17493
+[PROGRESS DEBUG] prev_idx=521, idx=522, delta_idx=1, progress_m=0.17493
+[PROGRESS DEBUG] prev_idx=575, idx=575, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0259, speed_limit=-0.0000 [curv=0.009, safe=8.00m/s, actual=2.72m/s], total=-0.0234
+[PROGRESS DEBUG] prev_idx=612, idx=612, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=621, idx=621, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0007, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0339, speed_limit=-0.0000 [curv=0.220, safe=8.00m/s, actual=2.56m/s], total=-0.0422
+[REWARD DEBUG] progress=0.0000, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0313, speed_limit=-0.0000 [curv=0.335, safe=6.81m/s, actual=2.05m/s], total=-0.0311
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0461, speed_limit=-0.0000 [curv=0.098, safe=8.00m/s, actual=2.47m/s], total=-0.0537
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0341, speed_limit=-0.0000 [curv=0.001, safe=8.00m/s, actual=2.62m/s], total=-0.0361
+[PROGRESS DEBUG] prev_idx=64, idx=64, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=84, idx=84, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=94, idx=94, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0052, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0314, speed_limit=-0.0000 [curv=0.093, safe=8.00m/s, actual=2.68m/s], total=-0.0400
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0325, speed_limit=-0.0000 [curv=0.008, safe=8.00m/s, actual=2.54m/s], total=-0.0270
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0326, speed_limit=-0.0000 [curv=0.001, safe=8.00m/s, actual=2.62m/s], total=-0.0316
+[PROGRESS DEBUG] prev_idx=75, idx=75, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=95, idx=95, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=105, idx=105, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=854, idx=855, delta_idx=1, progress_m=0.13037
+[PROGRESS DEBUG] prev_idx=866, idx=866, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0072, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0029, speed_limit=-0.0000 [curv=1.308, safe=3.48m/s, actual=1.56m/s], total=-0.0112
+[REWARD DEBUG] progress=0.0000, smooth=-0.0027, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0064, speed_limit=-0.0000 [curv=0.144, safe=8.00m/s, actual=1.57m/s], total=-0.0098
+[REWARD DEBUG] progress=0.0000, smooth=-0.0003, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0089, speed_limit=-0.0000 [curv=0.326, safe=6.90m/s, actual=1.74m/s], total=-0.0095
+[REWARD DEBUG] progress=0.0000, smooth=-0.0036, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0025, speed_limit=-0.0000 [curv=0.082, safe=8.00m/s, actual=1.74m/s], total=0.0009
+[PROGRESS DEBUG] prev_idx=859, idx=859, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=873, idx=873, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0078, speed_limit=-0.0000 [curv=0.792, safe=4.47m/s, actual=2.86m/s], total=0.0004
+[REWARD DEBUG] progress=0.0000, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0055, speed_limit=-0.0000 [curv=0.556, safe=5.31m/s, actual=2.85m/s], total=-0.0060
+[REWARD DEBUG] progress=0.0000, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0025, speed_limit=-0.0000 [curv=0.042, safe=8.00m/s, actual=2.54m/s], total=-0.0048
+[REWARD DEBUG] progress=0.0000, smooth=-0.0029, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0082, close_wall=-0.0174, speed_limit=-0.0000 [curv=0.446, safe=5.92m/s, actual=2.16m/s], total=-0.0417
+[PROGRESS DEBUG] prev_idx=861, idx=861, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=875, idx=875, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0060, speed_limit=-0.0000 [curv=0.792, safe=4.47m/s, actual=2.86m/s], total=0.0014
+[REWARD DEBUG] progress=0.0000, smooth=-0.0005, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0135, speed_limit=-0.0000 [curv=0.316, safe=7.00m/s, actual=2.87m/s], total=-0.0129
+[PROGRESS DEBUG] prev_idx=1005, idx=1005, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0280, speed_limit=-0.0000 [curv=0.050, safe=8.00m/s, actual=2.59m/s], total=-0.0227
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0294, speed_limit=-0.0000 [curv=0.041, safe=8.00m/s, actual=2.64m/s], total=-0.0264
+[REWARD DEBUG] progress=0.0000, smooth=-0.0007, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0263, speed_limit=-0.0000 [curv=0.022, safe=8.00m/s, actual=2.77m/s], total=-0.0255
+[PROGRESS DEBUG] prev_idx=1129, idx=1129, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0371, speed_limit=-0.0000 [curv=0.002, safe=8.00m/s, actual=2.49m/s], total=-0.0387
+[PROGRESS DEBUG] prev_idx=74, idx=74, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=1006, idx=1006, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.8746, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0318, speed_limit=-0.0000 [curv=0.073, safe=8.00m/s, actual=2.60m/s], total=0.8380
+[REWARD DEBUG] progress=0.0000, smooth=-0.0005, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0311, speed_limit=-0.0000 [curv=0.029, safe=8.00m/s, actual=2.64m/s], total=-0.0344
+[REWARD DEBUG] progress=0.0000, smooth=-0.0006, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0263, speed_limit=-0.0000 [curv=0.055, safe=8.00m/s, actual=2.82m/s], total=-0.0234
+[PROGRESS DEBUG] prev_idx=1006, idx=1006, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0363, speed_limit=-0.0000 [curv=0.073, safe=8.00m/s, actual=2.60m/s], total=-0.0357
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0264, speed_limit=-0.0000 [curv=0.026, safe=8.00m/s, actual=2.64m/s], total=-0.0258
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0263, speed_limit=-0.0000 [curv=0.055, safe=8.00m/s, actual=2.83m/s], total=-0.0241
+[PROGRESS DEBUG] prev_idx=311, idx=311, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=493, idx=493, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=685, idx=685, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=311, idx=311, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=506, idx=506, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=311, idx=311, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.6519, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0045, speed_limit=-0.0000 [curv=0.256, safe=7.76m/s, actual=2.82m/s], total=0.6472
+[PROGRESS DEBUG] prev_idx=495, idx=495, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=537, idx=538, delta_idx=1, progress_m=0.13037
+[PROGRESS DEBUG] prev_idx=597, idx=597, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.6519, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0073, speed_limit=-0.0000 [curv=0.828, safe=4.37m/s, actual=2.80m/s], total=0.6417
+[PROGRESS DEBUG] prev_idx=483, idx=483, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=592, idx=592, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=661, idx=661, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0296, speed_limit=-0.0000 [curv=0.002, safe=8.00m/s, actual=2.62m/s], total=-0.0295
+[REWARD DEBUG] progress=0.0000, smooth=-0.0009, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0273, speed_limit=-0.0000 [curv=0.110, safe=8.00m/s, actual=2.49m/s], total=-0.0258
+[PROGRESS DEBUG] prev_idx=483, idx=483, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=593, idx=593, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=663, idx=663, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0004, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0296, speed_limit=-0.0000 [curv=0.036, safe=8.00m/s, actual=2.62m/s], total=-0.0290
+[REWARD DEBUG] progress=0.0000, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0267, speed_limit=-0.0000 [curv=0.136, safe=8.00m/s, actual=2.51m/s], total=-0.0249
+[PROGRESS DEBUG] prev_idx=483, idx=483, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=593, idx=593, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=663, idx=663, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0296, speed_limit=-0.0000 [curv=0.036, safe=8.00m/s, actual=2.62m/s], total=-0.0202
+[PROGRESS DEBUG] prev_idx=197, idx=197, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=212, idx=212, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.6519, smooth=-0.0012, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0051, speed_limit=-0.0000 [curv=0.515, safe=5.52m/s, actual=1.63m/s], total=0.6424
+[PROGRESS DEBUG] prev_idx=203, idx=203, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=221, idx=221, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=203, idx=203, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=222, idx=222, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=721, idx=721, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0044, close_wall=-0.0237, speed_limit=-0.0000 [curv=0.393, safe=6.30m/s, actual=2.51m/s], total=-0.0199
+[PROGRESS DEBUG] prev_idx=960, idx=960, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=721, idx=721, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0050, close_wall=-0.0521, speed_limit=-0.0000 [curv=0.430, safe=6.03m/s, actual=2.96m/s], total=-0.0747
+[PROGRESS DEBUG] prev_idx=969, idx=969, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=721, idx=721, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0052, close_wall=-0.0605, speed_limit=-0.0000 [curv=0.416, safe=6.13m/s, actual=2.98m/s], total=-0.0897
+[PROGRESS DEBUG] prev_idx=970, idx=971, delta_idx=1, progress_m=0.17493
+[PROGRESS DEBUG] prev_idx=370, idx=371, delta_idx=1, progress_m=0.16085
+[PROGRESS DEBUG] prev_idx=447, idx=447, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=516, idx=516, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0010, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0404, speed_limit=-0.0000 [curv=0.168, safe=8.00m/s, actual=2.63m/s], total=-0.0427
+[PROGRESS DEBUG] prev_idx=552, idx=552, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=569, idx=570, delta_idx=1, progress_m=0.16085
+[PROGRESS DEBUG] prev_idx=637, idx=637, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=373, idx=374, delta_idx=1, progress_m=0.16085
+[PROGRESS DEBUG] prev_idx=454, idx=454, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=525, idx=525, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0008, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0182, close_wall=-0.0348, speed_limit=-0.0000 [curv=0.787, safe=4.48m/s, actual=2.73m/s], total=-0.0491
+[REWARD DEBUG] progress=0.0000, smooth=-0.0067, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0043, speed_limit=-0.0000 [curv=0.834, safe=4.35m/s, actual=1.71m/s], total=-0.0075
+[PROGRESS DEBUG] prev_idx=796, idx=796, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0005, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0018, speed_limit=-0.0000 [curv=1.308, safe=3.48m/s, actual=1.22m/s], total=-0.0015
+[PROGRESS DEBUG] prev_idx=21, idx=21, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0020, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0032, speed_limit=-0.0000 [curv=0.841, safe=4.34m/s, actual=1.58m/s], total=-0.0040
+[REWARD DEBUG] progress=0.6519, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0036, speed_limit=-0.0000 [curv=0.247, safe=7.90m/s, actual=2.67m/s], total=0.6461
+[REWARD DEBUG] progress=0.0000, smooth=-0.0007, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0092, speed_limit=-0.0000 [curv=0.436, safe=5.99m/s, actual=2.67m/s], total=-0.0158
+[PROGRESS DEBUG] prev_idx=808, idx=809, delta_idx=1, progress_m=0.13037
+[REWARD DEBUG] progress=0.0000, smooth=-0.0005, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0095, speed_limit=-0.0000 [curv=0.328, safe=6.88m/s, actual=2.54m/s], total=-0.0058
+[PROGRESS DEBUG] prev_idx=87, idx=87, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0020, speed_limit=-0.0000 [curv=0.173, safe=8.00m/s, actual=2.68m/s], total=0.0049
+[REWARD DEBUG] progress=0.0000, smooth=-0.0065, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0131, speed_limit=-0.0000 [curv=0.528, safe=5.45m/s, actual=2.38m/s], total=-0.0253
+[REWARD DEBUG] progress=0.0000, smooth=-0.0008, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0200, speed_limit=-0.0000 [curv=0.266, safe=7.62m/s, actual=2.76m/s], total=-0.0356
+[PROGRESS DEBUG] prev_idx=891, idx=891, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=930, idx=930, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=982, idx=982, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0253, speed_limit=-0.0000 [curv=0.020, safe=8.00m/s, actual=2.89m/s], total=-0.0174
+[PROGRESS DEBUG] prev_idx=1169, idx=1169, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0269, speed_limit=-0.0000 [curv=0.000, safe=8.00m/s, actual=2.69m/s], total=-0.0340
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0266, speed_limit=-0.0000 [curv=0.000, safe=8.00m/s, actual=2.88m/s], total=-0.0300
+[PROGRESS DEBUG] prev_idx=891, idx=891, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=930, idx=930, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=982, idx=982, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.8746, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0281, speed_limit=-0.0000 [curv=0.027, safe=8.00m/s, actual=2.89m/s], total=0.8438
+[PROGRESS DEBUG] prev_idx=891, idx=891, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=930, idx=930, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=982, idx=983, delta_idx=1, progress_m=0.17493
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0278, speed_limit=-0.0000 [curv=0.027, safe=8.00m/s, actual=2.89m/s], total=-0.0293
+[PROGRESS DEBUG] prev_idx=371, idx=371, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0068, close_wall=-0.0379, speed_limit=-0.0000 [curv=0.509, safe=5.55m/s, actual=2.46m/s], total=-0.0431
+[PROGRESS DEBUG] prev_idx=643, idx=643, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=373, idx=373, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=690, idx=690, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0003, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0207, close_wall=-0.0004, speed_limit=-0.0000 [curv=2.061, safe=2.78m/s, actual=1.32m/s], total=-0.0265
+[PROGRESS DEBUG] prev_idx=794, idx=794, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=812, idx=812, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=5, idx=5, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=694, idx=694, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0274, speed_limit=-0.0000 [curv=0.427, safe=6.05m/s, actual=2.56m/s], total=-0.0398
+[PROGRESS DEBUG] prev_idx=815, idx=816, delta_idx=1, progress_m=0.13037
+[PROGRESS DEBUG] prev_idx=840, idx=840, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=69, idx=70, delta_idx=1, progress_m=0.13037
+[PROGRESS DEBUG] prev_idx=695, idx=695, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0287, speed_limit=-0.0000 [curv=0.032, safe=8.00m/s, actual=1.99m/s], total=-0.0344
+[REWARD DEBUG] progress=0.0000, smooth=-0.0024, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0378, speed_limit=-0.0000 [curv=0.157, safe=8.00m/s, actual=2.49m/s], total=-0.0407
+[PROGRESS DEBUG] prev_idx=841, idx=841, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0289, speed_limit=-0.0000 [curv=0.002, safe=8.00m/s, actual=2.69m/s], total=-0.0239
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0287, speed_limit=-0.0000 [curv=0.032, safe=8.00m/s, actual=2.00m/s], total=-0.0344
+[REWARD DEBUG] progress=0.0000, smooth=-0.0008, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0345, speed_limit=-0.0000 [curv=0.157, safe=8.00m/s, actual=2.51m/s], total=-0.0423
+[PROGRESS DEBUG] prev_idx=847, idx=847, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0264, speed_limit=-0.0000 [curv=0.001, safe=8.00m/s, actual=2.69m/s], total=-0.0337
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0287, speed_limit=-0.0000 [curv=0.032, safe=8.00m/s, actual=2.00m/s], total=-0.0343
+[REWARD DEBUG] progress=0.0000, smooth=-0.0014, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0409, speed_limit=-0.0000 [curv=0.157, safe=8.00m/s, actual=2.52m/s], total=-0.0522
+[PROGRESS DEBUG] prev_idx=207, idx=207, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=214, idx=214, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0036, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0017, close_wall=-0.0373, speed_limit=-0.0000 [curv=0.705, safe=4.73m/s, actual=1.87m/s], total=-0.0456
+[PROGRESS DEBUG] prev_idx=422, idx=422, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.8043, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0311, speed_limit=-0.0000 [curv=0.005, safe=8.00m/s, actual=2.78m/s], total=0.7721
+[PROGRESS DEBUG] prev_idx=1109, idx=1109, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=44, idx=44, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0003, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0290, speed_limit=-0.0000 [curv=0.046, safe=8.00m/s, actual=2.87m/s], total=-0.0221
+[PROGRESS DEBUG] prev_idx=123, idx=123, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=1111, idx=1111, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=51, idx=51, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0025, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0064, close_wall=-0.0301, speed_limit=-0.0000 [curv=0.868, safe=4.27m/s, actual=2.57m/s], total=-0.0396
+[PROGRESS DEBUG] prev_idx=131, idx=132, delta_idx=1, progress_m=0.17493
+[PROGRESS DEBUG] prev_idx=29, idx=29, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0003, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0075, close_wall=-0.0359, speed_limit=-0.0000 [curv=0.934, safe=4.12m/s, actual=1.89m/s], total=-0.0472
+[PROGRESS DEBUG] prev_idx=246, idx=246, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=29, idx=29, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0004, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0126, close_wall=-0.0397, speed_limit=-0.0000 [curv=0.934, safe=4.12m/s, actual=1.97m/s], total=-0.0609
+[PROGRESS DEBUG] prev_idx=255, idx=255, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=29, idx=29, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=800, idx=801, delta_idx=1, progress_m=0.13037
+[PROGRESS DEBUG] prev_idx=15, idx=15, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=83, idx=83, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.6519, smooth=-0.0004, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0013, speed_limit=-0.0000 [curv=0.501, safe=5.60m/s, actual=2.78m/s], total=0.6489
+[REWARD DEBUG] progress=0.0000, smooth=-0.0014, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0035, speed_limit=-0.0000 [curv=0.326, safe=6.90m/s, actual=2.48m/s], total=0.0029
+[PROGRESS DEBUG] prev_idx=804, idx=805, delta_idx=1, progress_m=0.13037
+[PROGRESS DEBUG] prev_idx=57, idx=57, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=154, idx=155, delta_idx=1, progress_m=0.13037
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0049, speed_limit=-0.0000 [curv=0.108, safe=8.00m/s, actual=2.87m/s], total=-0.0050
+[REWARD DEBUG] progress=0.6519, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0145, speed_limit=-0.0000 [curv=0.047, safe=8.00m/s, actual=2.62m/s], total=0.6311
+[PROGRESS DEBUG] prev_idx=755, idx=755, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0014, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0426, speed_limit=-0.0000 [curv=0.249, safe=7.86m/s, actual=2.74m/s], total=-0.0540
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0424, speed_limit=-0.0000 [curv=0.004, safe=8.00m/s, actual=2.62m/s], total=-0.0491
+[REWARD DEBUG] progress=0.0000, smooth=-0.0004, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0257, speed_limit=-0.0000 [curv=0.001, safe=8.00m/s, actual=2.91m/s], total=-0.0287
+[PROGRESS DEBUG] prev_idx=1012, idx=1012, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0014, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0402, speed_limit=-0.0000 [curv=0.421, safe=6.09m/s, actual=2.53m/s], total=-0.0527
+[PROGRESS DEBUG] prev_idx=756, idx=756, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0004, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0373, speed_limit=-0.0000 [curv=0.004, safe=8.00m/s, actual=2.82m/s], total=-0.0486
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0269, speed_limit=-0.0000 [curv=0.002, safe=8.00m/s, actual=2.64m/s], total=-0.0235
+[REWARD DEBUG] progress=0.8746, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0288, speed_limit=-0.0000 [curv=0.001, safe=8.00m/s, actual=2.91m/s], total=0.8424
+[PROGRESS DEBUG] prev_idx=1020, idx=1020, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0004, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0521, speed_limit=-0.0000 [curv=0.310, safe=7.07m/s, actual=2.90m/s], total=-0.0669
+[PROGRESS DEBUG] prev_idx=757, idx=758, delta_idx=1, progress_m=0.17493
+[REWARD DEBUG] progress=0.8746, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0354, speed_limit=-0.0000 [curv=0.002, safe=8.00m/s, actual=2.82m/s], total=0.8330
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0288, speed_limit=-0.0000 [curv=0.003, safe=8.00m/s, actual=2.64m/s], total=-0.0311
+[REWARD DEBUG] progress=0.0000, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0255, speed_limit=-0.0000 [curv=0.001, safe=8.00m/s, actual=2.91m/s], total=-0.0238
+[PROGRESS DEBUG] prev_idx=1024, idx=1024, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0007, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0537, speed_limit=-0.0000 [curv=0.356, safe=6.61m/s, actual=2.75m/s], total=-0.0698
+[REWARD DEBUG] progress=0.0000, smooth=-0.0030, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0063, close_wall=-0.0376, speed_limit=-0.0000 [curv=0.951, safe=4.08m/s, actual=1.81m/s], total=-0.0481
+[PROGRESS DEBUG] prev_idx=526, idx=526, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=584, idx=584, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0340, speed_limit=-0.0000 [curv=0.819, safe=4.39m/s, actual=2.30m/s], total=-0.0256
+[REWARD DEBUG] progress=0.0000, smooth=-0.0026, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0315, speed_limit=-0.0000 [curv=0.406, safe=6.20m/s, actual=2.14m/s], total=-0.0326
+[PROGRESS DEBUG] prev_idx=772, idx=772, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0299, speed_limit=-0.0000 [curv=0.001, safe=8.00m/s, actual=2.76m/s], total=-0.0278
+[REWARD DEBUG] progress=0.8043, smooth=-0.0020, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0156, close_wall=-0.0495, speed_limit=-0.0000 [curv=0.772, safe=4.52m/s, actual=2.77m/s], total=0.7240
+[PROGRESS DEBUG] prev_idx=530, idx=530, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0012, speed_limit=-0.0000 [curv=0.556, safe=5.31m/s, actual=1.09m/s], total=0.0057
+[PROGRESS DEBUG] prev_idx=199, idx=199, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=244, idx=244, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=384, idx=384, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=417, idx=417, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0006, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0156, speed_limit=-0.0000 [curv=0.852, safe=4.31m/s, actual=2.25m/s], total=-0.0263
+[PROGRESS DEBUG] prev_idx=428, idx=429, delta_idx=1, progress_m=0.13037
+[PROGRESS DEBUG] prev_idx=437, idx=438, delta_idx=1, progress_m=0.13037
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0001, speed_limit=-0.0000 [curv=0.556, safe=5.31m/s, actual=1.09m/s], total=0.0068
+[PROGRESS DEBUG] prev_idx=201, idx=201, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=259, idx=260, delta_idx=1, progress_m=0.13037
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0001, speed_limit=-0.0000 [curv=0.556, safe=5.31m/s, actual=1.09m/s], total=0.0068
+[PROGRESS DEBUG] prev_idx=201, idx=201, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=263, idx=263, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=462, idx=462, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=477, idx=477, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=630, idx=630, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=462, idx=462, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=477, idx=478, delta_idx=1, progress_m=0.17493
+[PROGRESS DEBUG] prev_idx=634, idx=634, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=462, idx=462, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=477, idx=478, delta_idx=1, progress_m=0.17493
+[PROGRESS DEBUG] prev_idx=634, idx=634, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0013, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0106, close_wall=-0.0417, speed_limit=-0.0000 [curv=0.470, safe=5.77m/s, actual=2.41m/s], total=-0.0545
+[PROGRESS DEBUG] prev_idx=579, idx=579, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0009, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0040, close_wall=-0.0490, speed_limit=-0.0000 [curv=0.415, safe=6.14m/s, actual=2.71m/s], total=-0.0646
+[PROGRESS DEBUG] prev_idx=592, idx=592, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0028, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0065, speed_limit=-0.0000 [curv=1.335, safe=3.45m/s, actual=2.29m/s], total=-0.0072
+[PROGRESS DEBUG] prev_idx=705, idx=705, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0023, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0358, speed_limit=-0.0000 [curv=0.900, safe=4.19m/s, actual=2.33m/s], total=-0.0632
+[PROGRESS DEBUG] prev_idx=793, idx=793, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=874, idx=874, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=11, idx=11, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=46, idx=46, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0054, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0073, close_wall=-0.0137, speed_limit=-0.0000 [curv=1.335, safe=3.45m/s, actual=1.96m/s], total=-0.0324
+[PROGRESS DEBUG] prev_idx=713, idx=713, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0003, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0076, close_wall=-0.0089, speed_limit=-0.0000 [curv=0.482, safe=5.70m/s, actual=2.16m/s], total=-0.0180
+[REWARD DEBUG] progress=0.6519, smooth=-0.0017, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0296, speed_limit=-0.0000 [curv=1.599, safe=3.15m/s, actual=2.42m/s], total=0.6024
+[PROGRESS DEBUG] prev_idx=724, idx=724, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.6519, smooth=-0.0012, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0552, speed_limit=-0.0000 [curv=0.395, safe=6.29m/s, actual=2.86m/s], total=0.5522
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0300, speed_limit=-0.0000 [curv=0.220, safe=8.00m/s, actual=2.70m/s], total=-0.0246
+[PROGRESS DEBUG] prev_idx=825, idx=826, delta_idx=1, progress_m=0.17493
+[REWARD DEBUG] progress=0.0000, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0320, speed_limit=-0.0000 [curv=0.004, safe=8.00m/s, actual=2.84m/s], total=-0.0400
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0278, speed_limit=-0.0000 [curv=0.002, safe=8.00m/s, actual=2.85m/s], total=-0.0185
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0303, speed_limit=-0.0000 [curv=0.001, safe=8.00m/s, actual=2.60m/s], total=-0.0272
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0266, speed_limit=-0.0000 [curv=0.015, safe=8.00m/s, actual=2.89m/s], total=-0.0259
+[REWARD DEBUG] progress=0.0000, smooth=-0.0026, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0300, speed_limit=-0.0000 [curv=0.245, safe=7.93m/s, actual=2.67m/s], total=-0.0302
+[PROGRESS DEBUG] prev_idx=831, idx=831, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0270, speed_limit=-0.0000 [curv=0.003, safe=8.00m/s, actual=2.85m/s], total=-0.0315
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0271, speed_limit=-0.0000 [curv=0.001, safe=8.00m/s, actual=2.85m/s], total=-0.0182
+[REWARD DEBUG] progress=0.0000, smooth=-0.0003, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0267, speed_limit=-0.0000 [curv=0.001, safe=8.00m/s, actual=2.60m/s], total=-0.0242
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0263, speed_limit=-0.0000 [curv=0.038, safe=8.00m/s, actual=2.89m/s], total=-0.0253
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0348, speed_limit=-0.0000 [curv=0.296, safe=7.24m/s, actual=2.84m/s], total=-0.0355
+[PROGRESS DEBUG] prev_idx=835, idx=835, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0270, speed_limit=-0.0000 [curv=0.003, safe=8.00m/s, actual=2.85m/s], total=-0.0208
+[REWARD DEBUG] progress=0.8746, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0257, speed_limit=-0.0000 [curv=0.001, safe=8.00m/s, actual=2.85m/s], total=0.8456
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0263, speed_limit=-0.0000 [curv=0.000, safe=8.00m/s, actual=2.60m/s], total=-0.0307
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0263, speed_limit=-0.0000 [curv=0.028, safe=8.00m/s, actual=2.89m/s], total=-0.0208
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0344, speed_limit=-0.0000 [curv=0.001, safe=8.00m/s, actual=2.76m/s], total=-0.0273
+[REWARD DEBUG] progress=0.0000, smooth=-0.0012, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0328, speed_limit=-0.0000 [curv=0.019, safe=8.00m/s, actual=2.60m/s], total=-0.0268
+[PROGRESS DEBUG] prev_idx=305, idx=305, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0340, speed_limit=-0.0000 [curv=0.001, safe=8.00m/s, actual=2.76m/s], total=-0.0265
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0301, speed_limit=-0.0000 [curv=0.001, safe=8.00m/s, actual=2.76m/s], total=-0.0226
+[REWARD DEBUG] progress=0.0000, smooth=-0.0008, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0082, close_wall=-0.0262, speed_limit=-0.0000 [curv=0.905, safe=4.18m/s, actual=2.40m/s], total=-0.0380
+[REWARD DEBUG] progress=0.0000, smooth=-0.0004, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0296, speed_limit=-0.0000 [curv=0.000, safe=8.00m/s, actual=2.52m/s], total=-0.0313
+[PROGRESS DEBUG] prev_idx=31, idx=31, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=148, idx=148, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=301, idx=301, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0133, close_wall=-0.0258, speed_limit=-0.0000 [curv=0.905, safe=4.18m/s, actual=2.53m/s], total=-0.0373
+[REWARD DEBUG] progress=0.0000, smooth=-0.0009, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0323, speed_limit=-0.0000 [curv=0.000, safe=8.00m/s, actual=2.52m/s], total=-0.0356
+[PROGRESS DEBUG] prev_idx=32, idx=33, delta_idx=1, progress_m=0.17493
+[PROGRESS DEBUG] prev_idx=151, idx=151, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=311, idx=312, delta_idx=1, progress_m=0.17493
+[REWARD DEBUG] progress=0.8746, smooth=-0.0009, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0160, close_wall=-0.0328, speed_limit=-0.0000 [curv=0.905, safe=4.18m/s, actual=2.79m/s], total=0.8176
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0253, speed_limit=-0.0000 [curv=0.000, safe=8.00m/s, actual=2.52m/s], total=-0.0236
+[PROGRESS DEBUG] prev_idx=34, idx=34, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=153, idx=153, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.8043, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0331, speed_limit=-0.0000 [curv=0.175, safe=8.00m/s, actual=2.83m/s], total=0.7685
+[PROGRESS DEBUG] prev_idx=819, idx=819, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0303, speed_limit=-0.0000 [curv=0.008, safe=8.00m/s, actual=2.93m/s], total=-0.0279
+[PROGRESS DEBUG] prev_idx=113, idx=114, delta_idx=1, progress_m=0.16085
+[PROGRESS DEBUG] prev_idx=148, idx=149, delta_idx=1, progress_m=0.16085
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0332, speed_limit=-0.0000 [curv=0.002, safe=8.00m/s, actual=2.81m/s], total=-0.0277
+[PROGRESS DEBUG] prev_idx=430, idx=430, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=504, idx=504, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=510, idx=510, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=541, idx=541, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=605, idx=606, delta_idx=1, progress_m=0.13037
+[REWARD DEBUG] progress=0.0000, smooth=-0.0047, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0016, speed_limit=-0.0000 [curv=0.429, safe=6.04m/s, actual=1.85m/s], total=-0.0063
+[PROGRESS DEBUG] prev_idx=708, idx=708, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=709, idx=709, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=432, idx=432, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=555, idx=555, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=565, idx=566, delta_idx=1, progress_m=0.13037
+[PROGRESS DEBUG] prev_idx=612, idx=613, delta_idx=1, progress_m=0.13037
+[PROGRESS DEBUG] prev_idx=699, idx=699, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0003, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0109, speed_limit=-0.0000 [curv=0.225, safe=8.00m/s, actual=2.59m/s], total=-0.0078
+[PROGRESS DEBUG] prev_idx=432, idx=432, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=555, idx=555, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=566, idx=566, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=619, idx=619, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=621, idx=621, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0282, speed_limit=-0.0000 [curv=0.033, safe=8.00m/s, actual=2.60m/s], total=-0.0207
+[PROGRESS DEBUG] prev_idx=704, idx=704, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=621, idx=621, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=622, idx=623, delta_idx=1, progress_m=0.17493
+[REWARD DEBUG] progress=0.8746, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0277, speed_limit=-0.0000 [curv=0.034, safe=8.00m/s, actual=2.60m/s], total=0.8418
+[PROGRESS DEBUG] prev_idx=708, idx=708, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=621, idx=621, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=623, idx=623, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0255, speed_limit=-0.0000 [curv=0.034, safe=8.00m/s, actual=2.60m/s], total=-0.0165
+[PROGRESS DEBUG] prev_idx=708, idx=708, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=425, idx=425, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0019, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0182, close_wall=-0.0441, speed_limit=-0.0000 [curv=1.610, safe=3.14m/s, actual=1.86m/s], total=-0.0713
+[PROGRESS DEBUG] prev_idx=500, idx=501, delta_idx=1, progress_m=0.16085
+[REWARD DEBUG] progress=0.0000, smooth=-0.0010, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0348, speed_limit=-0.0000 [curv=0.028, safe=8.00m/s, actual=2.81m/s], total=-0.0294
+[PROGRESS DEBUG] prev_idx=518, idx=518, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0411, speed_limit=-0.0000 [curv=0.248, safe=7.88m/s, actual=2.48m/s], total=-0.0480
+[PROGRESS DEBUG] prev_idx=597, idx=597, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0003, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0325, speed_limit=-0.0000 [curv=0.004, safe=8.00m/s, actual=2.92m/s], total=-0.0323
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0333, speed_limit=-0.0000 [curv=0.004, safe=8.00m/s, actual=2.62m/s], total=-0.0341
+[PROGRESS DEBUG] prev_idx=735, idx=735, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=775, idx=775, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=673, idx=673, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0004, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0055, close_wall=-0.0134, speed_limit=-0.0000 [curv=1.526, safe=3.23m/s, actual=2.09m/s], total=-0.0191
+[REWARD DEBUG] progress=0.0000, smooth=-0.0003, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0207, close_wall=0.0000, speed_limit=-0.0000 [curv=1.638, safe=3.12m/s, actual=1.23m/s], total=-0.0188
+[PROGRESS DEBUG] prev_idx=748, idx=749, delta_idx=1, progress_m=0.13037
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0176, speed_limit=-0.0000 [curv=0.262, safe=7.67m/s, actual=2.88m/s], total=-0.0239
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0056, speed_limit=-0.0000 [curv=1.179, safe=3.67m/s, actual=2.90m/s], total=-0.0051
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0391, speed_limit=-0.0000 [curv=0.156, safe=8.00m/s, actual=2.80m/s], total=-0.0430
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0271, speed_limit=-0.0000 [curv=0.016, safe=8.00m/s, actual=2.87m/s], total=-0.0266
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0416, speed_limit=-0.0000 [curv=0.156, safe=8.00m/s, actual=2.84m/s], total=-0.0503
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0291, speed_limit=-0.0000 [curv=0.016, safe=8.00m/s, actual=2.87m/s], total=-0.0272
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0475, speed_limit=-0.0000 [curv=0.156, safe=8.00m/s, actual=2.84m/s], total=-0.0580
+[REWARD DEBUG] progress=0.0000, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0291, speed_limit=-0.0000 [curv=0.016, safe=8.00m/s, actual=2.87m/s], total=-0.0288
+[REWARD DEBUG] progress=0.0000, smooth=-0.0038, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0006, close_wall=-0.0418, speed_limit=-0.0000 [curv=0.450, safe=5.90m/s, actual=2.64m/s], total=-0.0497
+[REWARD DEBUG] progress=0.0000, smooth=-0.0004, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0303, speed_limit=-0.0000 [curv=0.006, safe=8.00m/s, actual=2.55m/s], total=-0.0257
+[REWARD DEBUG] progress=0.0000, smooth=-0.0008, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0227, close_wall=-0.0411, speed_limit=-0.0000 [curv=1.318, safe=3.47m/s, actual=1.61m/s], total=-0.0746
+[REWARD DEBUG] progress=0.8043, smooth=-0.0003, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0315, speed_limit=-0.0000 [curv=0.175, safe=8.00m/s, actual=2.77m/s], total=0.7687
+[PROGRESS DEBUG] prev_idx=761, idx=761, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=770, idx=770, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=774, idx=774, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0007, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0047, close_wall=-0.0411, speed_limit=-0.0000 [curv=0.487, safe=5.67m/s, actual=2.58m/s], total=-0.0475
+[REWARD DEBUG] progress=0.0000, smooth=-0.0003, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0327, speed_limit=-0.0000 [curv=0.000, safe=8.00m/s, actual=2.90m/s], total=-0.0255
+[PROGRESS DEBUG] prev_idx=113, idx=113, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.8043, smooth=-0.0016, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0039, close_wall=-0.0540, speed_limit=-0.0000 [curv=0.450, safe=5.90m/s, actual=2.91m/s], total=0.7302
+[REWARD DEBUG] progress=0.0000, smooth=-0.0006, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0330, speed_limit=-0.0000 [curv=0.007, safe=8.00m/s, actual=2.56m/s], total=-0.0336
+[REWARD DEBUG] progress=0.0000, smooth=-0.0046, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0070, close_wall=-0.0318, speed_limit=-0.0000 [curv=1.208, safe=3.62m/s, actual=1.60m/s], total=-0.0391
+[REWARD DEBUG] progress=0.0000, smooth=-0.0008, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0032, close_wall=-0.0600, speed_limit=-0.0000 [curv=0.450, safe=5.90m/s, actual=2.94m/s], total=-0.0829
+[REWARD DEBUG] progress=0.0000, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0303, speed_limit=-0.0000 [curv=0.007, safe=8.00m/s, actual=2.56m/s], total=-0.0277
+[REWARD DEBUG] progress=0.0000, smooth=-0.0063, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0001, close_wall=-0.0095, speed_limit=-0.0000 [curv=1.924, safe=2.88m/s, actual=1.55m/s], total=-0.0227
+[PROGRESS DEBUG] prev_idx=621, idx=621, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0024, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0315, speed_limit=-0.0000 [curv=1.157, safe=3.70m/s, actual=2.52m/s], total=-0.0542
+[PROGRESS DEBUG] prev_idx=635, idx=636, delta_idx=1, progress_m=0.13037
+[REWARD DEBUG] progress=0.0000, smooth=-0.0015, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0447, speed_limit=-0.0000 [curv=1.157, safe=3.70m/s, actual=2.66m/s], total=-0.0791
+[PROGRESS DEBUG] prev_idx=637, idx=637, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=104, idx=104, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0264, speed_limit=-0.0000 [curv=0.016, safe=8.00m/s, actual=2.68m/s], total=-0.0301
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0383, speed_limit=-0.0000 [curv=0.006, safe=8.00m/s, actual=2.61m/s], total=-0.0482
+[PROGRESS DEBUG] prev_idx=107, idx=108, delta_idx=1, progress_m=0.17493
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0276, speed_limit=-0.0000 [curv=0.015, safe=8.00m/s, actual=2.69m/s], total=-0.0272
+[REWARD DEBUG] progress=0.0000, smooth=-0.0013, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0291, speed_limit=-0.0000 [curv=0.043, safe=8.00m/s, actual=2.68m/s], total=-0.0324
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0347, speed_limit=-0.0000 [curv=0.002, safe=8.00m/s, actual=2.79m/s], total=-0.0317
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0313, speed_limit=-0.0000 [curv=0.002, safe=8.00m/s, actual=2.58m/s], total=-0.0324
+[PROGRESS DEBUG] prev_idx=534, idx=534, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=555, idx=556, delta_idx=1, progress_m=0.16085
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0328, speed_limit=-0.0000 [curv=0.004, safe=8.00m/s, actual=2.81m/s], total=-0.0263
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0313, speed_limit=-0.0000 [curv=0.002, safe=8.00m/s, actual=2.59m/s], total=-0.0361
+[PROGRESS DEBUG] prev_idx=551, idx=551, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=636, idx=636, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0099, speed_limit=-0.0000 [curv=0.235, safe=8.00m/s, actual=2.14m/s], total=-0.0089
+[PROGRESS DEBUG] prev_idx=730, idx=730, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0011, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0062, speed_limit=-0.0000 [curv=0.243, safe=7.95m/s, actual=2.08m/s], total=-0.0026
+[PROGRESS DEBUG] prev_idx=788, idx=789, delta_idx=1, progress_m=0.13037
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0193, close_wall=0.0000, speed_limit=-0.0000 [curv=2.077, safe=2.77m/s, actual=1.21m/s], total=-0.0233
+[PROGRESS DEBUG] prev_idx=881, idx=881, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=6, idx=6, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=636, idx=636, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0114, speed_limit=-0.0000 [curv=1.047, safe=3.89m/s, actual=2.49m/s], total=-0.0135
+[PROGRESS DEBUG] prev_idx=740, idx=740, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0004, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0070, speed_limit=-0.0000 [curv=0.434, safe=6.00m/s, actual=2.83m/s], total=-0.0044
+[PROGRESS DEBUG] prev_idx=636, idx=636, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.6519, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0169, close_wall=-0.0239, speed_limit=-0.0000 [curv=0.828, safe=4.37m/s, actual=2.95m/s], total=0.6016
+[PROGRESS DEBUG] prev_idx=746, idx=746, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0046, close_wall=-0.0123, speed_limit=-0.0000 [curv=1.071, safe=3.85m/s, actual=2.84m/s], total=-0.0221
+[REWARD DEBUG] progress=0.8746, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0286, speed_limit=-0.0000 [curv=0.009, safe=8.00m/s, actual=2.64m/s], total=0.8403
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0271, speed_limit=-0.0000 [curv=0.025, safe=8.00m/s, actual=2.64m/s], total=-0.0289
+[REWARD DEBUG] progress=0.8746, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0245, speed_limit=-0.0000 [curv=0.053, safe=8.00m/s, actual=2.67m/s], total=0.8428
+[REWARD DEBUG] progress=0.8746, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0250, speed_limit=-0.0000 [curv=0.009, safe=8.00m/s, actual=2.64m/s], total=0.8440
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0291, speed_limit=-0.0000 [curv=0.025, safe=8.00m/s, actual=2.64m/s], total=-0.0303
+[REWARD DEBUG] progress=0.8746, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0297, speed_limit=-0.0000 [curv=0.009, safe=8.00m/s, actual=2.64m/s], total=0.8395
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0291, speed_limit=-0.0000 [curv=0.025, safe=8.00m/s, actual=2.64m/s], total=-0.0297
+[PROGRESS DEBUG] prev_idx=608, idx=608, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=620, idx=621, delta_idx=1, progress_m=0.16085
+[REWARD DEBUG] progress=0.0000, smooth=-0.0038, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0078, close_wall=-0.0356, speed_limit=-0.0000 [curv=0.739, safe=4.62m/s, actual=1.68m/s], total=-0.0439
+[PROGRESS DEBUG] prev_idx=746, idx=746, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0007, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0429, speed_limit=-0.0000 [curv=0.101, safe=8.00m/s, actual=2.78m/s], total=-0.0456
+[PROGRESS DEBUG] prev_idx=326, idx=326, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=371, idx=372, delta_idx=1, progress_m=0.13037
+[REWARD DEBUG] progress=0.0000, smooth=-0.0019, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0106, close_wall=-0.0148, speed_limit=-0.0000 [curv=1.074, safe=3.84m/s, actual=1.88m/s], total=-0.0377
+[REWARD DEBUG] progress=0.0000, smooth=-0.0039, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0160, speed_limit=-0.0000 [curv=1.063, safe=3.86m/s, actual=2.08m/s], total=-0.0234
+[REWARD DEBUG] progress=0.0000, smooth=-0.0026, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0190, speed_limit=-0.0000 [curv=0.852, safe=4.31m/s, actual=1.91m/s], total=-0.0254
+[PROGRESS DEBUG] prev_idx=424, idx=424, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0169, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0012, speed_limit=-0.0000 [curv=0.096, safe=8.00m/s, actual=1.29m/s], total=-0.0215
+[PROGRESS DEBUG] prev_idx=515, idx=515, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=581, idx=581, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=326, idx=327, delta_idx=1, progress_m=0.13037
+[PROGRESS DEBUG] prev_idx=377, idx=377, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0005, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0244, close_wall=-0.0078, speed_limit=-0.0000 [curv=1.240, safe=3.58m/s, actual=2.02m/s], total=-0.0339
+[PROGRESS DEBUG] prev_idx=327, idx=328, delta_idx=1, progress_m=0.13037
+[REWARD DEBUG] progress=0.8746, smooth=-0.0039, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0092, close_wall=-0.0316, speed_limit=-0.0000 [curv=0.525, safe=5.47m/s, actual=2.13m/s], total=0.8216
+[PROGRESS DEBUG] prev_idx=779, idx=779, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=783, idx=784, delta_idx=1, progress_m=0.17493
+[REWARD DEBUG] progress=0.0000, smooth=-0.0013, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0044, close_wall=-0.0351, speed_limit=-0.0000 [curv=0.386, safe=6.36m/s, actual=2.46m/s], total=-0.0418
+[REWARD DEBUG] progress=0.0000, smooth=-0.0024, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0284, close_wall=-0.0561, speed_limit=-0.0000 [curv=0.525, safe=5.47m/s, actual=2.36m/s], total=-0.1060
+[PROGRESS DEBUG] prev_idx=781, idx=782, delta_idx=1, progress_m=0.17493
+[PROGRESS DEBUG] prev_idx=786, idx=786, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0009, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0089, close_wall=-0.0299, speed_limit=-0.0000 [curv=0.393, safe=6.30m/s, actual=2.74m/s], total=-0.0487
+[REWARD DEBUG] progress=0.0000, smooth=-0.0011, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0328, close_wall=-0.0588, speed_limit=-0.0000 [curv=0.525, safe=5.47m/s, actual=2.30m/s], total=-0.1160
+[REWARD DEBUG] progress=0.0000, smooth=-0.0012, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0433, speed_limit=-0.0000 [curv=0.072, safe=8.00m/s, actual=2.62m/s], total=-0.0469
+[PROGRESS DEBUG] prev_idx=302, idx=302, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=315, idx=315, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=407, idx=407, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0005, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0449, speed_limit=-0.0000 [curv=0.398, safe=6.26m/s, actual=2.74m/s], total=-0.0500
+[PROGRESS DEBUG] prev_idx=453, idx=453, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=468, idx=468, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=521, idx=521, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=523, idx=523, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0082, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0212, close_wall=-0.0669, speed_limit=-0.0000 [curv=0.053, safe=8.00m/s, actual=2.71m/s], total=-0.1187
+[PROGRESS DEBUG] prev_idx=359, idx=359, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=402, idx=402, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=562, idx=562, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=368, idx=368, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0243, speed_limit=-0.0000 [curv=0.021, safe=8.00m/s, actual=1.79m/s], total=-0.0222
+[PROGRESS DEBUG] prev_idx=1154, idx=1154, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=179, idx=179, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0017, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0246, speed_limit=-0.0000 [curv=0.279, safe=7.43m/s, actual=2.23m/s], total=-0.0209
+[REWARD DEBUG] progress=0.0000, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0243, speed_limit=-0.0000 [curv=0.021, safe=8.00m/s, actual=1.79m/s], total=-0.0222
+[REWARD DEBUG] progress=0.0000, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0243, speed_limit=-0.0000 [curv=0.021, safe=8.00m/s, actual=1.79m/s], total=-0.0222
+[PROGRESS DEBUG] prev_idx=741, idx=741, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=769, idx=769, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=772, idx=772, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0060, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0057, close_wall=-0.0324, speed_limit=-0.0000 [curv=0.355, safe=6.63m/s, actual=1.96m/s], total=-0.0429
+[REWARD DEBUG] progress=0.0000, smooth=-0.0003, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0387, speed_limit=-0.0000 [curv=0.109, safe=8.00m/s, actual=2.73m/s], total=-0.0397
+[PROGRESS DEBUG] prev_idx=214, idx=214, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=741, idx=741, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=771, idx=771, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=775, idx=775, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.8043, smooth=-0.0007, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0501, speed_limit=-0.0000 [curv=0.084, safe=8.00m/s, actual=2.85m/s], total=0.7411
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0379, speed_limit=-0.0000 [curv=0.011, safe=8.00m/s, actual=2.77m/s], total=-0.0375
+[PROGRESS DEBUG] prev_idx=222, idx=222, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=741, idx=741, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0073, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0005, close_wall=-0.0009, speed_limit=-0.0000 [curv=1.280, safe=3.52m/s, actual=1.53m/s], total=-0.0094
+[PROGRESS DEBUG] prev_idx=779, idx=779, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0034, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0183, close_wall=-0.0220, speed_limit=-0.0000 [curv=1.526, safe=3.23m/s, actual=1.94m/s], total=-0.0532
+[REWARD DEBUG] progress=0.0000, smooth=-0.0052, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0107, speed_limit=-0.0000 [curv=0.766, safe=4.54m/s, actual=1.99m/s], total=-0.0164
+[PROGRESS DEBUG] prev_idx=0, idx=0, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=126, idx=127, delta_idx=1, progress_m=0.13037
+[REWARD DEBUG] progress=0.0000, smooth=-0.0003, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0025, speed_limit=-0.0000 [curv=0.468, safe=5.78m/s, actual=2.83m/s], total=0.0031
+[REWARD DEBUG] progress=0.0000, smooth=-0.0111, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0001, close_wall=-0.0059, speed_limit=-0.0000 [curv=1.280, safe=3.52m/s, actual=1.97m/s], total=-0.0148
+[PROGRESS DEBUG] prev_idx=792, idx=792, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0013, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0191, close_wall=0.0000, speed_limit=-0.0000 [curv=1.638, safe=3.12m/s, actual=1.62m/s], total=-0.0257
+[REWARD DEBUG] progress=0.0000, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0066, speed_limit=-0.0000 [curv=1.049, safe=3.89m/s, actual=2.73m/s], total=-0.0082
+[PROGRESS DEBUG] prev_idx=55, idx=55, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=236, idx=236, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0003, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0257, speed_limit=-0.0000 [curv=0.885, safe=4.23m/s, actual=2.83m/s], total=-0.0331
+[REWARD DEBUG] progress=0.0000, smooth=-0.0111, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0001, close_wall=-0.0059, speed_limit=-0.0000 [curv=1.280, safe=3.52m/s, actual=1.97m/s], total=-0.0148
+[PROGRESS DEBUG] prev_idx=769, idx=769, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=771, idx=771, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.8043, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0012, close_wall=-0.0448, speed_limit=-0.0000 [curv=0.481, safe=5.71m/s, actual=2.58m/s], total=0.7480
+[PROGRESS DEBUG] prev_idx=452, idx=452, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=493, idx=493, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0005, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0358, speed_limit=-0.0000 [curv=0.307, safe=7.10m/s, actual=1.96m/s], total=-0.0320
+[PROGRESS DEBUG] prev_idx=130, idx=130, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0003, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0029, speed_limit=-0.0000 [curv=0.108, safe=8.00m/s, actual=1.57m/s], total=0.0014
+[PROGRESS DEBUG] prev_idx=246, idx=246, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0024, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0042, speed_limit=-0.0000 [curv=0.036, safe=8.00m/s, actual=1.80m/s], total=0.0004
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0213, close_wall=-0.0213, speed_limit=-0.0000 [curv=1.484, safe=3.27m/s, actual=1.39m/s], total=-0.0565
+[PROGRESS DEBUG] prev_idx=150, idx=150, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0013, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0072, close_wall=-0.0122, speed_limit=-0.0000 [curv=1.253, safe=3.56m/s, actual=2.48m/s], total=-0.0274
+[PROGRESS DEBUG] prev_idx=313, idx=313, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=154, idx=154, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0022, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0165, close_wall=-0.0057, speed_limit=-0.0000 [curv=1.700, safe=3.06m/s, actual=2.68m/s], total=-0.0310
+[PROGRESS DEBUG] prev_idx=569, idx=569, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0009, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0325, speed_limit=-0.0000 [curv=0.440, safe=5.96m/s, actual=2.63m/s], total=-0.0404
+[PROGRESS DEBUG] prev_idx=90, idx=90, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=144, idx=144, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=163, idx=163, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=173, idx=173, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0006, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0103, close_wall=-0.0382, speed_limit=-0.0000 [curv=0.845, safe=4.33m/s, actual=1.89m/s], total=-0.0455
+[PROGRESS DEBUG] prev_idx=270, idx=270, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=430, idx=430, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=90, idx=90, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=90, idx=90, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=66, idx=66, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=125, idx=126, delta_idx=1, progress_m=0.13037
+[PROGRESS DEBUG] prev_idx=158, idx=158, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=269, idx=270, delta_idx=1, progress_m=0.13037
+[PROGRESS DEBUG] prev_idx=132, idx=132, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=205, idx=205, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=236, idx=236, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=355, idx=355, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=1048, idx=1048, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=1052, idx=1052, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=1052, idx=1052, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0443, speed_limit=-0.0000 [curv=0.093, safe=8.00m/s, actual=2.58m/s], total=-0.0493
+[PROGRESS DEBUG] prev_idx=249, idx=249, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=262, idx=262, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=367, idx=367, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=593, idx=593, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=601, idx=601, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0065, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0033, speed_limit=-0.0000 [curv=0.423, safe=6.08m/s, actual=1.61m/s], total=-0.0037
+[REWARD DEBUG] progress=0.0000, smooth=-0.0026, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0081, speed_limit=-0.0000 [curv=0.385, safe=6.36m/s, actual=1.67m/s], total=-0.0042
+[PROGRESS DEBUG] prev_idx=802, idx=802, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=624, idx=625, delta_idx=1, progress_m=0.13037
+[PROGRESS DEBUG] prev_idx=636, idx=636, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0012, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0168, close_wall=-0.0111, speed_limit=-0.0000 [curv=0.750, safe=4.59m/s, actual=2.46m/s], total=-0.0324
+[REWARD DEBUG] progress=0.0000, smooth=-0.0003, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0060, speed_limit=-0.0000 [curv=0.883, safe=4.23m/s, actual=2.87m/s], total=-0.0077
+[PROGRESS DEBUG] prev_idx=884, idx=885, delta_idx=1, progress_m=0.13037
+[PROGRESS DEBUG] prev_idx=255, idx=255, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0283, speed_limit=-0.0000 [curv=0.004, safe=8.00m/s, actual=2.86m/s], total=-0.0206
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0483, speed_limit=-0.0000 [curv=0.018, safe=8.00m/s, actual=2.80m/s], total=-0.0631
+[PROGRESS DEBUG] prev_idx=572, idx=572, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=572, idx=572, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=572, idx=572, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=98, idx=98, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0008, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0045, speed_limit=-0.0000 [curv=0.468, safe=5.78m/s, actual=2.51m/s], total=0.0005
+[REWARD DEBUG] progress=0.0000, smooth=-0.0013, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0087, close_wall=-0.0145, speed_limit=-0.0000 [curv=0.241, safe=7.99m/s, actual=1.74m/s], total=-0.0307
+[PROGRESS DEBUG] prev_idx=399, idx=399, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=345, idx=345, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=362, idx=362, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0014, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0330, speed_limit=-0.0000 [curv=0.652, safe=4.92m/s, actual=2.17m/s], total=-0.0424
+[PROGRESS DEBUG] prev_idx=392, idx=392, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=498, idx=498, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0349, speed_limit=-0.0000 [curv=0.134, safe=8.00m/s, actual=2.82m/s], total=-0.0385
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0263, speed_limit=-0.0000 [curv=0.008, safe=8.00m/s, actual=2.69m/s], total=-0.0337
+[REWARD DEBUG] progress=0.0000, smooth=-0.0004, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0320, speed_limit=-0.0000 [curv=0.411, safe=6.17m/s, actual=2.50m/s], total=-0.0372
+[PROGRESS DEBUG] prev_idx=345, idx=345, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=362, idx=362, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0017, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0314, speed_limit=-0.0000 [curv=0.652, safe=4.92m/s, actual=2.65m/s], total=-0.0299
+[PROGRESS DEBUG] prev_idx=396, idx=397, delta_idx=1, progress_m=0.17493
+[PROGRESS DEBUG] prev_idx=345, idx=345, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=362, idx=362, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0268, speed_limit=-0.0000 [curv=0.652, safe=4.92m/s, actual=2.68m/s], total=-0.0225
+[PROGRESS DEBUG] prev_idx=397, idx=397, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0391, speed_limit=-0.0000 [curv=0.006, safe=8.00m/s, actual=2.78m/s], total=-0.0457
+[PROGRESS DEBUG] prev_idx=841, idx=841, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0320, speed_limit=-0.0000 [curv=0.002, safe=8.00m/s, actual=2.88m/s], total=-0.0309
+[REWARD DEBUG] progress=0.8043, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0303, speed_limit=-0.0000 [curv=0.001, safe=8.00m/s, actual=2.66m/s], total=0.7678
+[REWARD DEBUG] progress=0.8043, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0332, speed_limit=-0.0000 [curv=0.001, safe=8.00m/s, actual=2.56m/s], total=0.7674
+[REWARD DEBUG] progress=0.0000, smooth=-0.0003, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0188, close_wall=-0.0426, speed_limit=-0.0000 [curv=1.949, safe=2.86m/s, actual=1.30m/s], total=-0.0663
+[REWARD DEBUG] progress=0.8043, smooth=-0.0003, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0408, speed_limit=-0.0000 [curv=0.005, safe=8.00m/s, actual=2.82m/s], total=0.7569
+[REWARD DEBUG] progress=0.0000, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0431, speed_limit=-0.0000 [curv=0.006, safe=8.00m/s, actual=2.82m/s], total=-0.0518
+[PROGRESS DEBUG] prev_idx=240, idx=240, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.6519, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0111, close_wall=-0.0030, speed_limit=-0.0000 [curv=1.372, safe=3.40m/s, actual=1.84m/s], total=0.6332
+[REWARD DEBUG] progress=0.0000, smooth=-0.0014, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0192, close_wall=-0.0117, speed_limit=-0.0000 [curv=1.657, safe=3.10m/s, actual=1.75m/s], total=-0.0463
+[REWARD DEBUG] progress=0.0000, smooth=-0.0054, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0024, speed_limit=-0.0000 [curv=0.106, safe=8.00m/s, actual=1.78m/s], total=-0.0093
+[PROGRESS DEBUG] prev_idx=482, idx=482, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0057, speed_limit=-0.0000 [curv=0.515, safe=5.52m/s, actual=1.68m/s], total=-0.0059
+[PROGRESS DEBUG] prev_idx=533, idx=533, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0020, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0016, speed_limit=-0.0000 [curv=0.210, safe=8.00m/s, actual=1.55m/s], total=0.0028
+[PROGRESS DEBUG] prev_idx=241, idx=241, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0009, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0191, speed_limit=-0.0000 [curv=0.084, safe=8.00m/s, actual=2.53m/s], total=-0.0314
+[PROGRESS DEBUG] prev_idx=241, idx=241, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0222, close_wall=-0.0503, speed_limit=-0.0000 [curv=2.315, safe=2.62m/s, actual=1.41m/s], total=-0.0934
+[REWARD DEBUG] progress=0.0000, smooth=-0.0027, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0018, close_wall=-0.0275, speed_limit=-0.0000 [curv=0.808, safe=4.42m/s, actual=1.82m/s], total=-0.0273
+[PROGRESS DEBUG] prev_idx=292, idx=292, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0272, speed_limit=-0.0000 [curv=0.032, safe=8.00m/s, actual=2.90m/s], total=-0.0260
+[REWARD DEBUG] progress=0.0000, smooth=-0.0012, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0052, close_wall=-0.0372, speed_limit=-0.0000 [curv=0.518, safe=5.50m/s, actual=2.40m/s], total=-0.0431
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0273, speed_limit=-0.0000 [curv=0.226, safe=8.00m/s, actual=2.75m/s], total=-0.0218
+[PROGRESS DEBUG] prev_idx=525, idx=525, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0005, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0268, close_wall=-0.0526, speed_limit=-0.0000 [curv=2.315, safe=2.62m/s, actual=1.60m/s], total=-0.1013
+[PROGRESS DEBUG] prev_idx=381, idx=381, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0006, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0455, speed_limit=-0.0000 [curv=0.020, safe=8.00m/s, actual=2.70m/s], total=-0.0487
+[REWARD DEBUG] progress=0.0000, smooth=-0.0003, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0019, close_wall=-0.0321, speed_limit=-0.0000 [curv=0.772, safe=4.52m/s, actual=1.93m/s], total=-0.0274
+[REWARD DEBUG] progress=0.0000, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0401, speed_limit=-0.0000 [curv=0.271, safe=7.54m/s, actual=2.31m/s], total=-0.0394
+[PROGRESS DEBUG] prev_idx=667, idx=668, delta_idx=1, progress_m=0.16085
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0320, speed_limit=-0.0000 [curv=0.004, safe=8.00m/s, actual=2.64m/s], total=-0.0323
+[REWARD DEBUG] progress=0.0000, smooth=-0.0018, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0057, speed_limit=-0.0000 [curv=0.436, safe=5.99m/s, actual=1.79m/s], total=-0.0030
+[REWARD DEBUG] progress=0.6519, smooth=-0.0005, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0439, speed_limit=-0.0000 [curv=0.684, safe=4.80m/s, actual=2.17m/s], total=0.5748
+[REWARD DEBUG] progress=0.6519, smooth=-0.0006, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0104, close_wall=-0.0073, speed_limit=-0.0000 [curv=1.564, safe=3.19m/s, actual=1.27m/s], total=0.6072
+[REWARD DEBUG] progress=0.6519, smooth=-0.0019, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0049, speed_limit=-0.0000 [curv=0.262, safe=7.67m/s, actual=1.38m/s], total=0.6436
+[PROGRESS DEBUG] prev_idx=94, idx=94, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.6519, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0225, speed_limit=-0.0000 [curv=0.170, safe=8.00m/s, actual=2.62m/s], total=0.6125
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0183, close_wall=0.0000, speed_limit=-0.0000 [curv=1.718, safe=3.04m/s, actual=1.35m/s], total=-0.0263
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0037, speed_limit=-0.0000 [curv=0.301, safe=7.17m/s, actual=2.65m/s], total=-0.0010
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0051, speed_limit=-0.0000 [curv=0.225, safe=8.00m/s, actual=2.56m/s], total=-0.0048
+[PROGRESS DEBUG] prev_idx=206, idx=206, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0239, speed_limit=-0.0000 [curv=0.256, safe=7.75m/s, actual=2.67m/s], total=-0.0409
+[REWARD DEBUG] progress=0.0000, smooth=-0.0009, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0370, speed_limit=-0.0000 [curv=0.249, safe=7.86m/s, actual=2.29m/s], total=-0.0400
+[REWARD DEBUG] progress=0.0000, smooth=-0.0004, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0267, speed_limit=-0.0000 [curv=0.002, safe=8.00m/s, actual=2.70m/s], total=-0.0177
+[REWARD DEBUG] progress=0.0000, smooth=-0.0015, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0316, speed_limit=-0.0000 [curv=0.157, safe=8.00m/s, actual=2.61m/s], total=-0.0294
+[PROGRESS DEBUG] prev_idx=1026, idx=1026, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0252, speed_limit=-0.0000 [curv=0.030, safe=8.00m/s, actual=2.88m/s], total=-0.0206
+[REWARD DEBUG] progress=0.0000, smooth=-0.0010, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0418, speed_limit=-0.0000 [curv=0.120, safe=8.00m/s, actual=2.55m/s], total=-0.0507
+[REWARD DEBUG] progress=0.0000, smooth=-0.0004, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0300, speed_limit=-0.0000 [curv=0.002, safe=8.00m/s, actual=2.71m/s], total=-0.0223
+[REWARD DEBUG] progress=0.0000, smooth=-0.0010, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0278, speed_limit=-0.0000 [curv=0.223, safe=8.00m/s, actual=2.64m/s], total=-0.0256
+[PROGRESS DEBUG] prev_idx=1031, idx=1031, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0272, speed_limit=-0.0000 [curv=0.019, safe=8.00m/s, actual=2.88m/s], total=-0.0199
+[REWARD DEBUG] progress=0.0000, smooth=-0.0017, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0430, speed_limit=-0.0000 [curv=0.120, safe=8.00m/s, actual=2.57m/s], total=-0.0542
+[REWARD DEBUG] progress=0.0000, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0267, speed_limit=-0.0000 [curv=0.002, safe=8.00m/s, actual=2.71m/s], total=-0.0192
+[REWARD DEBUG] progress=0.0000, smooth=-0.0021, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0305, speed_limit=-0.0000 [curv=0.223, safe=8.00m/s, actual=2.64m/s], total=-0.0330
+[PROGRESS DEBUG] prev_idx=1031, idx=1031, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0282, speed_limit=-0.0000 [curv=0.019, safe=8.00m/s, actual=2.88m/s], total=-0.0277
+[PROGRESS DEBUG] prev_idx=25, idx=25, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=92, idx=92, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0008, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0238, close_wall=-0.0404, speed_limit=-0.0000 [curv=1.949, safe=2.86m/s, actual=1.42m/s], total=-0.0695
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0364, speed_limit=-0.0000 [curv=0.154, safe=8.00m/s, actual=2.84m/s], total=-0.0357
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0362, speed_limit=-0.0000 [curv=0.011, safe=8.00m/s, actual=2.91m/s], total=-0.0375
+[PROGRESS DEBUG] prev_idx=220, idx=220, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=260, idx=260, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=283, idx=283, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.8043, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0369, speed_limit=-0.0000 [curv=0.136, safe=8.00m/s, actual=2.67m/s], total=0.7609
+[PROGRESS DEBUG] prev_idx=25, idx=25, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=92, idx=92, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0009, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0270, close_wall=-0.0396, speed_limit=-0.0000 [curv=1.949, safe=2.86m/s, actual=1.63m/s], total=-0.0659
+[PROGRESS DEBUG] prev_idx=25, idx=25, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=92, idx=92, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0016, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0187, speed_limit=-0.0000 [curv=0.427, safe=6.05m/s, actual=2.65m/s], total=-0.0228
+[REWARD DEBUG] progress=0.0000, smooth=-0.0005, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0060, speed_limit=-0.0000 [curv=0.159, safe=8.00m/s, actual=1.47m/s], total=-0.0039
+[PROGRESS DEBUG] prev_idx=89, idx=89, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=120, idx=120, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=126, idx=126, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0005, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0045, speed_limit=-0.0000 [curv=0.435, safe=6.00m/s, actual=2.75m/s], total=-0.0089
+[PROGRESS DEBUG] prev_idx=198, idx=199, delta_idx=1, progress_m=0.13037
+[PROGRESS DEBUG] prev_idx=221, idx=222, delta_idx=1, progress_m=0.13037
+[PROGRESS DEBUG] prev_idx=238, idx=238, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0187, speed_limit=-0.0000 [curv=0.427, safe=6.05m/s, actual=2.69m/s], total=-0.0212
+[REWARD DEBUG] progress=0.6519, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0197, speed_limit=-0.0000 [curv=0.845, safe=4.33m/s, actual=2.48m/s], total=0.6219
+[PROGRESS DEBUG] prev_idx=158, idx=158, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=205, idx=205, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=213, idx=213, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0059, speed_limit=-0.0000 [curv=0.098, safe=8.00m/s, actual=2.28m/s], total=-0.0089
+[PROGRESS DEBUG] prev_idx=280, idx=281, delta_idx=1, progress_m=0.13037
+[PROGRESS DEBUG] prev_idx=309, idx=309, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=327, idx=327, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0187, speed_limit=-0.0000 [curv=0.427, safe=6.05m/s, actual=2.69m/s], total=-0.0222
+[REWARD DEBUG] progress=0.0000, smooth=-0.0019, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0423, speed_limit=-0.0000 [curv=0.127, safe=8.00m/s, actual=2.77m/s], total=-0.0528
+[PROGRESS DEBUG] prev_idx=796, idx=796, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0383, speed_limit=-0.0000 [curv=0.305, safe=7.12m/s, actual=2.83m/s], total=-0.0386
+[REWARD DEBUG] progress=0.8746, smooth=-0.0007, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0539, speed_limit=-0.0000 [curv=0.095, safe=8.00m/s, actual=2.77m/s], total=0.7970
+[PROGRESS DEBUG] prev_idx=800, idx=800, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0455, speed_limit=-0.0000 [curv=0.008, safe=8.00m/s, actual=2.90m/s], total=-0.0548
+[REWARD DEBUG] progress=0.0000, smooth=-0.0039, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0196, close_wall=-0.0642, speed_limit=-0.0000 [curv=0.080, safe=8.00m/s, actual=2.82m/s], total=-0.1135
+[PROGRESS DEBUG] prev_idx=806, idx=806, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0000, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0299, speed_limit=-0.0000 [curv=0.002, safe=8.00m/s, actual=2.91m/s], total=-0.0306
+[PROGRESS DEBUG] prev_idx=667, idx=667, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0003, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0266, close_wall=-0.0463, speed_limit=-0.0000 [curv=1.597, safe=3.16m/s, actual=1.76m/s], total=-0.0822
+[PROGRESS DEBUG] prev_idx=769, idx=769, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=672, idx=672, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.0000, smooth=-0.0037, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0052, close_wall=-0.0452, speed_limit=-0.0000 [curv=1.059, safe=3.87m/s, actual=1.67m/s], total=-0.0623
+[PROGRESS DEBUG] prev_idx=672, idx=672, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.6519, smooth=-0.0002, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0022, speed_limit=-0.0000 [curv=0.531, safe=5.44m/s, actual=2.71m/s], total=0.6488
+[PROGRESS DEBUG] prev_idx=215, idx=215, delta_idx=0, progress_m=0.00000
+[PROGRESS DEBUG] prev_idx=266, idx=267, delta_idx=1, progress_m=0.13037
+[PROGRESS DEBUG] prev_idx=284, idx=285, delta_idx=1, progress_m=0.13037
+[REWARD DEBUG] progress=0.0000, smooth=-0.0001, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0211, close_wall=-0.0124, speed_limit=-0.0000 [curv=1.341, safe=3.44m/s, actual=1.36m/s], total=-0.0366
+[PROGRESS DEBUG] prev_idx=416, idx=416, delta_idx=0, progress_m=0.00000
+[REWARD DEBUG] progress=0.6519, smooth=-0.0004, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0027, speed_limit=-0.0000 [curv=0.531, safe=5.44m/s, actual=2.71m/s], total=0.6487
+[PROGRESS DEBUG] prev_idx=217, idx=218, delta_idx=1, progress_m=0.13037
+[REWARD DEBUG] progress=0.6519, smooth=-0.0009, alive=0.0100, collision=0.0000, wall=0.0000, speed_turn=-0.0000, close_wall=-0.0060, speed_limit=-0.0000 [curv=0.531, safe=5.44m/s, actual=2.71m/s], total=0.6452
+[PROGRESS DEBUG] prev_idx=218, idx=218, delta_idx=0, progress_m=0.00000
+grip=0.4: done
+gap closed by φ: {0.4: '27%'}
+cross-grip ρ variance, Blind/φ = nan×
+  gap closed at μ=0.4: 95% CI [18%, 36%]
+  Blind/φ variance ratio: 95% CI [nan×, nan×]
+| controller | grip | n | crash_rate | completion_rate | mean_speed | mean_rho |
+|---|---|---|---|---|---|---|
+| blind | 0.400 | 100 | 0.940 | 0.060 | 2.280 | 0.743 |
+| oracle | 0.400 | 100 | 0.000 | 1.000 | 2.286 | 0.521 |
+| phi | 0.400 | 100 | 0.690 | 0.310 | 2.297 | 0.682 |
+
+-> results/retrain_nov2026/real/amendment11/robustness/main_model_on_holdout/e1_e2/_shards/g0.4
