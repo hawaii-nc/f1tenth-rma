@@ -74,7 +74,7 @@ Same E1/E2 (N = 100) and E5 (N = 200) protocol and the same statistics (tools/st
 
 **Change.** Each evaluation episode starts at a point along the lap drawn from its seed (`eval/harness.py`, `spawn_frac_for`). Every controller gets the same start for the same seed, so paired tests stay valid, and different seeds give different episodes. `--spawn start` reproduces the old protocol. `tools/stats.py` now reports the number of distinct outcomes per cell and warns on replication.
 
-**Reruns (same hypotheses, thresholds and N as fixed above):** original configuration (E0, E1/E2, E3, E4, E5); its friction-circle evaluation (T1, N = 40); P1 (E1/E2, E5); P2 (E0, E1/E2, E3, E5). Earlier start-line results are kept under `*_startline/` and reported as superseded. The robustness suite (R0–R4) runs afterwards with the new protocol.
+**Reruns (same hypotheses, thresholds and N as fixed above):** original configuration (E0, E1/E2, E3, E4, E5); its friction-circle evaluation (T1, N = 40); P1 (E1/E2, E5); P2 (E0, E1/E2, E3, E5). Earlier start-line results are kept under `*_startline/` and reported as superseded. [Note added Nov 5: those directories moved to the branch `archive/full-record-nov2026`; the text above is unchanged.] The robustness suite (R0–R4) runs afterwards with the new protocol.
 
 ---
 

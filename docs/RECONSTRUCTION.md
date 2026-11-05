@@ -35,7 +35,7 @@ If you have access to the lab machine, copy these out and diff them against this
 - `/research_ws/src/f1tenth_research/f1tenth_research/` (the final training package)
 - the Phase 2 crashtol collection script, and the 100-step φ checkpoint
 - `/research_ws/maps/` (tight maps, centerlines, `racelines/`)
-- E0–E5 result directories, which back the *reported* numbers in RESULTS.md
+- E0–E5 result directories, which back the *reported* numbers in the July docs/RESULTS.md (branch `archive/full-record-nov2026`)
 - on-car logs `~/rma_data_*.csv` and `~/rma_trial_log_*.csv` from VADER
 
 Where the originals differ from the reconstruction, prefer the original *unless* the difference is one of the bugs C1–C15 in [BUGS_AND_LESSONS.md](BUGS_AND_LESSONS.md).

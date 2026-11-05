@@ -49,7 +49,6 @@ How to use it:
 python tools/check_physics_injection.py --track aut_tight --tire-model friction_circle   # pre-flight
 python experiments/e1_e2_calibration.py --tire-model friction_circle ...                # evaluate existing checkpoints
 python -m f1tenth_research.training.phase2_adaptation --tire_model friction_circle ...   # retrain φ
-TIRE_MODEL=friction_circle bash tools/retrain_fixed.sh                                  # all of the above
 ```
 
 Or set `environment.tire_model: friction_circle` in a config. Every experiment's `summary.json` records the tire model it used.

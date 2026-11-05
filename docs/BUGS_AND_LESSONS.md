@@ -42,7 +42,7 @@ Found in November 2026, when the pipeline was first run end to end on the real f
 
 **The July checkpoints cannot drive the rebuilt environment.** At nominal grip with no noise, `phase1_v42.pt` crashes within about 100 steps on every track, including the IMS oval (min radius 4.8 m), while the expert laps it. None of these variants fixed it: flipped LiDAR, the deployment footprint margin, a 50 Hz policy, the June `v_des` scaling, or `ttc_thresh` 0.005. The lab environment differed in ways that were never saved (RECONSTRUCTION.md lists the low-confidence parts). So the whole pipeline was retrained: see [RETRAINING.md](RETRAINING.md).
 
-**Consequence for results.** All July sim numbers (E0, E1/E2, E4, E5) come from a pipeline with some subset of C1–C9. The lab copy may have fixed some of these: the July 21 slides say a physics-injection fix landed before E3. That is why [RESULTS.md](RESULTS.md) marks them *pre-fix* and [HANDOFF.md](HANDOFF.md) puts the re-runs first.
+**Consequence for results.** All July sim numbers (E0, E1/E2, E4, E5) come from a pipeline with some subset of C1–C9. The lab copy may have fixed some of these: the July 21 slides say a physics-injection fix landed before E3. That is why the July results page (docs/RESULTS.md, now on the branch `archive/full-record-nov2026`) marks them *pre-fix* and [HANDOFF.md](HANDOFF.md) puts the re-runs first.
 
 ## 2. Found and fixed during the summer (project record, July 1)
 

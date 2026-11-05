@@ -4,7 +4,7 @@ For the student taking over the experiments, and for Nathan when he picks this b
 
 ## Where things stand (November 5, 2026)
 
-All work since October is on branch `retrain-fixed-and-tire-model` (not yet merged to `main`). In one paragraph: the July pipeline had seven bugs (C16–C24 in [BUGS_AND_LESSONS.md](BUGS_AND_LESSONS.md)). Once fixed, passive grip adaptation turned out to be **impossible in this simulator**: the car's motion carries no grip information below the limit. A short **active probe** (a speed or braking pulse on straights) fixes that, and the adaptive controller then beats any fixed speed limit at low grip. It was retrained with realistic car sensing (wheel odometry, no gyro, 40 Hz LiDAR) and a racing expert, and made robust to the unknown wheel-slip behaviour. Start with the **"Read this first"** section of [RESULTS_NOV2026.md](RESULTS_NOV2026.md).
+All work for the paper is on `main`; earlier work is on the branches `archive/july-2026-pipeline` and `archive/full-record-nov2026` (README, Archive). In one paragraph: the July pipeline had seven bugs (C16–C24 in [BUGS_AND_LESSONS.md](BUGS_AND_LESSONS.md)). Once fixed, passive grip adaptation turned out to be **impossible in this simulator**: the car's motion carries no grip information below the limit. A short **active probe** (a speed or braking pulse on straights) fixes that, and the adaptive controller then beats any fixed speed limit at low grip. It was retrained with realistic car sensing (wheel odometry, no gyro, 40 Hz LiDAR) and a racing expert, and made robust to the unknown wheel-slip behaviour. Start with the **"Read this first"** section of [RESULTS_NOV2026.md](RESULTS_NOV2026.md).
 
 - **Paper:** `paper/latex/main.pdf` (4 pages, IEEE format, compiled) and `paper/workshop_draft.md` (longer text version). Figures: `python tools/make_figures.py`.
 - **Pre-registration:** every experiment's prediction was committed before it ran ([PREREGISTRATION_NOV2026.md](PREREGISTRATION_NOV2026.md), amendments 1–11). Keep doing this.
@@ -36,12 +36,12 @@ All work since October is on branch `retrain-fixed-and-tire-model` (not yet merg
 | Item | Where it is | Why you might need it |
 |---|---|---|
 | Final lab training code (July) | Lab training machine, `/research_ws/src/f1tenth_research/` | Compare with the rebuilt parts listed in [RECONSTRUCTION.md](RECONSTRUCTION.md) |
-| Raw E0–E5 results from July | Lab training machine | The *reported* numbers in RESULTS.md |
+| Raw E0–E5 results from July | Lab training machine | The *reported* numbers in the July docs/RESULTS.md (branch `archive/full-record-nov2026`) |
 | 100-step φ checkpoint | Lab training machine (was training on July 21) | E3 window ablation |
 | On-car logs (`rma_data_*.csv`, `rma_trial_log_*.csv`) | VADER home directory | Re-deriving the real-car table with `analysis/real_car/tire_stats.py` |
 | Poster (PDF and source slides) | Nathan's Google Drive | Figures and wording for the paper |
 | Camera-ready paper draft (IEEE format, sent to the advisor Sep 20, 2026) | Nathan's email / Overleaf | Starting point for the workshop submission; `paper/workshop_draft.md` is a text version |
-| Paper 2 methodology, project record, reward history (full versions) | Nathan's Google Drive | Condensed into docs/EXPERIMENTS.md, docs/REWARD_HISTORY.md |
+| Paper 2 methodology, project record, reward history (full versions) | Nathan's Google Drive | Condensed into docs/EXPERIMENTS.md and docs/REWARD_HISTORY.md (the latter now on the branch `archive/full-record-nov2026`) |
 
 ## Standing constraints (do not break these)
 
