@@ -246,3 +246,24 @@ Prediction: both hold for every variant. Grip shows in odometry through slip (sp
 Also reported: E5 R² under nominal and no slip.
 
 **Expected.** The no-slip variant is the hard case. D1 passes if φ learns to use the odometry deceleration and the front LiDAR when the slip signature is absent; it may fail at μ = 0.4, where the information arrives late.
+
+## Amendment 11, 2026-11-05 (before running): the μ = 0.4 gap, and robustness checks for φ_DR
+
+**Seen before writing this:** all amendment-10 results (RESULTS section 8). Nothing below. Script `tools/amendment11_suite.sh`; seed 0 throughout (the R base policy `runs/real_phase1_seed0`), N = 100 paired episodes per cell.
+
+**Gap.** At μ = 0.4, φ_DR crashes 0.25–0.41 against the Oracle's 0.00–0.09 although it reads grip well (R² ≈ 0.8). Hypothesis: φ's 0.5 s memory forgets the last probe, which can only happen on a straight, before the car reaches the next corner. Two arms, each a φ retrained exactly like φ_DR seed 0 except:
+
+| arm | change | prediction (pass if, at μ = 0.4, default slip model) |
+|---|---|---|
+| M | 2 s memory: 197 raw steps, sampled every 4th (50 inputs, as before) | crash ≤ φ_DR's 0.41 − 0.10, McNemar p < 0.05 on paired episodes |
+| F | probe every 0.25 s instead of 0.5 s (training and evaluation; base policy unchanged) | crash ≤ 0.41 − 0.10, p < 0.05; mean speed at μ = 1.0 reported (more braking pulses cost speed) |
+
+Both also evaluated at μ = 0.6 and under the no-slip model. Blind and Oracle are rerun in each arm's own environment (F changes the probe for every controller).
+
+**Robustness of φ_DR (the deployable model), as amendment 9 did for φ_R.**
+
+| ID | Run | Pass if |
+|---|---|---|
+| A1-DR | Probe off at test time: E5 N = 200 | φ grip R² < 0.4 |
+| A2-DR | Held-out tracks: φ retrained like φ_DR on the R held-out base policy (`runs/real_phase1_holdout`), E1/E2 all grips on mco/silverstone/budapest; the main seed-0 φ_DR on the same episodes | held-out φ's gap closed at μ = 0.4 ≥ 50% of the main model's, and its H2 holds |
+| A3-DR | E3 grip step 1.0 → 0.4, N = 40 | median settle < 100 steps |
