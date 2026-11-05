@@ -14,3 +14,7 @@ Only the checkpoints the results cite are committed; intermediate ones (dagger.p
 | phase2_fc_k200/final.pt | φ with a 200-step window (amendment 4) |
 | phase2_fc_probe_seed{0,1,2}/final.pt | φ_Q: grip probe + proprioceptive input (amendment 6) |
 | phase2_fc_probe_holdout/final.pt | φ_Q on the held-out base policy (amendment 7) |
+| real_phase1_seed{0,1,2}/final.pt | base policy, configuration R: car sensors, braking probe, racing expert (amendment 8) |
+| real_phase2_seed{0,1,2}/final.pt | φ, configuration R (blind without wheel slip: RESULTS section 7) |
+| **real_phase2_slipdr_seed{0,1,2}/final.pt** | **φ, configuration R with the slip model randomized (amendment 10): use these on the car** |
+| real_phase1_holdout/, real_phase2_holdout/ | R trained without mco/silverstone/budapest (amendment 9) |
