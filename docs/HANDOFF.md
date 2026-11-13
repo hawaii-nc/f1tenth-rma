@@ -2,22 +2,23 @@
 
 For the student taking over the experiments, and for Nathan when he picks this back up.
 
-## Where things stand (November 5, 2026)
+## Where things stand (November 13, 2026)
 
 All work for the paper is on `main`; earlier work is on the branches `archive/july-2026-pipeline` and `archive/full-record-nov2026` (README, Archive). In one paragraph: the July pipeline had seven bugs (C16–C24 in [BUGS_AND_LESSONS.md](BUGS_AND_LESSONS.md)). Once fixed, passive grip adaptation turned out to be **impossible in this simulator**: the car's motion carries no grip information below the limit. A short **active probe** (a speed or braking pulse on straights) fixes that, and the adaptive controller then beats any fixed speed limit at low grip. It was retrained with realistic car sensing (wheel odometry, no gyro, 40 Hz LiDAR) and a racing expert, and made robust to the unknown wheel-slip behaviour. Start with the **"Read this first"** section of [RESULTS_NOV2026.md](RESULTS_NOV2026.md).
 
 - **Paper:** `paper/latex/main.pdf` (4 pages, IEEE format, compiled) and `paper/workshop_draft.md` (longer text version). Figures: `python tools/make_figures.py`.
-- **Pre-registration:** every experiment's prediction was committed before it ran ([PREREGISTRATION_NOV2026.md](PREREGISTRATION_NOV2026.md), amendments 1–11). Keep doing this.
+- **Pre-registration:** every experiment's prediction was committed before it ran ([PREREGISTRATION_NOV2026.md](PREREGISTRATION_NOV2026.md), amendments 1–12). Keep doing this.
+- **Nov 13 audit:** every number in the paper was recomputed from the raw episode files, and one published cell was rerun and came out identical ([REPRODUCE.md](REPRODUCE.md), section 2). Fixed on the way: the car node's default probe was the +2 m/s accelerating pulse instead of the −1 m/s braking pulse the car models were trained with; `deploy/start_rma*.sh` still launched the July checkpoints. Added: the cautious start (RESULTS section 10).
 - **Models for the car:** `runs/real_phase1_seedN/final.pt` (policy) + `runs/real_phase2_slipdr_seedN/final.pt` (φ), N = 0, 1 or 2. See [runs/README.md](../runs/README.md) and [SIM_TO_REAL.md](SIM_TO_REAL.md).
 - **Target venue:** an IEEE IV 2027 **workshop** paper (advisor's recommendation, Oct 5 2026). IV 2027 runs **June 15–18, 2027, in Perth**; workshop papers are due **Feb 1, 2027** ([call](https://ieee-iv.org/2027/contributions/call-for-workshop-and-tutorials-proposals/)). Workshops are announced after Dec 1, 2026.
 
 ## Day one (November 2026 onward)
 
 1. Read the "Read this first" section of [RESULTS_NOV2026.md](RESULTS_NOV2026.md), then [SIM_TO_REAL.md](SIM_TO_REAL.md) and [REAL_CAR_PROBE_PLAN.md](REAL_CAR_PROBE_PLAN.md).
-2. `pip install -r requirements-dev.txt && pytest -q tests` (79 tests, one skipped without the simulator; the closed-loop node test needs the committed `runs/real_*` checkpoints).
+2. `pip install -r requirements-dev.txt && pytest -q tests` (80 tests, one skipped without the simulator; the closed-loop node test needs the committed `runs/real_*` checkpoints).
 3. Simulator setup: [RETRAINING.md](RETRAINING.md) (f1tenth_gym 0.2.1 at commit 4fdb9c7, `python tools/prepare_tracks.py`).
 4. **The first real-car task is Stage 1 of [REAL_CAR_PROBE_PLAN.md](REAL_CAR_PROBE_PLAN.md):** run `tools/real_car/probe_maneuver_node.py` on 3 tire wraps, then `tools/real_car/analyze_probe_trials.py`. It needs no learned policy, takes one session, and answers the main open question: does the real car's wheel slip during a braking pulse reveal grip, as the simulator assumes?
-5. Then deploy: `ros2 launch rma_deploy_pkg veh_launch.py checkpoint:=... adaptation:=... probe:=1` (the node now defaults to 100 Hz, matching training; it was 50 Hz in July). The node is untested on hardware: secure the car first.
+5. Then deploy: `~/start_rma.sh` (or `ros2 launch rma_deploy_pkg veh_launch.py checkpoint:=... adaptation:=... probe:=1`). Node defaults match the car models: 100 Hz (50 Hz in July), braking probe −1.0 m/s, cautious start on. The node is untested on hardware: secure the car first.
 6. Ask Prof. Modekurthy for lab-machine access and Ederic Oytas for time with the car.
 
 ## Priority order to Feb 1, 2027 (updated Nov 5)
@@ -28,7 +29,7 @@ All work for the paper is on `main`; earlier work is on the branches `archive/ju
 | 2 | Check whether VADER's VESC publishes IMU data (`ros2 topic list`) | An IMU acceleration channel would measure the probe directly (simulated: 9.5 / 7.2 / 4.2 m/s² at grip 1.0 / 0.7 / 0.4) |
 | 3 | Re-center the slip randomization on what Stage 1 measures, retrain φ (`tools/slipdr_suite.sh`, ~1.5 h per seed on 4 CPU cores) | φ is strongest when the training slip model matches the car |
 | 4 | Closed-loop car trials: π + φ with the probe vs Blind, same tire wraps as July | The paper's missing real-car result |
-| 5 | Close the μ = 0.4 gap | Not timing (amendment 11: longer memory and faster probe both fail). Untested candidate: the base policy itself at low grip |
+| 5 | Close the rest of the μ = 0.4 gap | A cautious start removes about a third (amendment 12: 0.33 → 0.22 pooled). Not timing (amendment 11). About 0.2 remains after the first 2 s. Untested candidate: the base policy's margin at low grip |
 | 6 | Choose the workshop; advisor review | |
 
 ## Not in this repo (ask Nathan)

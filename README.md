@@ -6,13 +6,14 @@ Nathan Chong, advised by Prof. Venkata Prashant Modekurthy. NSF REU Site: Smart 
 
 **Picking this project up? Start with [docs/HANDOFF.md](docs/HANDOFF.md).**
 
-## The paper in five lines
+## The paper in six lines
 
 1. **Passive grip adaptation cannot work in F1TENTH simulation.** With the car's actions independent of grip, 0.5 s of motion history predicts grip with R² ≈ 0 (friction-circle and Fiala brush tires). Adaptation modules that seem to work are reading their own actions or just driving slowly.
 2. **A brief active probe fixes it.** A 0.1 s speed pulse on straights asks the tires for more than low grip can give; grip R² rises to 0.89–0.93.
 3. **With the probe, adaptation beats any fixed speed limit.** At grip 0.4 the adaptive car crashes 2–8% vs 33–47% for a non-adaptive car matched to its measured speed, on 3 training seeds, and it transfers to unseen tracks.
 4. **It survives the car's real sensors at racing speed** (wheel-odometry speed with slip, kinematic yaw rate, 40 Hz LiDAR, braking probe): grip R² 0.84–0.87; 28–39% vs 84–86% crashes at grip 0.4.
-5. **It depends on the wheel-slip model;** randomizing that model in training beats the non-adaptive car in all 30 slip-model × seed × grip comparisons. Real-car probe results are not shown yet: the one-session test is ready (docs/REAL_CAR_PROBE_PLAN.md).
+5. **A third of the remaining low-grip crashes are a cold start:** before its first probe the adaptive car knows nothing. Assuming low grip until then cuts crashes at grip 0.4 from 33% to 22% (pooled over seeds) at no cost on higher grip.
+6. **It depends on the wheel-slip model;** randomizing that model in training beats the non-adaptive car in all 30 slip-model × seed × grip comparisons. Real-car probe results are not shown yet: the one-session test is ready (docs/REAL_CAR_PROBE_PLAN.md).
 
 Every hypothesis and threshold was registered before its runs ([docs/PREREGISTRATION_NOV2026.md](docs/PREREGISTRATION_NOV2026.md)). Failed checks are reported, not dropped.
 
@@ -28,6 +29,7 @@ Every hypothesis and threshold was registered before its runs ([docs/PREREGISTRA
 | Fig. 4: wheel-slip robustness | `real/robustness/slip_*`, `real/slipdr/` | `tools/real_robustness.sh`, `tools/slipdr_suite.sh` |
 | Fig. 3: grip R² by configuration | `*/e5/` of the above | `experiments/e5_signal.py` |
 | §V: memory and probe-rate tests | `real/amendment11/` | `tools/amendment11_suite.sh` |
+| §V: cold start | `real/amendment12/` | `tools/amendment12_suite.sh`, `tools/cold_start_stats.py` |
 | Probe-test prediction | `real/probe_test_sim/` | `tools/real_car/simulate_probe_trials.py` |
 | §IV-E: July real-car pilot | July trial CSVs (lab machine) | `analysis/real_car/tire_stats.py` |
 

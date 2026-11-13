@@ -12,7 +12,7 @@ Two routes. Every result in `results/retrain_nov2026/` was produced with the fir
 pip install -r requirements-dev.txt numba "gym==0.26.2" pillow pyglet
 git clone https://github.com/f1tenth/f1tenth_gym.git ../f1tenth_gym && git -C ../f1tenth_gym checkout 4fdb9c7
 export PYTHONPATH=$PWD/../f1tenth_gym/gym:$PWD/src/f1tenth_research
-python -m pytest -q tests          # 79 tests; without the simulator on PYTHONPATH one is skipped
+python -m pytest -q tests          # 80 tests; without the simulator on PYTHONPATH one is skipped
 ```
 
 **B. Docker image** (ROS 2 Foxy, Python 3.8, as on the car's Jetson):

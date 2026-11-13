@@ -30,6 +30,7 @@ def generate_launch_description() -> LaunchDescription:
         DeclareLaunchArgument('control_freq', default_value='100.0'),
         DeclareLaunchArgument('probe', default_value='0'),
         DeclareLaunchArgument('probe_amplitude', default_value='-1.0'),
+        DeclareLaunchArgument('cautious_start', default_value='1'),
     ]
 
     rma_node = Node(
@@ -45,6 +46,7 @@ def generate_launch_description() -> LaunchDescription:
             '--control_freq', LaunchConfiguration('control_freq'),
             '--probe', LaunchConfiguration('probe'),
             '--probe_amplitude', LaunchConfiguration('probe_amplitude'),
+            '--cautious_start', LaunchConfiguration('cautious_start'),
             '--scan_topic', '/scan',
             '--drive_topic', '/drive',
         ],
