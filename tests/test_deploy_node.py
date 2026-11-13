@@ -49,3 +49,25 @@ def test_constants_match_final_checkpoint(node_module):
     assert node_module.LIDAR_MAX_RANGE == cfg['observation']['lidar_max_range']
     assert node_module.MAX_VELOCITY == cfg['max_velocity']
     assert node_module.OBS_DIM == 5 + node_module.LIDAR_BEAMS
+
+
+def test_probe_defaults_match_the_deployable_model(node_module):
+    """The node's and the launch file's default probe must be the one the car models
+    (runs/real_*) were trained with: a braking pulse. The default used to be +2.0 m/s,
+    the ideal-sensor configuration's accelerating pulse."""
+    import inspect
+    import re
+    import yaml
+    pr = yaml.safe_load((REPO / 'configs/real_phase2_probe.yaml').read_text())['environment']['probe']
+    sig = inspect.signature(node_module.RMADeploymentNode.__init__).parameters
+    assert sig['probe_amplitude'].default == pr['amplitude'] < 0
+    assert sig['probe_period'].default == pr['period_steps']
+    assert sig['probe_duration'].default == pr['duration_steps']
+    assert sig['probe_max_steer'].default == pr['max_steer']
+    src = (REPO / 'src/rma_deploy_pkg/rma_deploy_pkg/rma_deployment_node.py').read_text()
+    cli = re.search(r"'--probe_amplitude', type=float, default=(-?[\d.]+)", src)
+    assert cli and float(cli.group(1)) == pr['amplitude']
+    launch = (REPO / 'src/rma_deploy_pkg/launch/veh_launch.py').read_text()
+    arg = re.search(r"DeclareLaunchArgument\('probe_amplitude', default_value='(-?[\d.]+)'\)", launch)
+    assert arg and float(arg.group(1)) == pr['amplitude']
+    assert "'--probe_amplitude', LaunchConfiguration('probe_amplitude')" in launch

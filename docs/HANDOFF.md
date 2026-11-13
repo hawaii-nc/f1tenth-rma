@@ -14,7 +14,7 @@ All work for the paper is on `main`; earlier work is on the branches `archive/ju
 ## Day one (November 2026 onward)
 
 1. Read the "Read this first" section of [RESULTS_NOV2026.md](RESULTS_NOV2026.md), then [SIM_TO_REAL.md](SIM_TO_REAL.md) and [REAL_CAR_PROBE_PLAN.md](REAL_CAR_PROBE_PLAN.md).
-2. `pip install -r requirements-dev.txt && pytest -q tests` (77 tests; the closed-loop node test needs the committed `runs/real_*` checkpoints).
+2. `pip install -r requirements-dev.txt && pytest -q tests` (79 tests, one skipped without the simulator; the closed-loop node test needs the committed `runs/real_*` checkpoints).
 3. Simulator setup: [RETRAINING.md](RETRAINING.md) (f1tenth_gym 0.2.1 at commit 4fdb9c7, `python tools/prepare_tracks.py`).
 4. **The first real-car task is Stage 1 of [REAL_CAR_PROBE_PLAN.md](REAL_CAR_PROBE_PLAN.md):** run `tools/real_car/probe_maneuver_node.py` on 3 tire wraps, then `tools/real_car/analyze_probe_trials.py`. It needs no learned policy, takes one session, and answers the main open question: does the real car's wheel slip during a braking pulse reveal grip, as the simulator assumes?
 5. Then deploy: `ros2 launch rma_deploy_pkg veh_launch.py checkpoint:=... adaptation:=... probe:=1` (the node now defaults to 100 Hz, matching training; it was 50 Hz in July). The node is untested on hardware: secure the car first.

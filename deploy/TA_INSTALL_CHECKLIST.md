@@ -13,10 +13,11 @@ NVIDIA's JetPack 5.1.x / Python 3.8 wheel: https://forums.developer.nvidia.com/t
 ## 2. numpy, slam_toolbox (already present on VADER)
     python3 -c "import numpy; print(numpy.__version__)"
 
-## 3. Copy both packages + checkpoints (from a laptop with this repo)
+## 3. Copy both packages + models (from a laptop with this repo)
     scp -r src/f1tenth_research src/rma_deploy_pkg USER@vader:~/rma_deploy_ws/src/
-    ssh USER@vader mkdir -p ~/rma_deploy_ws/src/rma_deploy_pkg/checkpoints
-    scp checkpoints/final/*.pt USER@vader:~/rma_deploy_ws/src/rma_deploy_pkg/checkpoints/
+    ssh USER@vader mkdir -p ~/rma_deploy_ws/runs
+    scp -r runs/real_phase1_seed0 runs/real_phase2_slipdr_seed0 USER@vader:~/rma_deploy_ws/runs/
+(seeds 1 and 2 are the same kind of model: copy them too to repeat trials with another seed, RMA_SEED=1.)
     scp deploy/start_rma.sh deploy/start_rma_noadapt.sh deploy/trial_helpers.sh deploy/joy_manager.py USER@vader:~/
 
 ## 4. Build (no PYTHONPATH workaround needed any more)
@@ -26,11 +27,13 @@ NVIDIA's JetPack 5.1.x / Python 3.8 wheel: https://forums.developer.nvidia.com/t
 
 ## 5. Test launch (SECURE THE CAR FIRST: wheels off the ground or held in place)
     ros2 launch f1tenth_unlv_veh stack_aeb_launch.py           # terminal 1
-    ~/start_rma_noadapt.sh                                       # terminal 2: base policy only
+    ~/start_rma_noadapt.sh                                       # terminal 2: base policy only (probe on)
 Hold R2 to engage autonomous control. Release it (or hold L1) immediately if anything looks wrong.
 
 ## 6. With adaptation (φ)
-    ~/start_rma.sh          # phase1_v42.pt + phase2_crashtol_clean.pt; history window read from the checkpoint
+    ~/start_rma.sh          # real_phase1_seed0 + real_phase2_slipdr_seed0, braking probe on, 100 Hz
+The node has not run on hardware since it was changed to 100 Hz with the probe: first run on the stand.
+During a probe the speed command drops by 1 m/s for 0.1 s every 0.5 s on straights; that is expected.
 
 ## Notes
 - The policy caps speed at 3.0 m/s, which is safe for the tight cardboard track.

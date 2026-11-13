@@ -85,7 +85,7 @@ class RMADeploymentNode(Node):
         probe: bool = False,
         probe_period: int = 50,
         probe_duration: int = 10,
-        probe_amplitude: float = 2.0,
+        probe_amplitude: float = -1.0,
         probe_max_steer: float = 0.15,
     ):
         super().__init__('rma_deployment')
@@ -304,7 +304,10 @@ def main():
     parser.add_argument('--probe', type=int, default=0, help='1 = active grip probe (needed by probe-trained φ)')
     parser.add_argument('--probe_period', type=int, default=50)
     parser.add_argument('--probe_duration', type=int, default=10)
-    parser.add_argument('--probe_amplitude', type=float, default=2.0)
+    parser.add_argument('--probe_amplitude', type=float, default=-1.0,
+                        help='m/s added to the speed command during a pulse. -1.0 (braking) is what the '
+                             'deployable runs/real_* models were trained with; the ideal-sensor '
+                             'configuration Q used +2.0. Must match the phi checkpoint')
     parser.add_argument('--probe_max_steer', type=float, default=0.15)
     args, _ = parser.parse_known_args()
 

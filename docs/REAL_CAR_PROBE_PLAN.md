@@ -57,11 +57,11 @@ So **the probe should be detectable even without an IMU**, through wheel odometr
 
 ## Stage 2: closed-loop (after Stage 1 passes)
 
-0. **Match the control rate (bug C23).** Training runs at 100 Hz (0.01 s per step), but `rma_deployment_node.py` defaults to 50 Hz. Run the node at 100 Hz if the LiDAR and odometry rates allow it, or retrain at 50 Hz. Otherwise φ's 50-step window spans 1 s instead of 0.5 s, and the probe's 50-step period and 10-step pulse double in length.
+The node already does what earlier versions of this plan listed as to-do: it runs at 100 Hz like training (bug C23 fixed), applies the probe (`--probe 1`, default amplitude −1.0 m/s, the braking pulse the car models were trained with), and the models were retrained on the car's sensing (wheel-odometry speed with slip, kinematic yaw rate, 40 Hz LiDAR; amendments 8–10). None of this has run on hardware.
 
-1. **Fix the speed input.** In simulation φ sees the true vehicle speed. On the car, that should be an IMU-fused speed, not raw wheel speed (which jumps during slip). Retrain φ_Q in simulation with that observation model (wheel speed plus IMU acceleration, with noise) before deploying.
-2. Deploy π + φ_Q with the probe enabled in `rma_deployment_node.py` (to be added: the same `period_steps / duration_steps / amplitude / max_steer` logic as `envs/f1tenth_env.py`, after the speed command).
-3. Compare φ_Q vs Blind on the July corner setup across tire wraps: speed and pass rate, as in the July Table II.
+1. **Re-center the slip model if Stage 1 says so.** If the measured wheel response differs from the default model (spin-up or lock at 40 m/s², 30 ms recovery), re-center the slip randomization on it and retrain φ (`tools/slipdr_suite.sh`, about 1.5 h per seed on 4 cores).
+2. **Bench test.** Wheels off the ground: `~/start_rma_noadapt.sh`, then `~/start_rma.sh` (`deploy/`). Check the log for the 0.1 s speed dips every 0.5 s when steering is straight, and that the loop holds 100 Hz.
+3. **Trials.** π + φ_DR (`runs/real_phase1_seedN` + `runs/real_phase2_slipdr_seedN`) against the non-adaptive baseline, both with the probe on, on the July corner setup across tire wraps: speed and pass rate, as in the July Table II. Register the prediction first (docs/PREREGISTRATION_NOV2026.md).
 
 ## What not to claim from Stage 1
 
