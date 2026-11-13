@@ -183,3 +183,35 @@ def test_car_sensor_model():
         assert lidar.max() <= (1.0 - 0.10) / 10.0 + 1e-6                   # fake walls at ≤1 m, minus margin
     finally:
         F1TenthRMAEnv.wrapper_factory = None
+
+
+def test_cautious_start_holds_low_grip_belief_until_first_moving_probe():
+    """Amendment 12: the inner controller takes over only after the first probe
+    pulse fired while moving has ended and its history is full; reset re-arms it."""
+    from f1tenth_research.eval.harness import CautiousStart, Controller, make_controllers
+
+    class Const(Controller):
+        def __init__(self, name, k=1):
+            self.name, self.k = name, k
+
+        def intrinsics(self, info, history):
+            return self.name
+
+    cs = CautiousStart(Const('inner', k=3), Const('low'))
+    assert cs.name == 'inner_cs' and cs.k == 3
+    steps = [  # (probing, velocity, history length) -> expected source
+        (True, 0.0, 0, 'low'),     # pulse at standstill does not count
+        (False, 1.0, 1, 'low'),
+        (True, 1.0, 2, 'low'),     # first pulse while moving
+        (True, 1.0, 2, 'low'),
+        (False, 1.0, 2, 'low'),    # pulse over, but history not full yet
+        (False, 1.0, 3, 'inner'),  # released
+        (True, 1.0, 3, 'inner'),   # stays released
+    ]
+    for _ in range(2):
+        for probing, v, n, want in steps:
+            assert cs.intrinsics({'probing': probing, 'velocity': v}, [0] * n) == want
+        cs.reset()
+    assert cs.intrinsics({}, [0] * 3) == 'low'   # no probe information: stay cautious
+    with pytest.raises(ValueError):
+        make_controllers(None, None, ['nonsense_cs'])
