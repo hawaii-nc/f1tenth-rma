@@ -4,6 +4,8 @@
 
 ## Stage 1: open-loop braking probe on different surfaces (no learned policy)
 
+**Step-by-step sheet for the lab session: [STAGE1_RUN_SHEET.md](STAGE1_RUN_SHEET.md).**
+
 The probe used by the deployable models (configuration R, amendment 8b) is a **braking** pulse: the speed command drops by 1.0 m/s for 0.1 s. This replaces the accelerating pulse in earlier versions of this plan.
 
 **Setup.** A straight of at least 4 m, ending at a flat wall 2–8 m beyond where the pulse happens (the front LiDAR then measures true speed, independent of wheel slip). Test 3 grip conditions, using the July tire wraps where possible, since those are known to change the car's behaviour:
