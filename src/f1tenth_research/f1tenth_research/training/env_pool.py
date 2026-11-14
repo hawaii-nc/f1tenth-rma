@@ -105,7 +105,10 @@ class _Slot:
 def _slim(info: Dict) -> Dict:
     """Only what the trainer needs (keeps pipe traffic small)."""
     return {'physics_vector': np.asarray(info['physics_vector'], dtype=np.float32),
-            'track': info.get('track')}
+            'track': info.get('track'),
+            # for the cautious start in on-policy Phase 2 collection (amendment 13)
+            'probing': bool(info.get('probing', False)),
+            'velocity': float(info.get('velocity', 0.0))}
 
 
 def _worker(conn, config, seed):

@@ -294,3 +294,29 @@ So 37–44% of φ_DR's low-grip crashes happen within 2 s of the start (φ_R: 13
 Also reported, without a threshold: `phi_cs` crashes in the first 2 s; the share of the φ_DR–Oracle crash gap at μ = 0.4 that the cautious start removes; ρ gap closed.
 
 **Expected.** C1 passes if early crashes are removed and not merely postponed; the early crashes are 0.11–0.15 of episodes, so a pooled drop of 0.07–0.12 is expected and about 0.2 of crash rate should remain unexplained. C2 should pass (the cautious phase lasts about 0.6 s on a straight). C3 should pass: Blind's crashes are mostly later (60–62 of its 84–86 come after 2 s). If C1 fails, cold start is not a cause of the gap and the early crashes come from the spawn itself.
+
+## Amendment 13, 2026-11-14 (before running): the rest of the μ = 0.4 gap: a pessimistic margin, and training with the cautious start
+
+**Seen before writing this:** everything through amendment 12 (RESULTS section 10). With the cautious start, φ_DR crashes 0.27 / 0.18 / 0.22 at μ = 0.4 (pooled 0.223) against the Oracle's 0.02 / 0.00 / 0.09; almost none of these crashes are in the first 2 s. The Oracle drives the same base policy safely, so the policy is safe with the *right* belief; what remains must come from errors in φ's belief (grip R² ≈ 0.8, not 1). Two arms. Nothing below has been run, except a smoke run of arm T's training code (8 episodes, to check that it executes).
+
+**Arm B: pessimistic margin (no retraining).** If the remaining crashes come from moments when φ overestimates grip, shifting the belief towards low grip should remove them. `GripBias` (`eval/harness.py`): ẑ′ = ẑ + β·(μ(grip 0.4) − μ(grip 1.0)), other physics nominal; β = 0.15 and 0.30 (roughly −0.09 and −0.18 in grip). Applied after the cautious start. Seeds 0–2, μ ∈ {1.0, 0.6, 0.4}, N = 100 paired episodes, default slip model, controllers on the same episodes: Oracle, `phi_cs` (reference), `blind_cs`, `phi_b15_cs`, `phi_b30_cs`.
+
+| ID | Pass if (for a given β; two arms, Holm-corrected) |
+|---|---|
+| B1 | At μ = 0.4, pooled over seeds (N = 300), crash ≤ `phi_cs` − 0.05, exact McNemar p < 0.05 (Holm over the two β); on no seed worse than `phi_cs` by more than 0.02 |
+| B2 | Cost: at μ = 1.0, mean speed ≥ `phi_cs` − 0.10 m/s on every seed; at μ = 1.0 and 0.6, crash ≤ `phi_cs` + 0.03 on every seed |
+
+A margin "works" for a β if B1 and B2 both pass. Reported without threshold: speed at every grip, the share of the `phi_cs`–Oracle crash gap removed, and whether `phi_cs` reruns equal amendment 12's (reproducibility).
+
+**Arm T: train with the cautious start.** φ_DR was trained on rollouts in which φ started on the nominal belief; at deployment it now starts cautious. Retrain φ for seeds 0, 1, 2 exactly like φ_DR (same base policies, seeds and config) except that in the on-policy rounds the car drives with the cautious start (`configs/real_phase2_probe_slipdr_cs.yaml`, `on_policy.cautious_start`); checkpoints `runs/real_phase2_slipdr_cs_seedN`. Evaluate `phi_cs` with the new φ on the amendment-12 episodes (same seeds and tracks; Oracle and `blind_cs` are unchanged and taken from amendment 12), plus E5 (N = 200) under the default slip model.
+
+| ID | Pass if |
+|---|---|
+| T1 | At μ = 0.4, pooled (N = 300), crash ≤ amendment 12's `phi_cs` − 0.05, exact McNemar p < 0.05; no seed worse by more than 0.02 |
+| T2 | At μ = 1.0 and 0.6, every seed: crash ≤ `phi_cs` + 0.03, mean speed ≥ `phi_cs` − 0.05 m/s |
+
+Reported: E5 grip R² against φ_DR's 0.84 / 0.79 / 0.82.
+
+Script `tools/amendment13_suite.sh` (arm B first, then arm T seed by seed), analysis `tools/amendment13_stats.py`, results `results/retrain_nov2026/real/amendment13/`.
+
+**Expected.** B: β = 0.30 should lower crashes at μ = 0.4 by 0.05 or more but may cost more than 0.10 m/s on full grip (then it is caution, not adaptation); β = 0.15 is the one that could pass both, and I am not confident it reaches −0.05. If neither β lowers crashes, overestimated grip is not the cause. T: I expect little change (T1 fails): only the first ~0.6 s of each on-policy episode differs, and the remaining crashes are later.

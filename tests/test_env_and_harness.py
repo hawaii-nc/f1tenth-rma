@@ -215,3 +215,21 @@ def test_cautious_start_holds_low_grip_belief_until_first_moving_probe():
     assert cs.intrinsics({}, [0] * 3) == 'low'   # no probe information: stay cautious
     with pytest.raises(ValueError):
         make_controllers(None, None, ['nonsense_cs'])
+
+
+def test_grip_bias_shifts_intrinsics_towards_low_grip(policy):
+    """Amendment 13: phi_b15 = phi with z shifted by 0.15 of the nominal -> grip-0.4 latent step;
+    a bias of 1.0 on Blind is exactly the grip-0.4 belief; names compose with _cs."""
+    import torch
+    from f1tenth_research.eval.harness import CautiousStart, GripBias, make_controllers
+    ac, phi, _ = policy
+    z_nom = Blind(ac).intrinsics({}, [])
+    z_low = Belief(ac, 0.4).intrinsics({}, [])
+    full = GripBias(Blind(ac), 1.0)
+    assert torch.allclose(full.intrinsics({}, []), z_low, atol=1e-6)
+    part = make_controllers(ac, phi, ['blind_b15'])[0]
+    assert isinstance(part, GripBias) and part.name == 'blind_b15'
+    assert torch.allclose(part.intrinsics({}, []), z_nom + 0.15 * (z_low - z_nom), atol=1e-6)
+    both = make_controllers(ac, phi, ['phi_b30_cs'])[0]
+    assert isinstance(both, CautiousStart) and isinstance(both.inner, GripBias)
+    assert both.name == 'phi_b30_cs' and both.k == phi.history_window
