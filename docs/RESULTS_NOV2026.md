@@ -474,3 +474,25 @@ These three tracks are the hardest (Blind 0.92–0.94 at μ = 0.4). φ_R did bet
 **What remains.** φ_DR with the cautious start still crashes 0.18–0.27 at μ = 0.4 against the Oracle's 0.00–0.09, after the first 2 s. Memory, probe rate (section 9) and cold start are now ruled out for that part; the base policy's margin at low grip remains the untested candidate.
 
 **Caveat.** Part of the cold start is the evaluation protocol: a standstill start anywhere on the lap, including mid-corner. A car starts from standstill too, but usually on a straight. The fix is still worth having on the car, where the first seconds on an unknown surface would otherwise be driven on the nominal belief; `rma_deployment_node.py` now applies it by default with the probe (`--cautious_start`, re-armed after 3 s at standstill), and `tests/test_node_sim_consistency.py` checks it against the harness step by step.
+
+## 11. A pessimistic margin (amendment 13, arm B, Nov 14)
+
+**Question.** With the cautious start, φ_DR still crashes 0.27 / 0.18 / 0.22 at μ = 0.4 (Oracle 0.02 / 0.00 / 0.09), almost none of it in the first 2 s. Is that φ overestimating grip at some moments? Test (registered before running, no retraining): shift φ's latent estimate towards the grip-0.4 latent by β (`GripBias`, `eval/harness.py`), after the cautious start. β = 0.15 and 0.30 (roughly 0.09 and 0.18 lower in grip). Seeds 0–2, N = 100 paired episodes per cell, default slip model. Results `results/retrain_nov2026/real/amendment13/bias/`, readouts `bias_stats.md`; the reference `phi_cs` episodes equal amendment 12's exactly.
+
+| μ = 0.4 crash | seed 0 | seed 1 | seed 2 | pooled (N = 300) | speed cost at μ = 1.0 (m/s) |
+|---|---|---|---|---|---|
+| φ_DR + cautious start (reference) | 0.27 | 0.18 | 0.22 | 0.223 | |
+| + β = 0.15 | 0.10 | 0.01 | 0.09 | **0.067** | −0.11 / −0.05 / −0.03 |
+| + β = 0.30 | 0.06 | 0.00 | 0.06 | **0.040** | −0.26 / −0.11 / −0.11 |
+| Oracle | 0.02 | 0.00 | 0.09 | 0.037 | |
+
+No crash at μ = 1.0 or 0.6 for either β on any seed.
+
+| ID | Result | Verdict |
+|---|---|---|
+| B1: pooled drop ≥ 0.05, Holm p < 0.05, no seed worse | β = 0.15: drop 0.157, p = 1.8×10⁻¹³; β = 0.30: drop 0.183, p = 6.6×10⁻¹⁴; every seed improves | **PASS** (both β) |
+| B2: speed at μ = 1.0 within 0.10 m/s of the reference on every seed; no crash cost | β = 0.15: seed 0 costs 0.113 m/s, a miss of 0.013; β = 0.30: 0.26 / 0.11 / 0.11 | **FAIL** (both β). β = 0.15 fails on one seed by 0.013 m/s |
+
+**Reading.** Most of the remaining low-grip crashes are overconfident grip estimates: a small pessimistic shift takes the pooled rate from 0.223 to 0.067, close to the Oracle's 0.037. The registered criterion for a *free* fix was not met: the margin costs speed at full grip, 0.03–0.11 m/s for β = 0.15 (1–5%) and 0.11–0.26 m/s for β = 0.30. B2 is reported as failed; its threshold was not loosened after seeing the data.
+
+**What this does not show.** (i) It is not an unconditional win: it trades a few percent of speed at high grip for safety at low grip, a point on the same kind of frontier as a fixed speed limit. Whether it beats a fixed limit at equal speed was not tested here (a speed-matched, margin-biased Blind is the missing control; Blind with the cautious start alone crashes 0.82–0.85, so a 0.1 m/s change in speed is unlikely to explain it, but that is not a test). (ii) Seed 0 is the weakest at full grip. (iii) The margin was chosen from two values; neither is tuned. (iv) All simulation, default slip model.

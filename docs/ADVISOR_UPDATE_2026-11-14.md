@@ -21,7 +21,7 @@ His last message (Oct 31) asked for four things and ended: *"If you can send me 
 2. **A 0.1 s probe on straights makes grip observable.** Grip R² 0.89–0.93 with ideal sensors; 0.84–0.87 with the car's real sensing (wheel-odometry speed, kinematic yaw rate, 40 Hz LiDAR).
 3. **With the probe, adaptation beats any fixed speed limit.** At grip 0.4 the adaptive car crashes 2–8% of episodes against 33–47% for a non-adaptive car matched to its speed (3 seeds, 100 paired episodes each, p ≤ 6×10⁻⁸). With the car's real sensing and a racing expert: 28–39% against 84–86%.
 4. **It depends on the wheel-slip model.** Randomizing that model in training beats the non-adaptive car in all 30 comparisons.
-5. **Newest (Nov 13): a cold-start fix.** Before its first probe, the adaptive car runs on a nominal belief; 37–44% of its low-grip crashes happen in the first 2 s. Assuming low grip until the first probe cuts crashes at grip 0.4 from 0.33 to 0.22 (pooled, p = 2×10⁻⁵, 300 paired episodes) with no cost at higher grip. About 0.2 of crash rate remains and is not yet explained.
+5. **Newest (Nov 13): a cold-start fix.** Before its first probe, the adaptive car runs on a nominal belief; 37–44% of its low-grip crashes happen in the first 2 s. Assuming low grip until the first probe cuts crashes at grip 0.4 from 0.33 to 0.22 (pooled, p = 2×10⁻⁵, 300 paired episodes) with no cost at higher grip. About 0.2 of crash rate remained; a small pessimistic bias on the grip estimate removes most of that (see below), at a small speed cost.
 6. **Failed or negative results are reported, not dropped**: a 2 s memory and a faster probe did not help; held-out-track transfer at grip 0.4 misses its margin; one cross-grip variance check fails even for the oracle.
 
 ## What is *not* shown
@@ -30,9 +30,11 @@ His last message (Oct 31) asked for four things and ended: *"If you can send me 
 - The July real-car pilot (81 trials, 4 tire wraps) used the old pipeline with no probe. Its steering difference between bare and electrical tape survives correction for multiple comparisons; the yaw-rate difference does not. It shows the policy responds to a real tire change, not that the probe works.
 - Whether this is enough novelty for a full paper is his call. My honest read: the observability result plus the probe is a clearer contribution than the July framing, but a real-car result is what would make it a full paper; without it, a workshop paper is the safe target.
 
-## In progress right now
+## Newest result (Nov 14) and what is still running
 
-Pre-registered amendment 13, running on the 4-core container: (B) does biasing the grip estimate toward low grip remove the remaining crashes, and what does it cost in speed; (T) does retraining the adaptation module with the cold-start fix help. Results will be in the repo when done; predictions were committed before the runs. I expect arm T to show little change.
+Pre-registered amendment 13, arm B: shifting the grip estimate slightly toward low grip (no retraining) takes the grip-0.4 crash rate from 0.223 to 0.067 (a larger shift: 0.040; the oracle is 0.037), with no crashes at higher grip. It costs speed at full grip: 0.03-0.11 m/s for the small shift. Its registered "no cost" criterion **failed** (one seed by 0.013 m/s), and I reported it as failed. This is a safety/speed trade-off, not a free fix, and I have not yet compared it to a fixed speed limit at equal speed. Details: RESULTS section 11.
+
+Still running: arm T, retraining the adaptation module with the cold-start fix (about 1.5 h per seed). I expect little change from it.
 
 ## What is ready for the car
 

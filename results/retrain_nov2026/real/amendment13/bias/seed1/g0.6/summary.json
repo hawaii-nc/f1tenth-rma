@@ -1,0 +1,84 @@
+{
+  "summary": [
+    {
+      "controller": "blind_cs",
+      "grip": 0.6,
+      "n": 100,
+      "crash_rate": 0.39,
+      "completion_rate": 0.61,
+      "mean_speed": 2.5619608700745813,
+      "mean_rho": 0.5195366294945505,
+      "rho_sem": 0.009742509139934637,
+      "mean_progress_m": 52.52871549307464
+    },
+    {
+      "controller": "oracle",
+      "grip": 0.6,
+      "n": 100,
+      "crash_rate": 0.0,
+      "completion_rate": 1.0,
+      "mean_speed": 2.5106945031697165,
+      "mean_rho": 0.4615676169677727,
+      "rho_sem": 0.0023851429476700794,
+      "mean_progress_m": 61.898200262099515
+    },
+    {
+      "controller": "phi_b15_cs",
+      "grip": 0.6,
+      "n": 100,
+      "crash_rate": 0.0,
+      "completion_rate": 1.0,
+      "mean_speed": 2.4188179281519875,
+      "mean_rho": 0.4352259941656179,
+      "rho_sem": 0.0020732815503709937,
+      "mean_progress_m": 60.285897031866654
+    },
+    {
+      "controller": "phi_b30_cs",
+      "grip": 0.6,
+      "n": 100,
+      "crash_rate": 0.0,
+      "completion_rate": 1.0,
+      "mean_speed": 2.3401356982939068,
+      "mean_rho": 0.42048709557013114,
+      "rho_sem": 0.0021197822325549256,
+      "mean_progress_m": 58.03043607962906
+    },
+    {
+      "controller": "phi_cs",
+      "grip": 0.6,
+      "n": 100,
+      "crash_rate": 0.0,
+      "completion_rate": 1.0,
+      "mean_speed": 2.4752962969398893,
+      "mean_rho": 0.4512426320028224,
+      "rho_sem": 0.0025182054023536217,
+      "mean_progress_m": 61.1793679539633
+    }
+  ],
+  "args": {
+    "spawn": "random",
+    "speed_cap": null,
+    "phase1": "runs/real_phase1_seed1/final.pt",
+    "phase2": "runs/real_phase2_slipdr_seed1/final.pt",
+    "config": "configs/real_phase2_probe.yaml",
+    "episodes": 100,
+    "tracks": null,
+    "max_steps": 2500,
+    "seed": 0,
+    "out": "results/retrain_nov2026/real/amendment13/bias/seed1/g0.6",
+    "device": "cpu",
+    "tire_model": "friction_circle",
+    "grips": [
+      0.6
+    ],
+    "controllers": [
+      "oracle",
+      "phi_cs",
+      "blind_cs",
+      "phi_b15_cs",
+      "phi_b30_cs"
+    ],
+    "n_boot": 0
+  }
+}
