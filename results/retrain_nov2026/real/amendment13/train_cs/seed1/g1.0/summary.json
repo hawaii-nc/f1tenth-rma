@@ -1,0 +1,36 @@
+{
+  "summary": [
+    {
+      "controller": "phi_cs",
+      "grip": 1.0,
+      "n": 100,
+      "crash_rate": 0.0,
+      "completion_rate": 1.0,
+      "mean_speed": 2.5132952767138415,
+      "mean_rho": 0.3214037903641782,
+      "rho_sem": 0.0024968618272969657,
+      "mean_progress_m": 62.1661954362876
+    }
+  ],
+  "args": {
+    "spawn": "random",
+    "speed_cap": null,
+    "phase1": "runs/real_phase1_seed1/final.pt",
+    "phase2": "runs/real_phase2_slipdr_cs_seed1/final.pt",
+    "config": "configs/real_phase2_probe.yaml",
+    "episodes": 100,
+    "tracks": null,
+    "max_steps": 2500,
+    "seed": 0,
+    "out": "results/retrain_nov2026/real/amendment13/train_cs/seed1/g1.0",
+    "device": "cpu",
+    "tire_model": "friction_circle",
+    "grips": [
+      1.0
+    ],
+    "controllers": [
+      "phi_cs"
+    ],
+    "n_boot": 0
+  }
+}
