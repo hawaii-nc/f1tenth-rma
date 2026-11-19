@@ -34,7 +34,7 @@ His last message (Oct 31) asked for four things and ended: *"If you can send me 
 
 Pre-registered amendment 13, arm B: shifting the grip estimate slightly toward low grip (no retraining) takes the grip-0.4 crash rate from 0.223 to 0.067 (a larger shift: 0.040; the oracle is 0.037), with no crashes at higher grip. It costs speed at full grip: 0.03-0.11 m/s for the small shift. Its registered "no cost" criterion **failed** (one seed by 0.013 m/s), and I reported it as failed. This is a safety/speed trade-off, not a free fix, and I have not yet compared it to a fixed speed limit at equal speed. Details: RESULTS section 11.
 
-Still running: arm T, retraining the adaptation module with the cold-start fix (about 1.5 h per seed). I expect little change from it.
+Also finished: arm T, retraining the adaptation module with the cold-start fix. It did not help (grip-0.4 crash rate 0.22 -> 0.30 pooled, worse on all three seeds, p = 0.009; with only one retrained model per seed that cannot be separated from ordinary training variation). RESULTS section 12.
 
 ## What is ready for the car
 

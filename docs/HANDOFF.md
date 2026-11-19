@@ -29,7 +29,7 @@ All work for the paper is on `main`; earlier work is on the branches `archive/ju
 | 2 | Check whether VADER's VESC publishes IMU data (`ros2 topic list`) | An IMU acceleration channel would measure the probe directly (simulated: 9.5 / 7.2 / 4.2 m/s² at grip 1.0 / 0.7 / 0.4) |
 | 3 | Re-center the slip randomization on what Stage 1 measures, retrain φ (`tools/slipdr_suite.sh`, ~1.5 h per seed on 4 CPU cores) | φ is strongest when the training slip model matches the car |
 | 4 | Closed-loop car trials: π + φ with the probe vs Blind, same tire wraps as July | The paper's missing real-car result |
-| 5 | Close the rest of the μ = 0.4 gap | A cautious start removes about a third (amendment 12: 0.33 → 0.22 pooled). Not timing (amendment 11). About 0.2 remains after the first 2 s. Untested candidate: the base policy's margin at low grip |
+| 5 | Close the rest of the μ = 0.4 gap | A cautious start removes about a third (amendment 12: 0.33 → 0.22 pooled). A small pessimistic margin on φ's grip estimate takes it to 0.07 at a speed cost of 0.03–0.11 m/s (amendment 13 B; its registered cost check failed narrowly, and it has not been compared with a fixed limit at equal speed). Not timing (amendment 11) and not training with the cautious start (amendment 13 T: no help, slightly worse). Next: a speed-matched comparison of the margin, and its effect under other slip models |
 | 6 | Choose the workshop; advisor review | |
 
 ## Not in this repo (ask Nathan)

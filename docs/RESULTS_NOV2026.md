@@ -496,3 +496,26 @@ No crash at μ = 1.0 or 0.6 for either β on any seed.
 **Reading.** Most of the remaining low-grip crashes are overconfident grip estimates: a small pessimistic shift takes the pooled rate from 0.223 to 0.067, close to the Oracle's 0.037. The registered criterion for a *free* fix was not met: the margin costs speed at full grip, 0.03–0.11 m/s for β = 0.15 (1–5%) and 0.11–0.26 m/s for β = 0.30. B2 is reported as failed; its threshold was not loosened after seeing the data.
 
 **What this does not show.** (i) It is not an unconditional win: it trades a few percent of speed at high grip for safety at low grip, a point on the same kind of frontier as a fixed speed limit. Whether it beats a fixed limit at equal speed was not tested here (a speed-matched, margin-biased Blind is the missing control; Blind with the cautious start alone crashes 0.82–0.85, so a 0.1 m/s change in speed is unlikely to explain it, but that is not a test). (ii) Seed 0 is the weakest at full grip. (iii) The margin was chosen from two values; neither is tuned. (iv) All simulation, default slip model.
+
+## 12. Training with the cautious start (amendment 13, arm T, Nov 16–19)
+
+**Question.** φ_DR was trained on on-policy rollouts in which the car started on the nominal belief; at deployment it now starts cautious (section 10). Does retraining φ with the cautious start in its on-policy rounds close more of the μ = 0.4 gap? Same base policies, config and seeds as φ_DR except `on_policy.cautious_start: true` (`configs/real_phase2_probe_slipdr_cs.yaml`); each retrained φ is evaluated with the cautious start on the amendment-12 episodes. Results `results/retrain_nov2026/real/amendment13/train_cs/`, readouts `train_cs_stats.md`.
+
+| μ = 0.4 crash | seed 0 | seed 1 | seed 2 | pooled (N = 300) |
+|---|---|---|---|---|
+| φ_DR + cautious start (amendment 12) | 0.27 | 0.18 | 0.22 | 0.223 |
+| φ retrained with the cautious start, + cautious start | 0.40 | 0.23 | 0.26 | **0.297** |
+| per-seed p (exact McNemar) | 0.0072 | 0.33 | 0.57 | pooled 0.0092 |
+
+At μ = 1.0 and 0.6 the crash rate changes by at most 0.01 and mean speed by at most 0.02 m/s. Grip R² of the retrained φ (E5): 0.81 / 0.82 / 0.82, against φ_DR's 0.84 / 0.79 / 0.82.
+
+| ID | Result | Verdict |
+|---|---|---|
+| T1: pooled μ = 0.4 crash ≤ reference − 0.05, p < 0.05, no seed worse by > 0.02 | pooled change **+0.073** (worse), p = 0.0092; all three seeds worse (+0.13, +0.05, +0.04) | **FAIL** |
+| T2: no cost at μ = 1.0 and 0.6 (crash ≤ +0.03, speed ≥ −0.05 m/s, every seed) | crash ≤ +0.01, speed within 0.02 m/s | **PASS** |
+
+**Reading.** The prediction (T1 fails, little change) held in that T1 failed, but the direction was not "little change": the retrained modules crash more at μ = 0.4 on every seed, 0.30 against 0.22 pooled. Training with the cautious start did not help, and the result does not support the idea that the remaining gap comes from how φ was trained.
+
+**What this does not show.** (i) Only one retrained module per seed exists, so this cannot separate an effect of the change from the run-to-run variation of retraining φ; only seed 0 is significant on its own. "Retraining with the cautious start hurts" is therefore not established; "it does not help" is. (ii) No mechanism was tested. (iii) Same default slip model and 300 episodes as the rest of the amendment.
+
+**Where the gap stands.** With the cautious start, φ_DR crashes 0.223 at μ = 0.4 against the Oracle's 0.037. Of the things tested, only a pessimistic margin on φ's estimate (section 11) reduces it much, at a speed cost. Memory length, probe rate and training with the cautious start do not.
