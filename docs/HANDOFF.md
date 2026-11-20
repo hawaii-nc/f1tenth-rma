@@ -16,7 +16,7 @@ The July 2026 pipeline had seven bugs (C16–C24 in [BUGS_AND_LESSONS.md](BUGS_A
 ## Getting started
 
 1. Read the summary of [RESULTS_NOV2026.md](RESULTS_NOV2026.md), then [SIM_TO_REAL.md](SIM_TO_REAL.md) and [REAL_CAR_PROBE_PLAN.md](REAL_CAR_PROBE_PLAN.md).
-2. Install and run the tests: `pip install -r requirements-dev.txt && pytest -q tests`. There are 80 tests; one is skipped if f1tenth_gym is not on the path.
+2. Install and run the tests: `pip install -r requirements-dev.txt && pytest -q tests`. There are 83 tests; one is skipped if f1tenth_gym is not on the path.
 3. Set up the simulator as described in [REPRODUCE.md](REPRODUCE.md) (f1tenth_gym at commit 4fdb9c7, then `python tools/prepare_tracks.py`). Section 2 of that page reruns one published result as a check.
 4. Run Stage 1 of the real-car plan, using [STAGE1_RUN_SHEET.md](STAGE1_RUN_SHEET.md) in the lab. It needs no learned policy and one session, and it answers the main open question: does the real car's wheel response to a braking pulse reveal grip, as the simulator assumes?
 5. Then deploy the controller with `~/start_rma.sh` (or `ros2 launch rma_deploy_pkg veh_launch.py checkpoint:=... adaptation:=... probe:=1`). The node's defaults match the car models: 100 Hz, a −1.0 m/s braking probe, and the cautious start. It has not run on hardware in this form, so put the car on a stand first.

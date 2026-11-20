@@ -51,7 +51,7 @@ git clone https://github.com/f1tenth/f1tenth_gym.git ../f1tenth_gym
 git -C ../f1tenth_gym checkout 4fdb9c7
 export PYTHONPATH=$PWD/../f1tenth_gym/gym:$PWD/src/f1tenth_research
 python tools/prepare_tracks.py        # builds the 13 scaled tracks
-python -m pytest -q tests             # 80 tests
+python -m pytest -q tests             # 83 tests
 ```
 
 A Docker image matching the car's Python 3.8 environment is in `docker/Dockerfile`. The tests run without the simulator using `tests/fake_sim.py`, which is how CI runs them.
