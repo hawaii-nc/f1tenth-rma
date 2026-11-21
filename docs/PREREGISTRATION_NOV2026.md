@@ -267,3 +267,56 @@ Both also evaluated at μ = 0.6 and under the no-slip model. Blind and Oracle ar
 | A1-DR | Probe off at test time: E5 N = 200 | φ grip R² < 0.4 |
 | A2-DR | Held-out tracks: φ retrained like φ_DR on the R held-out base policy (`runs/real_phase1_holdout`), E1/E2 all grips on mco/silverstone/budapest; the main seed-0 φ_DR on the same episodes | held-out φ's gap closed at μ = 0.4 ≥ 50% of the main model's, and its H2 holds |
 | A3-DR | E3 grip step 1.0 → 0.4, N = 40 | median settle < 100 steps |
+
+## Amendment 12, 2026-11-13 (before running): cold start as a cause of the μ = 0.4 gap
+
+**Seen before writing this:** everything through amendment 11, plus one post-hoc look at the existing `episodes.csv` files (no new runs). At μ = 0.4, default slip model, φ_DR's crashes by episode step (N = 100 per seed, seeds 0 / 1 / 2):
+
+| | φ_DR crashes | of which in the first 1 s | first 2 s | Blind, first 2 s | Oracle, first 2 s |
+|---|---|---|---|---|---|
+| seed 0 | 41 | 10 | 15 | 26 | 0 |
+| seed 1 | 25 | 6 | 11 | 22 | 0 |
+| seed 2 | 33 | 8 | 14 | 24 | 0 |
+
+So 37–44% of φ_DR's low-grip crashes happen within 2 s of the start (φ_R: 13 / 12 / 14 of 39 / 28 / 37). The code explains why: every episode starts from standstill at a random point of the lap; the harness (and the car's node) gives φ the *nominal* belief until its 50-step history is full; the first probe slot (steps 0–9) falls at standstill, where a braking pulse does nothing; so the first pulse that can show grip is at step 50 at the earliest, later if the car is cornering. Until then φ is Blind, and a car that believes grip is nominal accelerates into the first corner too fast. This was not considered in amendment 11. Because the hypothesis comes from the evaluation data, the runs below use a new intervention and are the test.
+
+**Intervention (no retraining).** *Cautious start* (`CautiousStart` in `eval/harness.py`, controller suffix `_cs`): from the start of the episode the policy gets the belief "grip 0.4, everything else nominal" (the lowest grip of the training range) until the first probe pulse fired while the car was moving (> 0.5 m/s) has ended and φ's history is full; from then on the controller is exactly φ_DR. It uses only what the car's node knows (when it probed, odometry speed). Nothing else changes: same checkpoints (`runs/real_phase1_seedN`, `runs/real_phase2_slipdr_seedN`), config `configs/real_phase2_probe.yaml`, friction-circle tire, default slip model.
+
+**Run.** Seeds 0, 1, 2; μ ∈ {1.0, 0.6, 0.4}; N = 100 paired episodes per cell; five controllers on the same episodes: Oracle, φ_DR, Blind (reruns of published cells), φ_DR with cautious start (`phi_cs`), and Blind with the same cautious start (`blind_cs`: belief 0.4 until the first moving pulse ends, nominal afterwards). Script `tools/amendment12_suite.sh`, analysis `tools/cold_start_stats.py`, results `results/retrain_nov2026/real/amendment12/`.
+
+| ID | Pass if |
+|---|---|
+| C0 (reproducibility) | The rerun Oracle / φ_DR / Blind crash counts equal the published ones in every cell (section 8 for μ 0.6 and 0.4). Any difference is reported and the comparisons below use the reruns |
+| C1 (cold start matters) | At μ = 0.4, pooled over the three seeds (300 paired episodes), `phi_cs` crash ≤ φ_DR − 0.07, exact McNemar p < 0.05; and on no seed is `phi_cs` worse than φ_DR by more than 0.02 |
+| C2 (no cost) | At μ = 1.0 and μ = 0.6, on every seed, `phi_cs` crash ≤ φ_DR + 0.03 and mean speed ≥ φ_DR − 0.05 m/s |
+| C3 (it is still adaptation) | At μ = 0.4, on every seed, `phi_cs` crash ≤ `blind_cs` − 0.30, McNemar p < 0.05 (H2 with the start equalized) |
+
+Also reported, without a threshold: `phi_cs` crashes in the first 2 s; the share of the φ_DR–Oracle crash gap at μ = 0.4 that the cautious start removes; ρ gap closed.
+
+**Expected.** C1 passes if early crashes are removed and not merely postponed; the early crashes are 0.11–0.15 of episodes, so a pooled drop of 0.07–0.12 is expected and about 0.2 of crash rate should remain unexplained. C2 should pass (the cautious phase lasts about 0.6 s on a straight). C3 should pass: Blind's crashes are mostly later (60–62 of its 84–86 come after 2 s). If C1 fails, cold start is not a cause of the gap and the early crashes come from the spawn itself.
+
+## Amendment 13, 2026-11-14 (before running): the rest of the μ = 0.4 gap: a pessimistic margin, and training with the cautious start
+
+**Seen before writing this:** everything through amendment 12 (RESULTS section 10). With the cautious start, φ_DR crashes 0.27 / 0.18 / 0.22 at μ = 0.4 (pooled 0.223) against the Oracle's 0.02 / 0.00 / 0.09; almost none of these crashes are in the first 2 s. The Oracle drives the same base policy safely, so the policy is safe with the *right* belief; what remains must come from errors in φ's belief (grip R² ≈ 0.8, not 1). Two arms. Nothing below has been run, except a smoke run of arm T's training code (8 episodes, to check that it executes).
+
+**Arm B: pessimistic margin (no retraining).** If the remaining crashes come from moments when φ overestimates grip, shifting the belief towards low grip should remove them. `GripBias` (`eval/harness.py`): ẑ′ = ẑ + β·(μ(grip 0.4) − μ(grip 1.0)), other physics nominal; β = 0.15 and 0.30 (roughly −0.09 and −0.18 in grip). Applied after the cautious start. Seeds 0–2, μ ∈ {1.0, 0.6, 0.4}, N = 100 paired episodes, default slip model, controllers on the same episodes: Oracle, `phi_cs` (reference), `blind_cs`, `phi_b15_cs`, `phi_b30_cs`.
+
+| ID | Pass if (for a given β; two arms, Holm-corrected) |
+|---|---|
+| B1 | At μ = 0.4, pooled over seeds (N = 300), crash ≤ `phi_cs` − 0.05, exact McNemar p < 0.05 (Holm over the two β); on no seed worse than `phi_cs` by more than 0.02 |
+| B2 | Cost: at μ = 1.0, mean speed ≥ `phi_cs` − 0.10 m/s on every seed; at μ = 1.0 and 0.6, crash ≤ `phi_cs` + 0.03 on every seed |
+
+A margin "works" for a β if B1 and B2 both pass. Reported without threshold: speed at every grip, the share of the `phi_cs`–Oracle crash gap removed, and whether `phi_cs` reruns equal amendment 12's (reproducibility).
+
+**Arm T: train with the cautious start.** φ_DR was trained on rollouts in which φ started on the nominal belief; at deployment it now starts cautious. Retrain φ for seeds 0, 1, 2 exactly like φ_DR (same base policies, seeds and config) except that in the on-policy rounds the car drives with the cautious start (`configs/real_phase2_probe_slipdr_cs.yaml`, `on_policy.cautious_start`); checkpoints `runs/real_phase2_slipdr_cs_seedN`. Evaluate `phi_cs` with the new φ on the amendment-12 episodes (same seeds and tracks; Oracle and `blind_cs` are unchanged and taken from amendment 12), plus E5 (N = 200) under the default slip model.
+
+| ID | Pass if |
+|---|---|
+| T1 | At μ = 0.4, pooled (N = 300), crash ≤ amendment 12's `phi_cs` − 0.05, exact McNemar p < 0.05; no seed worse by more than 0.02 |
+| T2 | At μ = 1.0 and 0.6, every seed: crash ≤ `phi_cs` + 0.03, mean speed ≥ `phi_cs` − 0.05 m/s |
+
+Reported: E5 grip R² against φ_DR's 0.84 / 0.79 / 0.82.
+
+Script `tools/amendment13_suite.sh` (arm B first, then arm T seed by seed), analysis `tools/amendment13_stats.py`, results `results/retrain_nov2026/real/amendment13/`.
+
+**Expected.** B: β = 0.30 should lower crashes at μ = 0.4 by 0.05 or more but may cost more than 0.10 m/s on full grip (then it is caution, not adaptation); β = 0.15 is the one that could pass both, and I am not confident it reaches −0.05. If neither β lowers crashes, overestimated grip is not the cause. T: I expect little change (T1 fails): only the first ~0.6 s of each on-policy episode differs, and the remaining crashes are later.

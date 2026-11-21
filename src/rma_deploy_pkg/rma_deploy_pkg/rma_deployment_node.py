@@ -51,6 +51,7 @@ TRAIN_MAX_STEER = 0.4189  # envs/f1tenth_env.py MAX_STEER (action-space bound)
 MAX_VELOCITY = 3.0      # m/s -- matches tight-track training config
 NOMINAL_PHYSICS = [1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0]
 STATIONARY_VEL_THRESHOLD = 0.10
+CAUTIOUS_MOVING_SPEED = 0.5   # m/s: a probe pulse only counts when the car is moving (eval/harness.py MOVING_SPEED)
 STATIONARY_TIMEOUT_S = 3.0
 
 
@@ -85,8 +86,10 @@ class RMADeploymentNode(Node):
         probe: bool = False,
         probe_period: int = 50,
         probe_duration: int = 10,
-        probe_amplitude: float = 2.0,
+        probe_amplitude: float = -1.0,
         probe_max_steer: float = 0.15,
+        cautious_start: bool = False,
+        cautious_grip: float = 0.4,
     ):
         super().__init__('rma_deployment')
         self.control_freq = control_freq
@@ -114,6 +117,22 @@ class RMADeploymentNode(Node):
         with torch.no_grad():
             self.nominal_intrinsics = self.actor_critic.get_intrinsics(
                 torch.tensor([NOMINAL_PHYSICS], device=self.device))
+
+        # Cautious start (amendment 12): from standstill, give the policy a low-grip belief
+        # until the first probe pulse fired while moving has ended (and φ's history is full).
+        # Before that φ has seen no probe response and would start on the nominal belief.
+        # Same rule as eval/harness.py CautiousStart. Needs the probe; applies with or without φ.
+        self.cautious_start = bool(cautious_start) and self.probe is not None
+        if cautious_start and self.probe is None:
+            self.get_logger().warn('--cautious_start needs --probe 1; ignored')
+        physics = list(NOMINAL_PHYSICS)
+        physics[0] = cautious_grip
+        with torch.no_grad():
+            self.cautious_intrinsics = self.actor_critic.get_intrinsics(
+                torch.tensor([physics], device=self.device))
+        self._cs_released = not self.cautious_start
+        self._cs_pulse_seen = False
+        self._pulse_last_tick = False
 
         # --- Load adaptation module (Phase 2, optional) ---
         self.adaptation = None
@@ -213,9 +232,19 @@ class RMADeploymentNode(Node):
         obs = self._build_obs()
         obs_tensor = torch.from_numpy(obs).unsqueeze(0).to(self.device)
 
-        phi_active = self.use_adaptation and len(self.history) >= self.history_window
+        if self.cautious_start and not self._cs_released:
+            if self._pulse_last_tick and abs(self.current_velocity) > CAUTIOUS_MOVING_SPEED:
+                self._cs_pulse_seen = True
+            elif (self._cs_pulse_seen and not self._pulse_last_tick
+                  and len(self.history) >= self.history_window):
+                self._cs_released = True
+        cautious = self.cautious_start and not self._cs_released
+
+        phi_active = self.use_adaptation and len(self.history) >= self.history_window and not cautious
         with torch.no_grad():
-            if phi_active:
+            if cautious:
+                intrinsics = self.cautious_intrinsics
+            elif phi_active:
                 hist = torch.from_numpy(np.asarray(self.history, dtype=np.float32)).unsqueeze(0).to(self.device)
                 intrinsics = self.adaptation(hist)
                 self._last_phi = intrinsics.cpu().numpy().flatten().tolist()
@@ -240,10 +269,12 @@ class RMADeploymentNode(Node):
         steer_cmd = float(np.clip(action_np[0], -self.max_steer, self.max_steer))
         throttle_cmd = float(np.clip(action_np[1], -1.0, 1.0))
         velocity_cmd = (throttle_cmd + 1.0) / 2.0 * MAX_VELOCITY
+        self._pulse_last_tick = False
         if self.probe is not None:
             period, dur, amp, probe_max_steer = self.probe
             if self._ticks % period < dur and abs(steer_cmd) < probe_max_steer:
                 velocity_cmd = max(0.0, velocity_cmd + amp)   # amp < 0 = braking probe; before the shield
+                self._pulse_last_tick = True
         if self.shield is not None and self.lidar_raw is not None:
             velocity_cmd, _ = self.shield(velocity_cmd, steer_cmd, self.lidar_raw, self.shield_mu)
 
@@ -259,6 +290,8 @@ class RMADeploymentNode(Node):
             self._stationary_ticks += 1
         else:
             self._stationary_ticks = 0
+        if self.cautious_start and self._stationary_ticks >= self.stationary_timeout_ticks:
+            self._cs_released = self._cs_pulse_seen = False   # idle 3 s: the next run starts cautious again
         if self._stationary_ticks < self.stationary_timeout_ticks:
             lidar_m = self.lidar_obs * LIDAR_MAX_RANGE
             self._csv.writerow(
@@ -304,8 +337,14 @@ def main():
     parser.add_argument('--probe', type=int, default=0, help='1 = active grip probe (needed by probe-trained φ)')
     parser.add_argument('--probe_period', type=int, default=50)
     parser.add_argument('--probe_duration', type=int, default=10)
-    parser.add_argument('--probe_amplitude', type=float, default=2.0)
+    parser.add_argument('--probe_amplitude', type=float, default=-1.0,
+                        help='m/s added to the speed command during a pulse. -1.0 (braking) is what the '
+                             'deployable runs/real_* models were trained with; the ideal-sensor '
+                             'configuration Q used +2.0. Must match the phi checkpoint')
     parser.add_argument('--probe_max_steer', type=float, default=0.15)
+    parser.add_argument('--cautious_start', type=int, default=1,
+                        help='1 = from standstill, assume low grip until the first probe pulse at speed '
+                             'has ended (amendment 12). Only acts with --probe 1')
     args, _ = parser.parse_known_args()
 
     rclpy.init()
@@ -327,6 +366,7 @@ def main():
         probe_duration=args.probe_duration,
         probe_amplitude=args.probe_amplitude,
         probe_max_steer=args.probe_max_steer,
+        cautious_start=bool(args.cautious_start),
     )
     try:
         rclpy.spin(node)

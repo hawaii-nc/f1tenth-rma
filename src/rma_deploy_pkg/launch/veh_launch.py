@@ -8,8 +8,12 @@ On-car launch. Examples:
   ros2 launch rma_deploy_pkg veh_launch.py checkpoint:=$CKPT/phase1_v42.pt \
       adaptation:=$CKPT/phase2_crashtol_clean.pt
 
-  # November 2026 probe model (amendment 6/8): enable the probe, 100 Hz (default)
-  ros2 launch rma_deploy_pkg veh_launch.py checkpoint:=$CKPT/phase1.pt adaptation:=$CKPT/phase2_probe.pt probe:=1
+  # November 2026 deployable model (amendments 8-10): braking probe on, 100 Hz (defaults)
+  ros2 launch rma_deploy_pkg veh_launch.py checkpoint:=$RUNS/real_phase1_seed0/final.pt \
+      adaptation:=$RUNS/real_phase2_slipdr_seed0/final.pt probe:=1
+
+probe_amplitude must match the phi checkpoint: -1.0 m/s (braking, the default) for the
+runs/real_* models; +2.0 only for the ideal-sensor configuration Q, which is not for the car.
 """
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
@@ -25,6 +29,8 @@ def generate_launch_description() -> LaunchDescription:
         DeclareLaunchArgument('odom_topic', default_value='/odom'),
         DeclareLaunchArgument('control_freq', default_value='100.0'),
         DeclareLaunchArgument('probe', default_value='0'),
+        DeclareLaunchArgument('probe_amplitude', default_value='-1.0'),
+        DeclareLaunchArgument('cautious_start', default_value='1'),
     ]
 
     rma_node = Node(
@@ -39,6 +45,8 @@ def generate_launch_description() -> LaunchDescription:
             '--odom_topic', LaunchConfiguration('odom_topic'),
             '--control_freq', LaunchConfiguration('control_freq'),
             '--probe', LaunchConfiguration('probe'),
+            '--probe_amplitude', LaunchConfiguration('probe_amplitude'),
+            '--cautious_start', LaunchConfiguration('cautious_start'),
             '--scan_topic', '/scan',
             '--drive_topic', '/drive',
         ],

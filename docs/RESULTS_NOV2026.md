@@ -6,20 +6,21 @@ All numbers come from the rebuilt, bug-fixed pipeline on the real f1tenth_gym (c
 
 **Not comparable one-to-one with the July poster**: different tracks (drivable scale), base-policy training (DAgger), checkpoints, evaluation protocol, and seven pipeline bugs fixed (C16–C22).
 
-## Read this first: final claims (Nov 5, 2026)
+## Summary (updated Nov 19, 2026)
 
-The full record follows; sections 4–8 hold the current results. In order of evidence:
+The full record follows; sections 4–12 hold the current results. The main findings, in order of strength of evidence:
 
-1. **Passive grip adaptation cannot work in this simulator.** With the car's actions independent of grip, its motion history carries no grip information (R² ≈ 0) for the linear, friction-circle and Fiala brush tires (section 4). Earlier "successes" were action leakage (φ reading the oracle's own driving) or uniform slowness: a speed-capped non-adaptive car matched them on every seed (section 3).
-2. **An active probe makes grip observable.** A 0.1 s speed pulse on straights gives grip R² 0.89–0.93. φ then drives within 0.1 m/s of the Oracle at every grip and, at μ = 0.4, crashes 0.02–0.08 vs 0.33–0.47 for Blind matched to its measured speed (p ≤ 6×10⁻⁸, all 3 seeds). No fixed speed limit matches it on both speed and safety. Turning the probe off removes the adaptation, the result holds on unseen tracks, and the probe costs ≤ 0.02 in crash rate (sections 4–5).
-3. **It survives realistic car sensing at racing speed.** With wheel-odometry speed (with slip), kinematic yaw rate, commanded steering, 40 Hz LiDAR, a braking probe and a racing expert, φ reads grip at R² 0.84–0.87 and, at equal average speed, crashes 0.00–0.05 vs 0.33–0.56 (μ = 0.6) and 0.28–0.39 vs 0.84–0.86 (μ = 0.4), beating a speed-matched Blind on every seed (section 6).
-4. **It depends on the wheel-slip model, partly fixed.** Trained on one slip model, φ is blind without slip. With the slip model randomized in training, it beats Blind in all 30 slip-model × seed × grip comparisons, but misses the registered margin at μ = 0.4 on one seed for the two weakest-signal slip models (sections 7–8).
+1. Passive grip adaptation cannot work in this simulator. With the car's actions independent of grip, its motion history carries no grip information (R² ≈ 0) for the linear, friction-circle and Fiala brush tires (section 4). Earlier apparent successes came from action leakage (φ reading the oracle's own driving) or from uniformly slow driving; a speed-capped non-adaptive car matched them on every seed (section 3).
+2. An active probe makes grip observable. A 0.1 s speed pulse on straights gives grip R² 0.89–0.93. φ then drives within 0.11 m/s of the oracle at every grip level and, at μ = 0.4, crashes in 0.02–0.08 of episodes against 0.33–0.47 for a non-adaptive car matched to its measured speed (p ≤ 6×10⁻⁸ on each of 3 seeds). No fixed speed limit matches it on both speed and safety. Turning the probe off removes the adaptation, the result holds on unseen tracks, and the probe itself changes crash rates by at most 0.02 (sections 4–5).
+3. The result holds with the car's actual sensing at racing speed. With wheel-odometry speed (including wheel slip), kinematic yaw rate, commanded steering, 40 Hz LiDAR, a braking probe and a racing expert, φ reads grip at R² 0.84–0.87. At equal average speed it crashes in 0.00–0.05 of episodes against 0.33–0.56 at μ = 0.6, and 0.28–0.39 against 0.84–0.86 at μ = 0.4, beating a speed-matched non-adaptive car on every seed (section 6).
+4. The controller depends on the wheel-slip model; randomization largely fixes this. Trained on one slip model, φ cannot read grip when the wheels do not slip. With the slip model randomized in training it beats the non-adaptive car in all 30 slip-model × seed × grip comparisons, but misses the registered margin at μ = 0.4 on one seed for the two weakest slip signatures (sections 7–8).
+5. The remaining gap at μ = 0.4 is not about timing. A 2 s memory changes nothing (0.41 vs 0.41) and a faster probe makes it worse (0.58). φ_DR's estimate needs the probe (R² −0.02 without it) and settles 0.28 s after a grip drop. On the three hardest unseen tracks it transfers (31% of the oracle gap closed, against 27% for a model trained on them) but misses the H2 margin (section 9).
+6. About a third of that gap is a cold start. Before its first probe at speed, φ runs on the nominal belief, and 37–44% of its μ = 0.4 crashes happen in the first 2 s. Holding a low-grip belief until the first probe has ended reduces the pooled crash rate from 0.33 to 0.22 (p = 2×10⁻⁵, 300 paired episodes) with no cost at higher grip (section 10). The deployment node does this by default.
+7. Most of the rest responds to a pessimistic margin, at a speed cost. Shifting φ's estimate slightly toward low grip reduces the pooled crash rate at μ = 0.4 from 0.22 to 0.07 (oracle 0.04), but costs 0.03–0.11 m/s at full grip, and its registered cost criterion failed. Retraining φ with the cautious start did not help (0.22 to 0.30). Sections 11–12.
 
-5. **The μ = 0.4 gap is not a timing problem.** A 2 s memory changes nothing (0.41 vs 0.41) and a faster probe makes it worse (0.58). φ_DR's grip reading needs the probe (R² −0.02 without) and settles 0.28 s after a grip drop; on the three hardest, unseen tracks it transfers (gap closed 31% vs 27% for a model trained on them) but no longer clears the H2 margin at μ = 0.4 (section 9).
+Failed or not supported: H1 (R² ≥ 0.7) without the probe; H3 (cross-grip ρ variance ≥ 10×) with it, which the oracle also fails; G1, H2 and H3 in the original configuration; the 2 s window (W); the high-speed test (not feasible); D1 of amendment 10; arms M and F of amendment 11 and the held-out H2 (A2-DR); B2 and T1 of amendment 13. Each is reported below.
 
-**Failed or not supported:** H1 (R² ≥ 0.7) without the probe; H3 (cross-grip ρ variance ≥ 10×) with it, which even the Oracle fails; the original configuration's G1/H2/H3; the 2 s window (W); the high-speed test (infeasible); amendment 10's D1; amendment 11's arms M and F and A2-DR's H2. All are reported below.
-
-**Not shown:** anything on the real car with the probe. The deployable models and the one-session test are in docs/SIM_TO_REAL.md and docs/REAL_CAR_PROBE_PLAN.md.
+Not shown: any result on the real car with the probe. The deployable models and the one-session test are described in docs/SIM_TO_REAL.md and docs/REAL_CAR_PROBE_PLAN.md.
 
 ## Summary
 
@@ -317,7 +318,7 @@ Crash rates move by at most 0.02; the pulses add speed, and distance covered per
 Claims 1–3 above stand. Claim 4 (the limitation) is resolved in simulation: **with an active probe, grip adaptation adds safety beyond what any fixed speed limit gives at the same speed**, on all three seeds. New claims:
 
 5. Passive proprioceptive grip estimation is not possible in this simulator below the limit (leakage-free R² ≈ 0 for three tire models). Apparent grip estimation in RMA-style training can be action leakage; a random-belief rollout is a simple test for it.
-6. A brief speed pulse on straights makes grip observable (R² 0.89–0.93). φ_Q then drives within 0.1 m/s of the Oracle at every grip, beats a speed-matched fixed limit at μ = 0.4 (0.02–0.08 vs 0.33–0.47 crashes), and no fixed limit matches it on both speed and safety. Turning the probe off removes the adaptation.
+6. A brief speed pulse on straights makes grip observable (R² 0.89–0.93). φ_Q then drives within 0.11 m/s of the Oracle at every grip, beats a speed-matched fixed limit at μ = 0.4 (0.02–0.08 vs 0.33–0.47 crashes), and no fixed limit matches it on both speed and safety. Turning the probe off removes the adaptation.
 
 **Caveats.** The probe changes the method: the car spends some driving on measurement. φ sees the true vehicle speed; on the car, wheel speed rises during wheelspin, so the signal must come from the IMU or wheel-vs-IMU slip. The real-car node runs at 50 Hz while training is at 100 Hz (bug C23). See docs/REAL_CAR_PROBE_PLAN.md.
 
@@ -441,3 +442,79 @@ A longer memory does not help under the default slip model, so forgetting is not
 | A2-DR, held-out tracks (mco, silverstone, budapest) | Held-out model: μ 0.6 crash 0.23 / 0.83 / 0.14 (φ / Blind / Oracle), μ 0.4 0.74 / 0.92 / 0.02, gap closed 31% [21, 40]. Main model on the same episodes: 0.06 / 0.71 / 0.00 and 0.69 / 0.94 / 0.00, 27% [17, 36] | **FAIL**: transfer holds (115% of the main model's gap) but H2 fails (−0.18 vs the required −0.30); the main model also fails H2 on these tracks |
 
 These three tracks are the hardest (Blind 0.92–0.94 at μ = 0.4). φ_R did better on them than φ_DR (μ 0.4: 0.60 vs 0.69; section 7), so slip randomization costs some low-grip performance on hard tracks, a trade-off against its slip robustness (section 8).
+
+## 10. Cold start (amendment 12, Nov 13)
+
+**Where the hypothesis came from (post hoc).** Counting φ_DR's μ = 0.4 crashes by episode step in the section-8 data showed 15 / 11 / 14 of 41 / 25 / 33 (seeds 0 / 1 / 2) within the first 2 s; the Oracle has none there. Episodes start from standstill at a random point of the lap. φ gets the nominal belief until its 50-step history is full, the probe slot at steps 0–9 falls at standstill, and so φ cannot know the grip before step ~60. Until then it is Blind.
+
+**Test (registered before running, no retraining).** *Cautious start*: the policy gets the belief "grip 0.4" until the first probe pulse fired while moving has ended and φ's history is full; then φ_DR takes over unchanged. Five controllers on the same episodes: Oracle, φ_DR, Blind, φ_DR + cautious start, Blind + cautious start. Seeds 0–2, default slip model, N = 100 paired episodes per cell. Results `results/retrain_nov2026/real/amendment12/` (`stats.md`), script `tools/amendment12_suite.sh`, analysis `tools/cold_start_stats.py`.
+
+| seed | μ | crash: Oracle / φ_DR / **φ_DR + cautious start** / Blind / Blind + cautious start | φ_DR crashes in first 2 s: without / with | p (with vs without) |
+|---:|---:|---|---|---:|
+| 0 | 1.0 | 0.02 / 0.00 / **0.01** / 0.02 / 0.02 | 0 / 0 | 1 |
+| 0 | 0.6 | 0.00 / 0.01 / **0.00** / 0.56 / 0.51 | 1 / 0 | 1 |
+| 0 | 0.4 | 0.02 / 0.41 / **0.27** / 0.86 / 0.85 | 15 / 1 | 0.0013 |
+| 1 | 1.0 | 0.00 / 0.00 / **0.00** / 0.00 / 0.00 | 0 / 0 | 1 |
+| 1 | 0.6 | 0.00 / 0.00 / **0.00** / 0.43 / 0.39 | 0 / 0 | 1 |
+| 1 | 0.4 | 0.00 / 0.25 / **0.18** / 0.84 / 0.82 | 11 / 0 | 0.17 |
+| 2 | 1.0 | 0.00 / 0.00 / **0.01** / 0.00 / 0.00 | 0 / 0 | 1 |
+| 2 | 0.6 | 0.00 / 0.00 / **0.00** / 0.33 / 0.32 | 0 / 0 | 1 |
+| 2 | 0.4 | 0.09 / 0.33 / **0.22** / 0.86 / 0.84 | 14 / 0 | 0.019 |
+
+| ID | Result | Verdict |
+|---|---|---|
+| C0: reruns of Oracle / φ_DR / Blind equal the published cells | the crash outcome of every episode in the 18 published cells (μ 0.6 and 0.4) is identical | **PASS** |
+| C1: pooled μ = 0.4 drop ≥ 0.07, p < 0.05, no seed worse by > 0.02 | 0.330 → 0.223, drop **0.107**, exact McNemar p = 2.1×10⁻⁵; per seed −0.14 / −0.07 / −0.11 | **PASS** |
+| C2: no cost at μ 1.0 and 0.6 (crash ≤ +0.03, speed ≥ −0.05 m/s, every seed) | crash change ≤ +0.01; speed −0.02 to −0.05 m/s | **PASS** (seed 0 at μ 1.0 is at the speed limit of the criterion: −0.05) |
+| C3: H2 with the start equalized (φ + cs ≤ Blind + cs − 0.30, every seed) | 0.27 / 0.18 / 0.22 vs 0.85 / 0.82 / 0.84, p < 10⁻¹⁷ | **PASS** |
+
+**Reading.** The early crashes disappear (40 → 1 over the three seeds) and about four fifths of them are not merely postponed: total crashes fall from 99 to 67 of 300. The cautious start removes 36% / 28% / 46% of the φ_DR–Oracle crash gap at μ = 0.4. The same start barely helps Blind (0.84–0.86 → 0.82–0.85), so the benefit is not the start alone: it lets φ reach its first probe. On seed 1 alone the drop (0.07) is not significant (p = 0.17); the registered test was the pooled one.
+
+**What remains.** φ_DR with the cautious start still crashes 0.18–0.27 at μ = 0.4 against the Oracle's 0.00–0.09, after the first 2 s. Memory, probe rate (section 9) and cold start are now ruled out for that part; the base policy's margin at low grip remains the untested candidate.
+
+**Caveat.** Part of the cold start is the evaluation protocol: a standstill start anywhere on the lap, including mid-corner. A car starts from standstill too, but usually on a straight. The fix is still worth having on the car, where the first seconds on an unknown surface would otherwise be driven on the nominal belief; `rma_deployment_node.py` now applies it by default with the probe (`--cautious_start`, re-armed after 3 s at standstill), and `tests/test_node_sim_consistency.py` checks it against the harness step by step.
+
+## 11. A pessimistic margin (amendment 13, arm B, Nov 14)
+
+**Question.** With the cautious start, φ_DR still crashes 0.27 / 0.18 / 0.22 at μ = 0.4 (Oracle 0.02 / 0.00 / 0.09), almost none of it in the first 2 s. Is that φ overestimating grip at some moments? Test (registered before running, no retraining): shift φ's latent estimate towards the grip-0.4 latent by β (`GripBias`, `eval/harness.py`), after the cautious start. β = 0.15 and 0.30 (roughly 0.09 and 0.18 lower in grip). Seeds 0–2, N = 100 paired episodes per cell, default slip model. Results `results/retrain_nov2026/real/amendment13/bias/`, readouts `bias_stats.md`; the reference `phi_cs` episodes equal amendment 12's exactly.
+
+| μ = 0.4 crash | seed 0 | seed 1 | seed 2 | pooled (N = 300) | speed cost at μ = 1.0 (m/s) |
+|---|---|---|---|---|---|
+| φ_DR + cautious start (reference) | 0.27 | 0.18 | 0.22 | 0.223 | |
+| + β = 0.15 | 0.10 | 0.01 | 0.09 | **0.067** | −0.11 / −0.05 / −0.03 |
+| + β = 0.30 | 0.06 | 0.00 | 0.06 | **0.040** | −0.26 / −0.11 / −0.11 |
+| Oracle | 0.02 | 0.00 | 0.09 | 0.037 | |
+
+No crash at μ = 1.0 or 0.6 for either β on any seed.
+
+| ID | Result | Verdict |
+|---|---|---|
+| B1: pooled drop ≥ 0.05, Holm p < 0.05, no seed worse | β = 0.15: drop 0.157, p = 1.8×10⁻¹³; β = 0.30: drop 0.183, p = 6.6×10⁻¹⁴; every seed improves | **PASS** (both β) |
+| B2: speed at μ = 1.0 within 0.10 m/s of the reference on every seed; no crash cost | β = 0.15: seed 0 costs 0.113 m/s, a miss of 0.013; β = 0.30: 0.26 / 0.11 / 0.11 | **FAIL** (both β). β = 0.15 fails on one seed by 0.013 m/s |
+
+**Reading.** Most of the remaining low-grip crashes are overconfident grip estimates: a small pessimistic shift takes the pooled rate from 0.223 to 0.067, close to the Oracle's 0.037. The registered criterion for a *free* fix was not met: the margin costs speed at full grip, 0.03–0.11 m/s for β = 0.15 (1–5%) and 0.11–0.26 m/s for β = 0.30. B2 is reported as failed; its threshold was not loosened after seeing the data.
+
+**What this does not show.** (i) It is not an unconditional win: it trades a few percent of speed at high grip for safety at low grip, a point on the same kind of frontier as a fixed speed limit. Whether it beats a fixed limit at equal speed was not tested here (a speed-matched, margin-biased Blind is the missing control; Blind with the cautious start alone crashes 0.82–0.85, so a 0.1 m/s change in speed is unlikely to explain it, but that is not a test). (ii) Seed 0 is the weakest at full grip. (iii) The margin was chosen from two values; neither is tuned. (iv) All simulation, default slip model.
+
+## 12. Training with the cautious start (amendment 13, arm T, Nov 16–19)
+
+**Question.** φ_DR was trained on on-policy rollouts in which the car started on the nominal belief; at deployment it now starts cautious (section 10). Does retraining φ with the cautious start in its on-policy rounds close more of the μ = 0.4 gap? Same base policies, config and seeds as φ_DR except `on_policy.cautious_start: true` (`configs/real_phase2_probe_slipdr_cs.yaml`); each retrained φ is evaluated with the cautious start on the amendment-12 episodes. Results `results/retrain_nov2026/real/amendment13/train_cs/`, readouts `train_cs_stats.md`.
+
+| μ = 0.4 crash | seed 0 | seed 1 | seed 2 | pooled (N = 300) |
+|---|---|---|---|---|
+| φ_DR + cautious start (amendment 12) | 0.27 | 0.18 | 0.22 | 0.223 |
+| φ retrained with the cautious start, + cautious start | 0.40 | 0.23 | 0.26 | **0.297** |
+| per-seed p (exact McNemar) | 0.0072 | 0.33 | 0.57 | pooled 0.0092 |
+
+At μ = 1.0 and 0.6 the crash rate changes by at most 0.01 and mean speed by at most 0.02 m/s. Grip R² of the retrained φ (E5): 0.81 / 0.82 / 0.82, against φ_DR's 0.84 / 0.79 / 0.82.
+
+| ID | Result | Verdict |
+|---|---|---|
+| T1: pooled μ = 0.4 crash ≤ reference − 0.05, p < 0.05, no seed worse by > 0.02 | pooled change **+0.073** (worse), p = 0.0092; all three seeds worse (+0.13, +0.05, +0.04) | **FAIL** |
+| T2: no cost at μ = 1.0 and 0.6 (crash ≤ +0.03, speed ≥ −0.05 m/s, every seed) | crash ≤ +0.01, speed within 0.02 m/s | **PASS** |
+
+**Reading.** The prediction (T1 fails, little change) held in that T1 failed, but the direction was not "little change": the retrained modules crash more at μ = 0.4 on every seed, 0.30 against 0.22 pooled. Training with the cautious start did not help, and the result does not support the idea that the remaining gap comes from how φ was trained.
+
+**What this does not show.** (i) Only one retrained module per seed exists, so this cannot separate an effect of the change from the run-to-run variation of retraining φ; only seed 0 is significant on its own. "Retraining with the cautious start hurts" is therefore not established; "it does not help" is. (ii) No mechanism was tested. (iii) Same default slip model and 300 episodes as the rest of the amendment.
+
+**Where the gap stands.** With the cautious start, φ_DR crashes 0.223 at μ = 0.4 against the Oracle's 0.037. Of the things tested, only a pessimistic margin on φ's estimate (section 11) reduces it much, at a speed cost. Memory length, probe rate and training with the cautious start do not.

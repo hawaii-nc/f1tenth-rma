@@ -222,7 +222,7 @@ class Phase2Trainer:
         print(f"[Data Collection] Complete. Buffer has {len(self.buffer)} transitions")
 
     def _collect_parallel(self, num_episodes: int, n: int, use_phi: bool = False, seed_offset: int = 0,
-                          random_belief: bool = False):
+                          random_belief: bool = False, cautious_start: bool = False):
         """use_phi: act on φ's estimate (on-policy). random_belief: act on a grip
         belief drawn uniformly from belief_range per episode, independent of the
         true grip, so the actions carry no information about it (amendment 6).
@@ -237,6 +237,13 @@ class Phase2Trainer:
         hist = [deque(maxlen=k) for _ in range(n)]
         z_nominal = self.actor_critic.get_intrinsics(
             torch.tensor([1, 1, 1, 1, 1, 0, 0], dtype=torch.float32, device=self.device))
+        # Cautious start (amendments 12-13): with use_phi, act on a low-grip belief until the first
+        # probe pulse fired while moving has ended and the history is full (eval/harness.py CautiousStart).
+        z_low = self.actor_critic.get_intrinsics(
+            torch.tensor([0.4, 1, 1, 1, 1, 0, 0], dtype=torch.float32, device=self.device))
+        cs_seen = np.zeros(n, bool)
+        cs_released = np.zeros(n, bool)
+        cs_steps = 0
         done_eps = 0
         report = max(1, num_episodes // 10)
         brng = np.random.default_rng(int(self.config.get('phase2_training', {}).get('seed', 12345)) + seed_offset + 7)
@@ -259,6 +266,18 @@ class Phase2Trainer:
                     if full:
                         h = torch.from_numpy(np.stack([np.asarray(hist[i], np.float32) for i in full])).to(self.device)
                         z_act[full] = self.adaptation(h)
+                    if cautious_start:
+                        for i in range(n):
+                            if cs_released[i]:
+                                continue
+                            probing = bool(infos[i].get('probing', False))
+                            if probing and infos[i].get('velocity', 0.0) > 0.5:
+                                cs_seen[i] = True
+                            elif cs_seen[i] and not probing and len(hist[i]) >= k:
+                                cs_released[i] = True
+                                continue
+                            z_act[i] = z_low
+                            cs_steps += 1
                 mean, _ = self.actor_critic.policy(torch.from_numpy(obs).to(self.device), z_act)
                 act = mean.cpu().numpy()
                 zn = z.cpu().numpy()
@@ -271,6 +290,7 @@ class Phase2Trainer:
                 obs, _, dones, infos, _, _ = pool.step(act)
                 for i in np.where(dones > 0)[0]:
                     hist[i].clear()
+                    cs_seen[i] = cs_released[i] = False
                     belief[i] = brng.uniform(lo, hi)
                     if done_eps < num_episodes:
                         self.buffer.add_episode(*seqs[i])
@@ -279,6 +299,8 @@ class Phase2Trainer:
                             print(f"  Episode {done_eps}/{num_episodes}, Buffer size: {len(self.buffer)}", flush=True)
                     seqs[i] = ([], [], [])
         pool.close()
+        if cautious_start:
+            print(f"[Data Collection] cautious-start steps: {cs_steps}", flush=True)
         print(f"[Data Collection] Complete. Buffer has {len(self.buffer)} transitions")
 
     def train_epoch(self, num_epochs: int, batch_size: int):
@@ -444,7 +466,8 @@ class Phase2Trainer:
             print(f"[On-policy round {r + 1}] collecting with phi's estimates", flush=True)
             self.adaptation.eval()
             self._collect_parallel(int(onp.get('episodes_per_round', 200)), n_env, use_phi=True,
-                                   seed_offset=100_000 * (r + 1))
+                                   seed_offset=100_000 * (r + 1),
+                                   cautious_start=bool(onp.get('cautious_start', False)))
             self.adaptation.train()
             phase2_config['max_grad_steps'] = self.global_step + int(onp.get('grad_steps_per_round', 10000))
             self.train_epoch(num_epochs, batch_size)

@@ -132,3 +132,78 @@ def test_node_matches_env_closed_loop(node_module, tmp_path):
     finally:
         F1TenthRMAEnv.wrapper_factory = None
         FakeSim.half_width = old_hw
+
+
+@pytest.mark.skipif(not (P1.exists() and P2.exists()), reason='R checkpoints not present')
+def test_node_cautious_start_matches_harness(node_module, tmp_path, monkeypatch):
+    """Amendment 12: the node holds the low-grip belief for exactly the steps the
+    evaluation harness's CautiousStart does, then hands over to φ; idling re-arms it."""
+    import torch
+    import yaml
+    from fake_sim import FakeSim
+    from f1tenth_research.envs import F1TenthRMAEnv
+    from f1tenth_research.eval.harness import CAUTIOUS_START_GRIP, Belief, CautiousStart, Controller
+    cfg = yaml.safe_load((REPO / 'configs/real_phase2_probe.yaml').read_text())
+    env_cfg = cfg['environment']
+    env_cfg['tracks'] = ['aut']
+    env_cfg['sensors'] = {'model': 'car', 'speed_noise': 0.0}
+    env_cfg['observation']['lidar_noise_std'] = 0.0
+    env_cfg['observation']['lidar_dropout_prob'] = 0.0
+    pr = env_cfg['probe']
+    pr['max_steer'] = 1.0
+    # Plumbing test on the fake circle: under the low-grip belief the fake car creeps at ~0.3 m/s
+    # and a -1 m/s pulse stops it, so use a small pulse and a low "moving" threshold on both sides.
+    pr['amplitude'] = -0.1
+    import f1tenth_research.eval.harness as harness
+    monkeypatch.setattr(harness, 'MOVING_SPEED', 0.1)
+    monkeypatch.setattr(node_module, 'CAUTIOUS_MOVING_SPEED', 0.1)
+    F1TenthRMAEnv.wrapper_factory = staticmethod(FakeSim)
+    old_hw = FakeSim.half_width
+    FakeSim.half_width = 50.0
+    try:
+        env = F1TenthRMAEnv(config=cfg)
+        node = node_module.RMADeploymentNode(
+            str(P1), str(P2), control_freq=100.0, log_path=str(tmp_path / 'log.csv'),
+            footprint_margin=env.sensor_cfg['footprint_margin'], probe=True,
+            probe_period=pr['period_steps'], probe_duration=pr['duration_steps'],
+            probe_amplitude=pr['amplitude'], probe_max_steer=pr['max_steer'], cautious_start=True)
+        # the node's cautious belief is the harness's Belief(0.4)
+        z = Belief(node.actor_critic, CAUTIOUS_START_GRIP).intrinsics({}, [])
+        assert torch.allclose(node.cautious_intrinsics.flatten(), z.flatten(), atol=1e-6)
+
+        class Const(Controller):
+            def __init__(self, name, k=1):
+                self.name, self.k = name, k
+
+            def intrinsics(self, info, history):
+                return self.name
+
+        ref = CautiousStart(Const('phi', k=node.history_window), Const('low'))
+        obs, info = env.reset(seed=3, options={'training': False, 'track': 'aut', 'obs_noise': False})
+        hist, sources = [], []
+        for t in range(160):
+            want = ref.intrinsics(info, hist)
+            node.odom_callback(_NS(twist=_NS(twist=_NS(linear=_NS(x=float(obs[0])), angular=_NS(z=float(obs[4])))),
+                                   pose=_NS(pose=_NS(position=_NS(x=0.0, y=0.0)))))
+            node.lidar_callback(_NS(ranges=env._scan_hold.tolist()))
+            node.control_loop()
+            got = 'phi' if node._cs_released else 'low'
+            assert got == want, f'step {t}: node {got}, harness {want}'
+            sources.append(got)
+            action = node.history[-1][-2:].copy()
+            hist.append(np.concatenate([obs, action]))
+            obs, _, term, trunc, info = env.step(action)
+            if term:
+                break
+        assert sources[0] == "low" and sources[-1] == "phi", 'never handed over to φ'
+        assert sources.index('phi') >= node.history_window
+
+        # 3 s at standstill re-arms the cautious start
+        node.odom_callback(_NS(twist=_NS(twist=_NS(linear=_NS(x=0.0), angular=_NS(z=0.0))),
+                               pose=_NS(pose=_NS(position=_NS(x=0.0, y=0.0)))))
+        for _ in range(node.stationary_timeout_ticks + 1):
+            node.control_loop()
+        assert not node._cs_released
+    finally:
+        F1TenthRMAEnv.wrapper_factory = None
+        FakeSim.half_width = old_hw

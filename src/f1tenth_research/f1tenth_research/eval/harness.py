@@ -17,6 +17,7 @@ the same seed, track and physics draw. Actions are the policy mean
 (deterministic). LiDAR noise and spawn-heading drift are off.
 """
 
+import re
 import csv
 import json
 from collections import deque
@@ -105,10 +106,82 @@ class Phi(_Base):
         return self.encode(NOMINAL_PARAMS)
 
 
+class CautiousStart(Controller):
+    """
+    Cold-start guard (amendment 12): hold a low-grip belief from the start of the
+    episode until the first probe pulse fired while the car was moving has ended
+    (and the inner controller's history, if it has one, is full); then hand over
+    to the inner controller for the rest of the episode.
+
+    Without it, φ runs on the nominal belief for its first k steps and has no
+    probe response in its window until the first pulse at speed, so on low grip
+    it starts as Blind. Uses only what the car's node knows: when it probed and
+    whether it was moving.
+    """
+
+    def __init__(self, inner: Controller, cautious: Controller, name: Optional[str] = None):
+        self.inner = inner
+        self.cautious = cautious
+        self.name = name or f'{inner.name}_cs'
+        self.k = getattr(inner, 'k', 1)
+        self.reset()
+
+    def reset(self):
+        self.inner.reset()
+        self.cautious.reset()
+        self._pulse_seen = False
+        self._released = False
+
+    def intrinsics(self, info, history):
+        if not self._released:
+            probing = bool(info.get('probing', False))
+            if probing and info.get('velocity', 0.0) > MOVING_SPEED:
+                self._pulse_seen = True
+            elif self._pulse_seen and not probing and len(history) >= self.k:
+                self._released = True
+        if self._released:
+            return self.inner.intrinsics(info, history)
+        return self.cautious.intrinsics(info, history)
+
+
+CAUTIOUS_START_GRIP = 0.4   # lowest grip of the training range
+
+
+class GripBias(Controller):
+    """
+    Pessimistic margin (amendment 13): shift the inner controller's intrinsics by
+    beta times the latent step from nominal grip to grip 0.4,
+        z' = z + beta * (mu(grip 0.4) - mu(grip 1.0)),   other physics nominal,
+    i.e. make the policy believe grip is lower than estimated by about 0.6 * beta.
+    """
+
+    def __init__(self, inner: _Base, beta: float, name: Optional[str] = None):
+        self.inner = inner
+        self.beta = float(beta)
+        self.name = name or f'{inner.name}_b{round(100 * beta):d}'
+        self.k = getattr(inner, 'k', 1)
+        low = list(NOMINAL_PARAMS)
+        low[0] = CAUTIOUS_START_GRIP
+        self._shift = self.beta * (inner.encode(low) - inner.encode(NOMINAL_PARAMS))
+
+    def reset(self):
+        self.inner.reset()
+
+    def intrinsics(self, info, history):
+        return self.inner.intrinsics(info, history) + self._shift
+
+
 def make_controllers(actor_critic, adaptation, names: Sequence[str], device='cpu') -> List[Controller]:
     out = []
     for n in names:
-        if n == 'oracle':
+        if n.endswith('_cs'):   # e.g. phi_cs, blind_cs: cautious start, then the named controller
+            inner = make_controllers(actor_critic, adaptation, [n[:-3]], device)[0]
+            out.append(CautiousStart(inner, Belief(actor_critic, CAUTIOUS_START_GRIP, device)))
+        elif re.fullmatch(r'.+_b\d+', n):   # e.g. phi_b15: grip estimate biased low by beta = 0.15
+            base, b = n.rsplit('_b', 1)
+            inner = make_controllers(actor_critic, adaptation, [base], device)[0]
+            out.append(GripBias(inner, int(b) / 100.0))
+        elif n == 'oracle':
             out.append(Oracle(actor_critic, device))
         elif n == 'blind':
             out.append(Blind(actor_critic, device))
